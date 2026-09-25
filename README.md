@@ -53,6 +53,28 @@ skill tells it how. The transcription model downloads itself the first time.
 (subtitles with timings) and `edited.takes.tsv` (every piece of your
 footage, kept or cut, with what you said in it).
 
+## Check it, cut what is left, leave notes
+
+```sh
+python scripts/review.py edited.mp4
+```
+
+A page opens in your browser: the video, what you say sentence by sentence,
+the sound wave with every join, and what the script already cut. You do two
+things there. **Cut** a sentence it missed (click it, press X: you hear the
+cut straight away). **Leave a note** on a moment (N: "too long here", "keep
+the first take"). It saves as you go. Then tell Claude "apply my edits": it
+cuts, reads your notes and does what they say. No install: it is Python and
+a single HTML file.
+
+## Finish it with Remotion (optional)
+
+If you have Node, `remotion/` turns the rough cut into a reel: captions
+where the word being said lights up, a title on top. Two layouts, no split
+screen: you **full screen**, or your video **in a card** on a dark
+background, for a clip filmed sideways. It picks by itself from the way you
+filmed. Ask Claude "finish it with Remotion".
+
 ## How it cuts
 
 1. **Joins your clips**, in the order you give them, without re-encoding.
@@ -77,7 +99,7 @@ footage, kept or cut, with what you said in it).
 
 ## What it does not do (yet)
 
-No burned-in subtitles, no cover on frame 0, no music, no b-roll. I have
+Without Remotion: no burned-in subtitles. And no cover on frame 0, no music, no b-roll. I have
 all of that in my own pipeline; if you want one of them here, open an issue
 or say so under the video, and I will add the ones people ask for.
 
@@ -132,6 +154,12 @@ Téléchargements »**. S'il manque un outil, c'est lui qui l'installe. Il
 coupe les blancs, les faux départs et les reprises (il garde toujours ta
 **dernière** prise), sans jamais couper un mot en deux, et te rend la
 transcription. Tout tourne sur ta machine, sans compte ni clé d'API.
+
+Ensuite, **« ouvre la page de relecture »** : tu vois la vidéo, le texte et
+l'onde sonore. Tu coupes ce qui reste (clic sur la phrase, X) et tu laisses
+des notes (N). Puis **« applique mes coupes »**. Tu as Node ? **« finis-la
+avec Remotion »** : sous-titres et titre, toi en plein écran ou ta vidéo
+dans un cadre si tu as filmé à l'horizontale.
 
 **Ordinateur modeste ?** Le modèle par défaut pèse 1,6 Go. Sur un PC sans
 carte graphique, dis-lui « prends le modèle small » (0,49 Go, plusieurs

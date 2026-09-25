@@ -31,7 +31,7 @@ The model downloads itself the first time (~/.cache/whisper-cpp/).
 Without whisper-cli the edit still comes out: silences only.
 macOS, Windows, Linux. Nothing leaves the machine.
 """
-import argparse, difflib, math, os, re, shutil, subprocess, sys, tempfile, unicodedata, urllib.request, wave
+import argparse, array, difflib, json, math, os, re, shutil, subprocess, sys, tempfile, unicodedata, urllib.request, wave
 
 for _s in (sys.stdout, sys.stderr):          # non-ASCII on the Windows console
     if hasattr(_s, 'reconfigure'):
@@ -59,6 +59,8 @@ ap.add_argument('--protect', nargs='*', default=[], metavar='A:B',
                 help='A:B windows (s, joined footage) never to cut: a deliberate pause')
 ap.add_argument('--cut', nargs='*', default=[], metavar='A:B',
                 help='A:B windows (s, joined footage) to remove on top of the automatic cuts')
+ap.add_argument('--edits', metavar='FILE',
+                help='cuts and notes saved by the review page (default: <out>.edits.json, if it exists)')
 ap.add_argument('--keep-retakes', action='store_true', help='keep every take')
 ap.add_argument('--keep-fillers', action='store_true', help='keep the islands that are only "um"')
 ap.add_argument('--no-transcript', action='store_true', help='skip whisper: silences only')
@@ -90,7 +92,8 @@ def probe(path, entries, stream=None):
     if stream:
         cmd += ['-select_streams', stream]
     cmd += ['-show_entries', entries, '-of', 'csv=p=0', path]
-    return run(cmd).stdout.strip()
+    # an iPhone clip carries a rotation (side data): ffprobe then ends the line with a comma
+    return run(cmd).stdout.strip().split('\n')[0].strip().rstrip(',')
 
 
 def say(msg):
@@ -407,6 +410,12 @@ def tail_restarted(ti, nexts):
 
 
 protect, extra_cuts = windows(args.protect), windows(args.cut)
+EDITS = args.edits or f'{base}.edits.json'          # written by scripts/review.py
+edits = json.load(open(EDITS, encoding='utf-8')) if os.path.exists(EDITS) else {}
+extra_cuts += [(float(c['start']), float(c['end'])) for c in edits.get('cuts', [])]
+if edits:
+    say(f'{os.path.basename(EDITS)}: {len(edits.get("cuts", []))} cut(s), '
+        f'{len(edits.get("notes", []))} note(s)')
 
 
 def protected(a, b):
@@ -546,6 +555,10 @@ for ca, cb in extra_cuts:                                   # --cut: carve out
             nk.append((cb, b))
     keep = nk
 segs = [snap_in(a, b) for a, b in keep if b - a >= 2 * FRAME]
+for a, b, t in live:                                        # an island cut by hand leaves the transcript
+    if any(ca <= (a + b) / 2 <= cb for ca, cb in extra_cuts):
+        log[(a, b)] = ('cut', t)
+live = [x for x in live if log.get(x[:2], ('kept',))[0] != 'cut']
 if os.environ.get('EDIT_VIDEO_SEGMENTS'):                 # for dev/check_edit.py
     open(os.environ['EDIT_VIDEO_SEGMENTS'], 'w').writelines(f'{a:.6f}\t{b:.6f}\n' for a, b in segs)
 if not segs:
@@ -582,7 +595,43 @@ run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map'
      '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out])
 say(f'-> {out}')
 
-# 7. transcript + the list of takes ----------------------------------------------
+
+# 7. the timeline the review page reads (scripts/review.py) ----------------------
+def peaks(rate=50):
+    """Loudness of the EDITED sound, `rate` values a second, 0-100."""
+    with wave.open(WAV) as w:
+        sr = w.getframerate()
+        data = array.array('h', w.readframes(w.getnframes()))
+    if sys.byteorder == 'big':
+        data.byteswap()
+    step, vals = sr // rate, []
+    for a, b in segs:
+        i, j = int(a * sr), int(b * sr)
+        for k in range(i, j, step):
+            s = data[k:min(k + step, j)]
+            vals.append(max(max(s), -min(s)) if s else 0)
+    top = max(vals, default=0) or 1
+    return [round(100 * v / top) for v in vals]
+
+
+width, height = map(int, probe(out, 'stream=width,height', 'v:0').split(',')[:2])
+with open(f'{base}.timeline.json', 'w', encoding='utf-8') as f:
+    json.dump({
+        'video': os.path.basename(out), 'width': width, 'height': height,
+        'fps': round(1 / FRAME, 3), 'lang': args.lang,
+        'source_duration': round(dur, 3), 'duration': round(kept_dur, 3),
+        'segments': [[round(a, 3), round(b, 3)] for a, b in segs],
+        'islands': [{'a': round(a, 3), 'b': round(b, 3), 'start': round(to_out(a), 3),
+                     'end': round(to_out(b), 3), 'text': t} for a, b, t in sorted(live)],
+        'removed': [{'at': round(to_out(a), 3), 'a': a, 'b': b, 'why': st,
+                     'text': cache.get(key((a, b)), t)}
+                    for (a, b), (st, t) in sorted(log.items()) if st != 'kept'],
+        'warnings': [{'at': round(to_out(t), 3), 'text': m} for t, m in sorted(warnings)],
+        'peaks_per_second': 50, 'peaks': peaks(),
+    }, f, ensure_ascii=False)
+say(f'-> {base}.timeline.json  (review it: python scripts/review.py {os.path.relpath(out)})')
+
+# 8. transcript + the list of takes ----------------------------------------------
 if use_whisper:
     def ts(t):
         ms = int(round(t * 1000))
@@ -618,5 +667,7 @@ if use_whisper:
     say(f'-> {base}.txt + {base}.srt + {base}.takes.tsv')
     for t, msg in sorted(warnings):
         say(f'  to check at {to_out(t):.1f}s in the video: {msg}')
+for n in edits.get('notes', []):                             # for Claude: read them, act, say what you did
+    say(f'  note at {to_out(float(n["at"])):.1f}s in the video: {n["text"]}')
 
 shutil.rmtree(work, ignore_errors=True)

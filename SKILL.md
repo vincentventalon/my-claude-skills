@@ -58,7 +58,47 @@ The model downloads itself on the first run, into `~/.cache/whisper-cpp/`:
    second pass, a sentence lost costs the video. Never cut something just
    because it is off topic, a joke or an aside.
 4. Hand back the path of the video, what you cut and why, and the `to
-   check` times if any.
+   check` times if any. Offer the review page (below).
+
+## Review: the user cuts what is left, and leaves notes
+
+```sh
+python scripts/review.py edited.mp4
+```
+
+Opens a page in the browser (standard library only, 127.0.0.1): the video,
+the transcript sentence by sentence, the sound wave with every join, and
+what the script cut (✂). The user does two things there and nothing else:
+**cut** (select sentences or drag on the wave, press X; they hear the cut
+at once) and **note** (N, free text at a moment). Everything is saved as
+they go into `edited.edits.json` (times of the joined footage, like
+`edited.takes.tsv`).
+
+When they say "apply my edits" (or "c'est bon", "j'ai fini"): run
+`edit_video.py` again with the **same clips and the same `-o`**. It reads
+`edited.edits.json` by itself, applies the cuts, re-transcribes nothing,
+and prints each note as `note at 42.0s in the video: ...`. **The notes are
+for you**: read each one, act (a `--cut`, a `--protect`, a setting), run
+again if needed, and say what you did for each note. A note you cannot act
+on: say so, do not guess. Then offer the page again.
+
+## Finish (optional): captions and title with Remotion
+
+Only if the user wants a finished reel and has Node 18+:
+
+```sh
+cp edited.mp4 remotion/public/video.mp4
+cp edited.timeline.json remotion/public/timeline.json
+cd remotion && npm install
+npx remotion render src/index.ts Reel out/reel.mp4 --props='{"title":"My *big* idea","layout":"auto"}'
+```
+
+1080x1920, captions from the transcript (the word being said lights up),
+a title on top (`*word*` = highlighted, `""` = none). Two layouts, no
+split screen: `full` (the person fills the screen) and `frame` (the video
+in a card on a dark background, for a clip filmed sideways). `auto`
+picks: filmed upright = `full`, sideways = `frame`. `npm run studio` to
+preview. `"captions": false` to turn them off.
 
 ## Settings
 

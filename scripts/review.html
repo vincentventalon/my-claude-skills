@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit review</title>
+<style>
+  :root {
+    --bg: #0a0c0f; --panel: #12151a; --panel2: #171b21; --line: #232830;
+    --text: #e7e9ec; --muted: #7c8591; --dim: #4a515c;
+    --wave1: #e9f76a; --wave2: #5fe3a1; --island: rgba(95, 227, 161, .08);
+    --cut: #ff5c5c; --note: #ffd24a; --sel: #5aa9ff; --warn: #ff9f43; --join: #3a414c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  body { display: grid; grid-template-rows: auto 1fr auto auto; height: 100vh; overflow: hidden; }
+
+  header { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: .01em; }
+  header .file { color: var(--muted); }
+  .pills { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .pill { padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+  .pill b { color: var(--text); font-weight: 600; }
+  .pill.big b { background: linear-gradient(90deg, var(--wave1), var(--wave2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #save { font-size: 12.5px; color: var(--muted); min-width: 70px; text-align: right; }
+  #save.err { color: var(--cut); }
+
+  main { display: grid; grid-template-columns: minmax(280px, 42%) 1fr; min-height: 0; }
+  .stage { display: flex; align-items: center; justify-content: center; padding: 18px; min-height: 0; background:
+    radial-gradient(ellipse at 50% 40%, rgba(95,227,161,.06), transparent 60%); }
+  video { max-width: 100%; max-height: 100%; border-radius: 14px; background: #000;
+    box-shadow: 0 20px 60px rgba(0,0,0,.55), 0 0 0 1px var(--line); }
+
+  .script { border-left: 1px solid var(--line); overflow-y: auto; padding: 22px 26px 80px; background: var(--panel); scroll-behavior: smooth; }
+  .script p { margin: 0; font-size: 17px; line-height: 1.75; }
+  .isl { padding: 2px 3px; border-radius: 5px; cursor: pointer; color: var(--muted); transition: color .15s, background .15s; }
+  .isl.past { color: #aab1ba; }
+  .isl.now { color: #fff; background: rgba(233,247,106,.10); box-shadow: inset 0 -2px 0 var(--wave1); }
+  .isl:hover { background: rgba(255,255,255,.05); }
+  .isl.sel { background: rgba(90,169,255,.22); color: #fff; }
+  .isl.cut { color: var(--cut); text-decoration: line-through; text-decoration-thickness: 2px; opacity: .7; }
+  .gone { display: inline-flex; align-items: center; gap: 4px; margin: 0 4px; padding: 0 7px; border-radius: 999px;
+    font-size: 12px; line-height: 20px; vertical-align: 2px; color: var(--dim); border: 1px dashed var(--line); cursor: help; }
+  .gone s { max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gone.warn { color: var(--warn); border-color: rgba(255,159,67,.4); }
+  .noteChip { display: inline-flex; gap: 6px; align-items: center; margin: 0 4px; padding: 0 8px; border-radius: 6px;
+    background: rgba(255,210,74,.12); color: var(--note); font-size: 13px; line-height: 22px; vertical-align: 1px; cursor: pointer; }
+  .noteChip.sel { outline: 1px solid var(--note); }
+  .noteChip i { font-style: normal; opacity: .6; }
+
+  #composer { position: sticky; bottom: 0; margin-top: 18px; display: none; gap: 8px; align-items: center;
+    padding: 10px; border-radius: 10px; background: var(--panel2); border: 1px solid rgba(255,210,74,.4); }
+  #composer.on { display: flex; }
+  #composer span { color: var(--note); white-space: nowrap; }
+  #composer input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 15px; }
+
+  .tl { position: relative; border-top: 1px solid var(--line); background: var(--panel); }
+  canvas { display: block; width: 100%; height: 150px; cursor: text; }
+  .tlbar { display: flex; gap: 8px; align-items: center; position: absolute; right: 12px; top: 8px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 7px;
+    padding: 4px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  button:hover { border-color: var(--dim); }
+  button.go { border-color: rgba(255,92,92,.5); color: var(--cut); }
+  button:disabled { opacity: .35; cursor: default; }
+
+  footer { display: flex; gap: 18px; align-items: center; padding: 8px 18px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 12.5px; flex-wrap: wrap; }
+  kbd { font: 11.5px ui-monospace, Menlo, monospace; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line);
+    border-bottom-width: 2px; color: var(--text); background: var(--panel2); }
+  #next { margin-left: auto; color: var(--text); }
+  #next b { color: var(--wave1); }
+
+  @media (max-width: 800px) {
+    body { height: auto; overflow: auto; grid-template-rows: auto auto auto auto; }
+    main { grid-template-columns: 1fr; }
+    .stage { height: 55vh; }
+    .script { border-left: 0; border-top: 1px solid var(--line); max-height: 45vh; }
+    .pills { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Edit review</h1><span class="file mono" id="file"></span>
+  <div class="pills" id="pills"></div>
+  <span id="save"></span>
+</header>
+<main>
+  <div class="stage"><video id="v" src="/video" playsinline preload="auto"></video></div>
+  <div class="script" id="script"><p id="text"></p>
+    <div id="composer"><span class="mono" id="composerAt"></span><input id="noteInput" placeholder="What should the edit do here? (Enter to save, Esc to cancel)"></div>
+  </div>
+</main>
+<div class="tl">
+  <canvas id="c"></canvas>
+  <div class="tlbar">
+    <button id="zoomOut" title="zoom out (-)">−</button><button id="zoomIn" title="zoom in (+)">+</button>
+    <button id="cutBtn" class="go" disabled>✂ Cut <kbd>X</kbd></button>
+  </div>
+</div>
+<footer>
+  <span><kbd>Space</kbd> play</span>
+  <span>click a sentence, <kbd>Shift</kbd>+click to extend, or drag on the wave</span>
+  <span><kbd>X</kbd> cut</span><span><kbd>N</kbd> note</span><span><kbd>⌫</kbd> remove a cut / note</span>
+  <span><kbd>←</kbd><kbd>→</kbd> 1 s</span>
+  <span id="next"></span>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const V = $('v'), C = $('c'), X = C.getContext('2d');
+let T, E = { cuts: [], notes: [] };
+let sel = null;            // {o0, o1} in edited time
+let anchor = null;         // island index for shift-click
+let picked = null;         // {kind: 'cut'|'note', i}
+let view = [0, 1];         // visible window of the timeline, edited time
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = t - m * 60;
+  return `${m}:${s.toFixed(1).padStart(4, '0')}`; };
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// source time (joined footage, what edit_video.py reads) <-> edited time (what you watch)
+function srcToOut(t) {
+  let cum = 0;
+  for (const [a, b] of T.segments) { if (t < a) return cum; if (t <= b) return cum + t - a; cum += b - a; }
+  return cum;
+}
+function outToSrc(o0, o1) {
+  const out = []; let cum = 0;
+  for (const [a, b] of T.segments) {
+    const c0 = cum, c1 = cum + b - a; cum = c1;
+    const x0 = Math.max(o0, c0), x1 = Math.min(o1, c1);
+    if (x1 - x0 > 0.001) out.push([+(a + x0 - c0).toFixed(3), +(a + x1 - c0).toFixed(3)]);
+  }
+  return out;
+}
+// a cut still in the video = pending; one the last render already removed = applied
+const cutOut = c => [srcToOut(c.start), srcToOut(c.end)];
+const pending = () => E.cuts.map((c, i) => ({ c, i, r: cutOut(c) })).filter(x => x.r[1] - x.r[0] > 0.02);
+
+// ---- load -----------------------------------------------------------------------
+Promise.all([fetch('/timeline.json').then(r => r.json()), fetch('/edits.json').then(r => r.json())]).then(([t, e]) => {
+  T = t; E = { cuts: e.cuts || [], notes: e.notes || [] };
+  view = [0, T.duration];
+  $('file').textContent = T.video;
+  const n = w => T.removed.filter(r => w.includes(r.why)).length;
+  const saved = T.source_duration - T.duration;
+  $('pills').innerHTML =
+    `<span class="pill big"><b class="mono">${fmt(T.source_duration)} → ${fmt(T.duration)}</b></span>` +
+    `<span class="pill"><b>−${Math.round(100 * saved / T.source_duration)}%</b> dead air &amp; takes</span>` +
+    `<span class="pill"><b>${n(['retake'])}</b> retakes cut</span>` +
+    `<span class="pill"><b>${n(['filler', 'no-speech'])}</b> ums &amp; noises</span>` +
+    (T.warnings.length ? `<span class="pill" style="color:var(--warn)"><b>${T.warnings.length}</b> to check</span>` : '');
+  renderText(); resize(); requestAnimationFrame(loop);
+});
+
+// ---- the script panel -----------------------------------------------------------
+function renderText() {
+  const items = [];
+  T.islands.forEach((s, i) => items.push({ t: s.start, k: 0, html:
+    `<span class="isl" data-i="${i}">${esc(s.text || '…')}</span> ` }));
+  const groups = {};
+  for (const r of T.removed) if (r.why === 'retake' || r.why === 'cut') (groups[r.at.toFixed(2)] ||= []).push(r);
+  for (const [at, rs] of Object.entries(groups)) {
+    const tip = rs.map(r => `${r.why}: ${r.text}`).join('\n');
+    items.push({ t: +at, k: -1, html: `<span class="gone" title="${esc(tip)}">✂ <s>${esc(rs[rs.length - 1].text)}</s></span>` });
+  }
+  for (const w of T.warnings) items.push({ t: w.at, k: -1, html: `<span class="gone warn" title="${esc(w.text)}">⚠ check</span>` });
+  E.notes.forEach((n, i) => items.push({ t: srcToOut(n.at), k: 1, html:
+    `<span class="noteChip${picked && picked.kind === 'note' && picked.i === i ? ' sel' : ''}" data-n="${i}">✎ ${esc(n.text)} <i>×</i></span> ` }));
+  items.sort((a, b) => a.t - b.t || a.k - b.k);
+  $('text').innerHTML = items.map(x => x.html).join('');
+  paintText(true);
+}
+let lastNow = -1;
+function paintText(force) {
+  const t = V.currentTime, cuts = pending().map(x => x.r);
+  const now = T.islands.findIndex(s => t >= s.start - 0.05 && t < s.end + 0.1);
+  document.querySelectorAll('.isl').forEach(el => {
+    const s = T.islands[+el.dataset.i], mid = (s.start + s.end) / 2;
+    el.classList.toggle('past', s.end <= t);
+    el.classList.toggle('now', +el.dataset.i === now);
+    el.classList.toggle('cut', cuts.some(([a, b]) => mid >= a && mid <= b));
+    el.classList.toggle('sel', !!sel && mid >= sel.o0 && mid <= sel.o1);
+  });
+  if (now !== lastNow && now >= 0 && !V.paused) {
+    const el = document.querySelector(`.isl[data-i="${now}"]`), box = $('script');
+    if (el && (el.offsetTop < box.scrollTop + 60 || el.offsetTop > box.scrollTop + box.clientHeight - 120))
+      box.scrollTop = el.offsetTop - box.clientHeight / 3;
+  }
+  lastNow = now;
+  $('cutBtn').disabled = !sel;
+  const p = pending().length, n = E.notes.length;
+  $('next').innerHTML = p || n
+    ? `<b>${p}</b> cut${p > 1 ? 's' : ''} · <b>${n}</b> note${n > 1 ? 's' : ''} saved — tell Claude: <b>“apply my edits”</b>`
+    : 'nothing to change? the video is done.';
+}
+// span of island i in edited time, reaching halfway into the gaps around it
+function islandSpan(i) {
+  const I = T.islands, s = I[i];
+  const lo = i ? (I[i - 1].end + s.start) / 2 : 0;
+  const hi = i + 1 < I.length ? (s.end + I[i + 1].start) / 2 : T.duration;
+  return [lo, hi];
+}
+$('text').addEventListener('click', ev => {
+  const nc = ev.target.closest('.noteChip');
+  if (nc) {
+    const i = +nc.dataset.n;
+    if (ev.target.tagName === 'I') { E.notes.splice(i, 1); picked = null; save(); renderText(); return; }
+    picked = { kind: 'note', i }; V.currentTime = srcToOut(E.notes[i].at); renderText(); return;
+  }
+  const el = ev.target.closest('.isl'); if (!el) return;
+  const i = +el.dataset.i; picked = null;
+  if (ev.shiftKey && anchor !== null) {
+    const [a] = islandSpan(Math.min(anchor, i)), [, b] = islandSpan(Math.max(anchor, i));
+    sel = { o0: a, o1: b };
+  } else {
+    anchor = i; const [a, b] = islandSpan(i); sel = { o0: a, o1: b };
+    V.currentTime = T.islands[i].start;
+  }
+  paintText(); draw();
+});
+
+// ---- cuts & notes ---------------------------------------------------------------
+function textIn(o0, o1) {
+  return T.islands.filter(s => (s.start + s.end) / 2 >= o0 && (s.start + s.end) / 2 <= o1).map(s => s.text).join(' ');
+}
+function cut() {
+  if (!sel) return;
+  const text = textIn(sel.o0, sel.o1);
+  for (const [a, b] of outToSrc(sel.o0, sel.o1)) E.cuts.push({ start: a, end: b, text });
+  E.cuts.sort((x, y) => x.start - y.start);
+  sel = null; anchor = null; save(); paintText(); draw();
+}
+function openNote() {
+  V.pause();
+  $('composerAt').textContent = `✎ at ${fmt(V.currentTime)}`;
+  $('composer').classList.add('on'); $('noteInput').value = ''; $('noteInput').focus();
+  $('composer').scrollIntoView({ block: 'nearest' });
+}
+$('noteInput').addEventListener('keydown', ev => {
+  ev.stopPropagation();
+  if (ev.key === 'Escape') { $('composer').classList.remove('on'); $('noteInput').blur(); }
+  if (ev.key === 'Enter' && $('noteInput').value.trim()) {
+    const o = V.currentTime;
+    const src = outToSrc(Math.max(0, o - 0.001), o + 0.001)[0];
+    E.notes.push({ at: src ? src[0] : 0, text: $('noteInput').value.trim() });
+    E.notes.sort((a, b) => a.at - b.at);
+    $('composer').classList.remove('on'); $('noteInput').blur(); save(); renderText(); draw();
+  }
+});
+function removePicked() {
+  if (!picked) return;
+  (picked.kind === 'cut' ? E.cuts : E.notes).splice(picked.i, 1);
+  picked = null; save(); renderText(); draw();
+}
+let timer;
+function save() {
+  $('save').textContent = 'saving…'; $('save').className = '';
+  clearTimeout(timer);
+  timer = setTimeout(() => fetch('/edits.json', { method: 'POST', body: JSON.stringify(E, null, 1) })
+    .then(r => { if (!r.ok) throw 0; $('save').textContent = 'saved ✓'; })
+    .catch(() => { $('save').textContent = 'not saved: is review.py running?'; $('save').className = 'err'; }), 250);
+}
+
+// ---- timeline -------------------------------------------------------------------
+const H = 150, RULER = 20, MID = RULER + (H - RULER) / 2;
+let W = 0, dpr = 1;
+function resize() {
+  dpr = window.devicePixelRatio || 1; W = C.clientWidth;
+  C.width = W * dpr; C.height = H * dpr; X.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
+}
+window.addEventListener('resize', resize);
+const tx = t => (t - view[0]) / (view[1] - view[0]) * W;
+const xt = x => view[0] + x / W * (view[1] - view[0]);
+
+function draw() {
+  if (!T || !W) return;
+  X.clearRect(0, 0, W, H);
+  const span = view[1] - view[0];
+  // islands
+  X.fillStyle = css('--island');
+  for (const s of T.islands) X.fillRect(tx(s.start), RULER, Math.max(1, tx(s.end) - tx(s.start)), H - RULER);
+  // wave: one bar per 3 px, the loudest peak under it
+  const g = X.createLinearGradient(0, RULER, 0, H);
+  g.addColorStop(0, css('--wave1')); g.addColorStop(.5, css('--wave2')); g.addColorStop(1, css('--wave1'));
+  const pps = T.peaks_per_second, amp = (H - RULER) / 2 - 8, t = V.currentTime;
+  for (let x = 0; x < W; x += 3) {
+    const i0 = Math.floor(xt(x) * pps), i1 = Math.max(i0 + 1, Math.floor(xt(x + 3) * pps));
+    let m = 0; for (let i = Math.max(0, i0); i < Math.min(T.peaks.length, i1); i++) m = Math.max(m, T.peaks[i]);
+    const h = Math.max(1, m / 100 * amp);
+    X.fillStyle = g; X.globalAlpha = xt(x) < t ? 1 : .45;
+    X.fillRect(x, MID - h, 2, h * 2);
+  }
+  X.globalAlpha = 1;
+  // joins of the edit, with what went out there
+  X.strokeStyle = css('--join'); X.lineWidth = 1;
+  let cum = 0;
+  for (const [a, b] of T.segments.slice(0, -1)) { cum += b - a; const x = Math.round(tx(cum)) + .5;
+    X.beginPath(); X.moveTo(x, RULER); X.lineTo(x, H); X.stroke(); }
+  X.fillStyle = css('--muted');
+  for (const r of T.removed) if (r.why === 'retake') { const x = tx(r.at);
+    X.beginPath(); X.moveTo(x - 4, RULER); X.lineTo(x + 4, RULER); X.lineTo(x, RULER + 6); X.fill(); }
+  X.fillStyle = css('--warn');
+  for (const w of T.warnings) { const x = tx(w.at); X.fillRect(x - 1, RULER, 2, H - RULER); }
+  // cuts waiting for the next render: red, hatched
+  pending().forEach(({ r: [a, b], i }) => {
+    const x0 = tx(a), x1 = tx(b), on = picked && picked.kind === 'cut' && picked.i === i;
+    X.fillStyle = on ? 'rgba(255,92,92,.45)' : 'rgba(255,92,92,.22)'; X.fillRect(x0, RULER, x1 - x0, H - RULER);
+    X.save(); X.beginPath(); X.rect(x0, RULER, x1 - x0, H - RULER); X.clip();
+    X.strokeStyle = 'rgba(255,92,92,.7)';
+    for (let x = x0 - H; x < x1; x += 8) { X.beginPath(); X.moveTo(x, H); X.lineTo(x + H - RULER, RULER); X.stroke(); }
+    X.restore();
+  });
+  // selection
+  if (sel) { X.fillStyle = 'rgba(90,169,255,.22)'; X.fillRect(tx(sel.o0), RULER, tx(sel.o1) - tx(sel.o0), H - RULER);
+    X.fillStyle = css('--sel'); X.fillRect(tx(sel.o0) - 1, RULER, 2, H - RULER); X.fillRect(tx(sel.o1) - 1, RULER, 2, H - RULER); }
+  // notes
+  E.notes.forEach((n, i) => { const x = tx(srcToOut(n.at));
+    X.fillStyle = css('--note'); X.fillRect(x - 1, RULER, 2, H - RULER);
+    X.beginPath(); X.arc(x, RULER + 7, picked && picked.kind === 'note' && picked.i === i ? 7 : 5, 0, 7); X.fill(); });
+  // ruler
+  X.fillStyle = css('--panel2'); X.fillRect(0, 0, W, RULER);
+  const step = [0.5, 1, 2, 5, 10, 15, 30, 60, 120].find(s => W / (span / s) > 70) || 300;
+  X.fillStyle = css('--muted'); X.font = '11px ui-monospace, Menlo, monospace';
+  for (let s = Math.ceil(view[0] / step) * step; s < view[1]; s += step) {
+    const x = tx(s); X.fillRect(x, RULER - 5, 1, 5); X.fillText(fmt(s).replace(/\.0$/, ''), x + 3, 13); }
+  // playhead
+  const px = tx(t); X.fillStyle = '#fff'; X.fillRect(px - 1, 0, 2, H);
+  X.beginPath(); X.moveTo(px - 6, 0); X.lineTo(px + 6, 0); X.lineTo(px, 8); X.fill();
+}
+
+let drag = null;
+C.addEventListener('mousedown', ev => {
+  const t = xt(ev.offsetX);
+  const hit = pending().find(({ r: [a, b] }) => t >= a && t <= b);
+  const note = E.notes.findIndex(n => Math.abs(tx(srcToOut(n.at)) - ev.offsetX) < 7);
+  if (note >= 0) { picked = { kind: 'note', i: note }; renderText(); draw(); return; }
+  if (hit && !ev.shiftKey) { picked = { kind: 'cut', i: hit.i }; sel = null; draw(); paintText(); return; }
+  picked = null; drag = { t0: t, moved: false };
+});
+window.addEventListener('mousemove', ev => {
+  if (!drag) return;
+  const t = Math.min(T.duration, Math.max(0, xt(ev.clientX - C.getBoundingClientRect().left)));
+  if (Math.abs(tx(t) - tx(drag.t0)) > 3) drag.moved = true;
+  if (drag.moved) { sel = { o0: Math.min(drag.t0, t), o1: Math.max(drag.t0, t) }; paintText(); draw(); }
+});
+window.addEventListener('mouseup', () => {
+  if (!drag) return;
+  if (!drag.moved) { sel = null; V.currentTime = drag.t0; }
+  drag = null; paintText(); draw();
+});
+function zoom(f, at) {
+  const span = Math.min(T.duration, Math.max(2, (view[1] - view[0]) * f));
+  at ??= V.currentTime;
+  const r = (at - view[0]) / (view[1] - view[0]);
+  let a = at - r * span; a = Math.max(0, Math.min(T.duration - span, a));
+  view = [a, a + span]; draw();
+}
+C.addEventListener('wheel', ev => {
+  ev.preventDefault();
+  if (Math.abs(ev.deltaX) > Math.abs(ev.deltaY)) {        // trackpad: pan
+    const span = view[1] - view[0], d = ev.deltaX / W * span;
+    const a = Math.max(0, Math.min(T.duration - span, view[0] + d)); view = [a, a + span]; draw();
+  } else zoom(ev.deltaY > 0 ? 1.15 : 1 / 1.15, xt(ev.offsetX));
+}, { passive: false });
+$('zoomIn').onclick = () => zoom(1 / 1.5); $('zoomOut').onclick = () => zoom(1.5);
+$('cutBtn').onclick = cut;
+V.onclick = () => V.paused ? V.play() : V.pause();
+
+// ---- playback: the pending cuts are skipped, you hear the result now ------------
+function loop() {
+  const t = V.currentTime;
+  if (!V.paused) {
+    const hit = pending().find(({ r: [a, b] }) => t >= a && t < b - 0.01);
+    if (hit) V.currentTime = hit.r[1];
+    const span = view[1] - view[0];                            // follow the playhead
+    if (span < T.duration && (t > view[1] - span * .1 || t < view[0])) {
+      const a = Math.min(T.duration - span, Math.max(0, t - span * .2)); view = [a, a + span]; }
+  }
+  paintText(); draw(); requestAnimationFrame(loop);
+}
+
+document.addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'INPUT') return;
+  const k = ev.key.toLowerCase();
+  if (k === ' ') { ev.preventDefault(); V.paused ? V.play() : V.pause(); }
+  else if (k === 'x') {
+    if (!sel) { const i = T.islands.findIndex(s => V.currentTime >= s.start - 0.05 && V.currentTime < s.end + 0.1);
+      if (i >= 0) { const [a, b] = islandSpan(i); sel = { o0: a, o1: b }; } }
+    cut();
+  }
+  else if (k === 'n') { ev.preventDefault(); openNote(); }
+  else if (k === 'backspace' || k === 'delete') { ev.preventDefault(); removePicked(); }
+  else if (k === 'escape') { sel = null; picked = null; renderText(); draw(); }
+  else if (k === 'arrowleft' || k === 'arrowright') { ev.preventDefault();
+    V.currentTime += (k === 'arrowleft' ? -1 : 1) * (ev.shiftKey ? 5 : 1); }
+  else if (k === '+' || k === '=') zoom(1 / 1.5);
+  else if (k === '-') zoom(1.5);
+});
+</script>
+</body>
+</html>
