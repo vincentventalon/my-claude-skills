@@ -37,7 +37,7 @@ La newsletter du mardi, où chaque nouvelle skill arrive en premier : [deviensde
 
 ## In English
 
-Claude Code skills I actually use on my own sites and videos, one new skill every Tuesday with my newsletter. Most are written in French (search-console), the video editing one is in English. Install with the two commands above.
+Claude Code skills I actually use on my own sites and videos, one new skill every Tuesday with my newsletter. Most are written in French (search-console), the video editing one is in English. Install with the commands above.
 
 ## Licence
 

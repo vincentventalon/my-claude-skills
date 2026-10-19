@@ -21,25 +21,29 @@ calculent, pas toi.
 Les scripts sont dans `scripts/` à côté de ce fichier (`<skill>` ci-dessous : le dossier de base de la skill ; appelle-les par ce chemin, quel que soit le
 dossier courant). Python 3 seul, aucune dépendance. Tout ce qui appartient au lecteur va dans
 `./seo/` du dossier courant : `config.json`, puis un dossier par site avec `journal.csv`,
-`groupes.csv`, `donnees/` et `tableau-de-bord.html`. Jamais dans le dossier de la skill.
+`groupes.csv`, `donnees/` et `tableau-de-bord.html`. Jamais dans le dossier de la skill. Seule
+exception : `~/.config/search-console/dossiers.txt` retient le dernier `./seo/` utilisé, pour
+rafraîchir depuis n'importe où (l'effacer suffit pour l'oublier).
 
 ## Déroulé
 
 1. **Lance le script.** Premier passage : `python3 <skill>/scripts/rapport.py monsite.com`.
    Rafraîchir (« rafraîchis le dashboard ») : `python3 <skill>/scripts/rapport.py` sans site, il
-   reprend tous les sites de `./seo/`, ou du dernier `./seo/` utilisé si on est ailleurs. Compte une
+   reprend tous les sites de `./seo/`, ou du dernier `./seo/` utilisé si on est ailleurs. Rafraîchir,
+   c'est tout ce déroulé : le script remet un résumé générique, réécris-le à l'étape 4. Compte une
    minute. S'il répond `ERREUR`, fais ce que dit le message ; les pannes et leurs remèdes sont dans
    `references/installation.md`. L'id du projet Google Cloud se pose dans
    `./seo/config.json` : `{"projet_google_cloud": "mon-projet"}`.
 2. **Lis le bloc imprimé** (FENÊTRE, VOLUME, SEUIL, COUVERTURE, CHANGEMENTS, puis les verdicts).
    Chaque chiffre y porte déjà son seuil et son verdict. Tu ne refais aucun calcul de tête.
 3. **Vérifie l'historique avant d'expliquer.** Lis `journal.csv`. Si le code du site est dans le
-   dossier courant, lance `git log --since=<début de la fenêtre d'avant>`. Demande ce qui a changé
-   et que le journal ne dit pas (titres, URL, redirections, contenu, déploiements). Propose de
+   dossier courant, lance `git log --since=<début de la fenêtre d'avant>` ; sinon, demande
+   directement. Demande ce qui a changé et que le journal ne dit pas (titres, URL, redirections, contenu, déploiements). Propose de
    l'ajouter au journal, puis relance.
 4. **Écris le résumé** en deux ou trois phrases : ce qui dépasse le seuil, et « non détectable »
    pour le reste. Pose-le en tête de page sans rappeler l'API :
-   `python3 <skill>/scripts/rapport.py monsite.com --resume "…"`.
+   `python3 <skill>/scripts/rapport.py monsite.com --resume "…"` (il ne réimprime que la ligne
+   TABLEAU, c'est normal).
 5. **Donne la page.** Si tu as l'outil Artifact, publie `./seo/<site>/tableau-de-bord.html` en
    Artifact. Sinon, donne son chemin absolu : elle s'ouvre hors ligne, aussi sur téléphone.
 6. **Finis par le calendrier** : recopie le bloc CALENDRIER (quoi relire, quand, et pourquoi pas
@@ -55,7 +59,9 @@ Pour un changement à suivre, ajoute une ligne à `journal.csv` (format :
   plus que le hasard pur. Aucun verdict à la semaine sur les clics.
 - **Neuf** (moins de 30) : dis-le franchement, les comparaisons ne sont pas lisibles à ce volume.
   Passe à l'indexation : pages indexées, « explorée, non indexée », « détectée, non explorée »,
-  requêtes qui apparaissent. Ce sont des faits oui ou non, lisibles tout de suite.
+  requêtes qui apparaissent. Ce sont des faits oui ou non, lisibles tout de suite. Des
+  impressions parties de presque zéro sont « pas comparables » : le site n'apparaissait pas
+  avant, ce n'est pas une hausse mesurée.
 
 ## Règles de lecture
 

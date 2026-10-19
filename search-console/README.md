@@ -69,7 +69,12 @@ Lecture seule : la skill ne modifie rien dans ta Search Console.
 - « mes pages sont-elles indexées ? »
 
 Tes données restent chez toi, dans `./seo/` du dossier où tu lances Claude : le journal des
-changements, les groupes de pages, les données téléchargées et le tableau de bord.
+changements, les groupes de pages, les données téléchargées et le tableau de bord. Seul
+`~/.config/search-console/dossiers.txt` retient le dernier `./seo/` utilisé, pour que « rafraîchis
+le dashboard » marche depuis n'importe quel dossier.
+
+Chaque compte rendu commence par un résumé de deux ou trois phrases écrit par Claude à partir des
+chiffres du script. Il est réécrit à chaque rafraîchissement.
 
 Pas de terminal ? Sur claude.ai, dépose l'export CSV du rapport Performances (mode Comparer,
 28 jours). La skill fait la même analyse et te dit ce qui manque.
