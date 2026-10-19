@@ -1,0 +1,7 @@
+{
+  "name": "search-console",
+  "description": "Compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment, ce qui n'est que du hasard, si une baisse vient de la demande ou de ton classement, et un tableau de bord qui se rafraîchit d'une phrase.",
+  "version": "1.0.0",
+  "author": { "name": "Vincent Ventalon" },
+  "license": "MIT"
+}

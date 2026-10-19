@@ -7,6 +7,16 @@
   },
   "plugins": [
     {
+      "name": "search-console",
+      "description": "Compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment, ce qui n'est que du hasard, si une baisse vient de la demande ou de ton classement, et un tableau de bord qui se rafraîchit d'une phrase.",
+      "author": {
+        "name": "Vincent Ventalon"
+      },
+      "source": "./search-console",
+      "category": "seo",
+      "homepage": "https://github.com/vincentventalon/my-claude-skills/tree/main/search-console"
+    },
+    {
       "name": "video-editing",
       "description": "Le dérushage automatique d'une vidéo face caméra : silences et faux départs coupés, dernière prise gardée, transcription (ffmpeg + whisper.cpp). En anglais.",
       "author": {

@@ -8,16 +8,18 @@ Je suis Vincent. Je fais un challenge : une vidéo par jour pendant 100 jours su
 
 | Skill | Ce qu'elle fait |
 |---|---|
+| [**search-console**](search-console/) | Un compte rendu SEO de ton site à partir de Google Search Console : ce qui bouge vraiment, ce qui n'est que du hasard, si une baisse vient de la demande ou de ton classement, et un tableau de bord qui se rafraîchit d'une phrase. |
 | [**video-editing**](video-editing/) | Le dérushage d'une vidéo face caméra : silences et faux départs coupés, dernière prise gardée, transcription. En anglais. |
 
 Chaque dossier a son README : ce que fait la skill, à quoi ça ressemble, ce qu'il faut installer avant.
 
 ## Installer
 
-Dans Claude Code, une skill à la fois :
+Dans Claude Code, ajoute le repo une fois, puis installe les skills que tu veux :
 
 ```
 /plugin marketplace add vincentventalon/my-claude-skills
+/plugin install search-console@my-claude-skills
 /plugin install video-editing@my-claude-skills
 ```
 
@@ -35,7 +37,7 @@ La newsletter du mardi, où chaque nouvelle skill arrive en premier : [deviensde
 
 ## In English
 
-Claude Code skills I actually use on my own sites and videos, one new skill every Tuesday with my newsletter. Most are written in French, the video editing one is in English. Install with the two commands above.
+Claude Code skills I actually use on my own sites and videos, one new skill every Tuesday with my newsletter. Most are written in French (search-console), the video editing one is in English. Install with the two commands above.
 
 ## Licence
 
