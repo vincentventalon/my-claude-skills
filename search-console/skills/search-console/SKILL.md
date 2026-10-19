@@ -49,8 +49,19 @@ rafraîchir depuis n'importe où (l'effacer suffit pour l'oublier).
 6. **Finis par le calendrier** : recopie le bloc CALENDRIER (quoi relire, quand, et pourquoi pas
    avant), puis rappelle que « rafraîchis le dashboard » suffit la semaine prochaine.
 
-Pour un changement à suivre, ajoute une ligne à `journal.csv` (format :
-`references/fichiers.md`). Pour lire un cluster ou un type de page à part, remplis `groupes.csv`.
+## Le journal, c'est ta mémoire
+
+`journal.csv` est ce qui reste d'un passage à l'autre (format : `references/fichiers.md`).
+- Ajoute une ligne dès qu'un changement est en ligne : celui que l'utilisateur te décrit, et celui
+  que tu fais toi-même dans le code du site pendant la session (un titre, une URL, une page, une
+  redirection). Dis-lui que tu l'as noté et quand tu le reliras.
+- Quand une ligne arrive à sa date de relecture, écris le verdict du script dans `constat` et la
+  date du jour dans `constat_le` (entre guillemets si le texte a une virgule). La ligne sort du
+  calendrier, et au passage suivant tu sais ce que ce changement a donné.
+- Avant de proposer un nouveau changement sur une page, relis ses lignes : ce qui a déjà été
+  essayé, et ce que ça a donné.
+
+Pour lire un cluster ou un type de page à part, remplis `groupes.csv`.
 
 ## Le régime du site (le script le choisit sur les clics des 28 derniers jours)
 

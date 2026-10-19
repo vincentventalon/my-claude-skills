@@ -8,6 +8,15 @@ suivante, « rafraîchis le dashboard » suffit.
 
 *Le tableau de bord sur maltaexpat.com, mon site pour les expats à Malte, le 19 octobre 2026.*
 
+## Elle se souvient de ce que tu as changé
+
+Tu changes un titre, tu déplaces une page, tu ajoutes une redirection : la skill le note dans un
+journal, y compris quand c'est Claude qui fait le changement. À chaque rafraîchissement, elle
+reprend chaque changement et recalcule son effet sur la page ou la recherche visée. Trois semaines
+après, elle te dit s'il a marché, s'il n'a rien cassé, ou s'il faut revenir en arrière, et elle
+écrit le résultat dans le journal. Avant de retoucher une page, elle relit ce qui a déjà été
+essayé dessus. Tu n'as rien à retenir : tu dis « rafraîchis le dashboard », elle sait quoi relire.
+
 ## Ce que tu obtiens
 
 - les quatre chiffres du moment (28 jours contre 28 jours, dernière semaine contre la précédente),
