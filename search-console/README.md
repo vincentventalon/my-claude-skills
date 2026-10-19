@@ -47,7 +47,10 @@ Ou à la main : copie le dossier `search-console/skills/search-console` de ce re
 
 Il faut Python 3 (rien d'autre à installer côté Python).
 
-## Prérequis Google (une fois, dix minutes)
+## Brancher ton accès Google (une fois, dix minutes)
+
+Pas de clé API à copier-coller : tu te connectes une fois avec ton compte Google, et `gcloud` garde
+l'accès sur ta machine. Si tu lances la skill avant de l'avoir fait, Claude te guide étape par étape.
 
 1. Une propriété Search Console de type **Domaine** (`sc-domain:monsite.com`).
 2. Le [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) et un projet Google Cloud avec
@@ -84,9 +87,6 @@ le dashboard » marche depuis n'importe quel dossier.
 
 Chaque compte rendu commence par un résumé de deux ou trois phrases écrit par Claude à partir des
 chiffres du script. Il est réécrit à chaque rafraîchissement.
-
-Pas de terminal ? Sur claude.ai, dépose l'export CSV du rapport Performances (mode Comparer,
-28 jours). La skill fait la même analyse et te dit ce qui manque.
 
 ## Pannes courantes
 

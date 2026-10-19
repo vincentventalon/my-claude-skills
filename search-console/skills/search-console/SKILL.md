@@ -7,8 +7,7 @@ description: >
   un calendrier de relecture. À utiliser quand on dit « fais-moi un compte rendu SEO de monsite.com »,
   « rafraîchis le dashboard », « est-ce que mon changement de titre a marché ? », « pourquoi mes clics
   ont baissé ? », « qu'est-ce qui a bougé cette semaine ? », « mes pages sont-elles indexées ? »,
-  « analyse mes données Search Console », ou quand on dépose un export CSV ou zip du rapport
-  Performances de Search Console.
+  « analyse mes données Search Console », « branche-moi Search Console ».
 ---
 
 # Search Console : le signal et le bruit
@@ -31,8 +30,10 @@ rafraîchir depuis n'importe où (l'effacer suffit pour l'oublier).
    Rafraîchir (« rafraîchis le dashboard ») : `python3 <skill>/scripts/rapport.py` sans site, il
    reprend tous les sites de `./seo/`, ou du dernier `./seo/` utilisé si on est ailleurs. Rafraîchir,
    c'est tout ce déroulé : le script remet un résumé générique, réécris-le à l'étape 4. Compte une
-   minute. S'il répond `ERREUR`, fais ce que dit le message ; les pannes et leurs remèdes sont dans
-   `references/installation.md`. L'id du projet Google Cloud se pose dans
+   minute. S'il répond `ERREUR` parce que l'accès Google n'est pas branché, guide l'utilisateur pas à
+   pas avec `references/installation.md` : lance toi-même ce qui se lance sans lui (activer l'API,
+   le projet de quota), et pour la connexion, qui ouvre son navigateur, dis-lui quoi valider. Une
+   étape à la fois, puis relance le script. L'id du projet Google Cloud se pose dans
    `./seo/config.json` : `{"projet_google_cloud": "mon-projet"}`.
 2. **Lis le bloc imprimé** (FENÊTRE, VOLUME, SEUIL, COUVERTURE, CHANGEMENTS, puis les verdicts).
    Chaque chiffre y porte déjà son seuil et son verdict. Tu ne refais aucun calcul de tête.
@@ -125,13 +126,6 @@ Pour lire un cluster ou un type de page à part, remplis `groupes.csv`.
 
 Le détail, les chiffres de calibration et les règles de stratégie (hub et satellites, quand
 découper, pages à portée) : `references/regles.md`.
-
-## Sans terminal (claude.ai)
-
-Le lecteur dépose l'export du rapport Performances (zip ou CSV). Si tu peux exécuter du Python :
-`python3 <skill>/scripts/rapport.py --export <fichier> --site monsite.com`. Sinon, applique les
-mêmes formules à la main sur le CSV. Dans les deux cas, dis ce qui manque (indexation,
-chevauchements, suivi jour par jour) : `references/export.md`.
 
 ## Ce que tu rends
 

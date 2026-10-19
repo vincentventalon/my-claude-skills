@@ -4,8 +4,6 @@
   python3 rapport.py monsite.com            premier compte rendu (crée ./seo/monsite.com/)
   python3 rapport.py                        rafraîchit tous les sites de ./seo/
                                             (ou du dernier dossier ./seo utilisé, si on est ailleurs)
-  python3 rapport.py --export fichier.zip --site monsite.com
-                                            sans API : depuis l'export du rapport Performances
 Options : --dossier ./seo · --sans-inspection · --resume "texte" (refait juste la page)
 """
 import argparse
@@ -30,18 +28,8 @@ def main():
     ap.add_argument("--dossier", help="dossier des données (défaut ./seo)")
     ap.add_argument("--sans-inspection", action="store_true")
     ap.add_argument("--resume", help="texte d'en-tête : refait seulement la page, sans rappeler l'API")
-    ap.add_argument("--export", help="zip ou dossier de l'export Performances de Search Console")
-    ap.add_argument("--site", help="nom du site pour --export")
     a = ap.parse_args()
     root = g.racine(a.dossier)
-
-    if a.export:
-        import export
-        dossier = export.convertir(a.export, a.site, root)
-        analyse.main(dossier)
-        print()
-        tableau.main([dossier])
-        return
 
     if a.resume:
         cibles = [os.path.join(root, g.nom_dossier(s if s.startswith("sc-domain:") or "//" in s else "sc-domain:" + s.lower()))
@@ -66,9 +54,6 @@ def main():
         for dsite in dossiers:
             with open(os.path.join(dsite, "donnees", "meta.json"), encoding="utf-8") as f:
                 meta = json.load(f)
-            if meta.get("source") == "export":
-                print(f"{meta['site']} vient d'un export manuel : dépose un nouvel export pour le rafraîchir.")
-                continue
             sites.append(meta["site"])
 
     import collecte

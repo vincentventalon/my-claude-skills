@@ -4,6 +4,18 @@ Les skills Claude Code que j'utilise vraiment, sur mes sites et pour mes vidéos
 
 Je suis Vincent. Je fais un challenge : une vidéo par jour pendant 100 jours sur [TikTok](https://www.tiktok.com/@vincentleserpent_), et une newsletter le mardi. Chaque mardi, un sujet que j'ai traité dans la semaine, mon process, et la skill qui m'a servi. Elle arrive ici le même jour.
 
+## C'est quoi une skill, c'est quoi un plugin ?
+
+Une **skill**, c'est un dossier que Claude Code lit quand tu lui demandes un travail précis : des
+instructions (le fichier `SKILL.md`), et souvent des scripts qu'il lance pour toi. Tu n'as pas à
+l'appeler par son nom : tu dis « fais-moi un compte rendu SEO de monsite.com », Claude reconnaît la
+tâche et suit la skill.
+
+Un **plugin**, c'est l'emballage qui permet d'installer une skill en une commande et de la mettre à
+jour. Ce repo est un *marketplace*, un catalogue de plugins : tu l'ajoutes une fois à Claude Code,
+puis tu installes les skills qui t'intéressent, une par une. Quand j'améliore une skill, le menu
+`/plugin` (ou `claude plugin update <skill>@my-claude-skills`) te donne la nouvelle version.
+
 ## Les skills
 
 | Skill | Ce qu'elle fait |

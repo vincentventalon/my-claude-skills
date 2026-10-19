@@ -72,11 +72,10 @@ depuis le début de la fenêtre d'avant). Les pages neuves restent à part dans 
 
 | script | rôle |
 |---|---|
-| `rapport.py` | enchaîne les trois ; sans site, rafraîchit tout ce qui est suivi ; `--resume` refait la page seule ; `--export` passe par l'export manuel |
+| `rapport.py` | enchaîne les trois ; sans site, rafraîchit tout ce qui est suivi ; `--resume` refait la page seule |
 | `collecte.py` | appels API : totaux par jour sur 16 mois, page par jour sur 17 semaines, requêtes, requête × page, requête × pays, requête × appareil, pays, appareils sur les deux fenêtres, requêtes du journal jour par jour, sitemaps, inspection d'URL |
 | `analyse.py` | régime, seuils, verdicts, test demande ou classement (bootstrap sur les requêtes, 600 tirages), chevauchements, suivi du journal, calendrier ; écrit `analyse.json` et imprime le résumé |
 | `tableau.py` | la page HTML (SVG inline, aucun appel réseau, clair et sombre, lisible sur téléphone) |
-| `export.py` | convertit l'export CSV/zip du rapport Performances |
 | `gsc_api.py` | jeton gcloud, en-tête de projet, reprises sur 429 et 5xx, messages d'erreur lisibles |
 
 Fenêtres : les 28 derniers jours finaux contre les 28 d'avant. Inspection d'URL : toutes les pages

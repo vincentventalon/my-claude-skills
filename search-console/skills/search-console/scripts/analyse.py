@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sépare le signal du bruit dans les données récupérées par collecte.py (ou export.py).
+"""Sépare le signal du bruit dans les données récupérées par collecte.py.
 
 Usage : python3 analyse.py <dossier du site>   (ex. ~/search-console/monsite.com)
 Écrit <dossier>/analyse.json et imprime le résumé à lire avant toute conclusion.
