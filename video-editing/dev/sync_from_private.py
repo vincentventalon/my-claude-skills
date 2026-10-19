@@ -9,11 +9,11 @@ never written here: pass it in the PRIVATE_SKILL environment variable (or
 
     export PRIVATE_SKILL=/path/to/private/skills/tiktok-edit
 
-    python dev/sync_from_private.py status       # 1. what changed in the private cutting code
+    python video-editing/dev/sync_from_private.py status       # 1. what changed in the private cutting code
     #  -> hand the printed diff file to Claude: "port what is worth it into
-    #     scripts/edit_video.py" (rules below)
-    python dev/sync_from_private.py test RUSH.MP4 --lang fr    # 2. real test, old vs new
-    python dev/sync_from_private.py mark          # 3. once ported: remember where we are
+    #     skills/video-editing/scripts/edit_video.py" (rules below)
+    python video-editing/dev/sync_from_private.py test RUSH.MP4 --lang fr    # 2. real test, old vs new
+    python video-editing/dev/sync_from_private.py mark          # 3. once ported: remember where we are
 
 Porting rules (the reason this is not a copy):
   - the public script stays ONE file, standard library only, ffmpeg +
@@ -32,7 +32,8 @@ line prints the commands to do it by hand.
 import argparse, os, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(HERE)
+REPO = os.path.dirname(HERE)                             # the plugin folder, video-editing/
+SKILL = os.path.join(REPO, 'skills', 'video-editing')
 STATE = os.path.join(HERE, 'private-sync.txt')          # last private commit carried over
 WATCHED = ['scripts/salves.py', 'scripts/jump_cuts.py', 'scripts/align.py',
            'scripts/postflight.py', 'references/coupes.md']
@@ -104,8 +105,8 @@ if args.cmd == 'status':
         os.write(fd, diff.encode())
         os.close(fd)
         print(f'full diff: {path}')
-        print('next: ask Claude in this repo — "read that diff and port into scripts/edit_video.py '
-              'what improves the cut, following the rules at the top of dev/sync_from_private.py", '
+        print('next: ask Claude in this repo — "read that diff and port into video-editing/skills/video-editing/scripts/edit_video.py '
+              'what improves the cut, following the rules at the top of video-editing/dev/sync_from_private.py", '
               'then run `test`.')
     leak_check()
 
@@ -115,8 +116,12 @@ elif args.cmd == 'test':
     out = os.path.abspath(args.out) if args.out else tempfile.mkdtemp(prefix='sync-test-')
     os.makedirs(out, exist_ok=True)
     old = os.path.join(out, 'edit_video_old.py')
-    open(old, 'w', encoding='utf-8').write(git('show', f'{args.against}:scripts/edit_video.py'))
-    new = os.path.join(REPO, 'scripts', 'edit_video.py')
+    try:
+        src = git('show', f'{args.against}:./skills/video-editing/scripts/edit_video.py')
+    except subprocess.CalledProcessError:  # a ref from before the move into video-editing/
+        src = git('show', f'{args.against}:scripts/edit_video.py')
+    open(old, 'w', encoding='utf-8').write(src)
+    new = os.path.join(SKILL, 'scripts', 'edit_video.py')
     model = args.model if os.path.exists(args.model) else os.path.join(
         os.path.expanduser('~'), '.cache', 'whisper-cpp', f'ggml-{args.model}.bin')
     rushes = [os.path.abspath(r) for r in args.rush]
@@ -146,4 +151,4 @@ elif args.cmd == 'mark':
     priv = need_private()
     head = git('rev-parse', 'HEAD', cwd=priv).strip()
     open(STATE, 'w').write(head + '\n')
-    print(f'carried over up to private commit {head[:10]} (dev/private-sync.txt, commit it with the port)')
+    print(f'carried over up to private commit {head[:10]} (video-editing/dev/private-sync.txt, commit it with the port)')

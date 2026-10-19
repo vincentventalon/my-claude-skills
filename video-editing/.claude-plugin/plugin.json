@@ -1,0 +1,7 @@
+{
+  "name": "video-editing",
+  "description": "Automatic rough cut for talking-head videos: join raw clips, remove silences, cut false starts, keep the last take, transcribe (ffmpeg + whisper.cpp). macOS, Windows, Linux.",
+  "version": "1.0.0",
+  "author": { "name": "Vincent Ventalon" },
+  "license": "MIT"
+}

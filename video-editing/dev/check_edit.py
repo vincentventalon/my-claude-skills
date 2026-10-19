@@ -4,7 +4,7 @@
     python dev/check_edit.py edited.mp4 --source rush.MP4 --segments segs.tsv --lang fr
 
 `segs.tsv` = the kept segments (start<TAB>end, joined-footage time), written
-by `EDIT_VIDEO_SEGMENTS=segs.tsv python scripts/edit_video.py ...`.
+by `EDIT_VIDEO_SEGMENTS=segs.tsv python skills/video-editing/scripts/edit_video.py ...`.
 Single-clip rush only for --source (the joined footage = the clip).
 
 It prints four numbers, and the evidence behind each:

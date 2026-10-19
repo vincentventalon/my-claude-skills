@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "my-claude-skills",
+  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment sur ses sites et ses vidéos.",
+  "owner": {
+    "name": "Vincent Ventalon"
+  },
+  "plugins": [
+    {
+      "name": "video-editing",
+      "description": "Le dérushage automatique d'une vidéo face caméra : silences et faux départs coupés, dernière prise gardée, transcription (ffmpeg + whisper.cpp). En anglais.",
+      "author": {
+        "name": "Vincent Ventalon"
+      },
+      "source": "./video-editing",
+      "category": "video",
+      "homepage": "https://github.com/vincentventalon/my-claude-skills/tree/main/video-editing"
+    }
+  ]
+}
