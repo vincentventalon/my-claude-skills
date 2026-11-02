@@ -1,6 +1,6 @@
 {
   "name": "video-editing",
-  "description": "Monte tes vidéos face caméra avec Claude Code : silences, faux départs et reprises coupés (la dernière prise gardée), transcription par whisper (sur ton ordinateur, gratuit) ou ElevenLabs, sous-titres incrustés, titre et carton de fin, en 9:16 ou 16:9. Une skill d'installation fait le diagnostic et pose les questions. macOS, Windows, Linux.",
+  "description": "Monte tes vidéos face caméra avec Claude Code : silences, faux départs et reprises coupés (la dernière prise gardée), transcription par whisper (sur ton ordinateur, gratuit) ou ElevenLabs Scribe, sous-titres incrustés, titre et carton de fin, en 9:16 ou 16:9. Avec l'installation guidée (diagnostic et questionnaire) et l'audit de ton compte TikTok ou Instagram. macOS, Windows, Linux.",
   "version": "1.1.0",
   "author": { "name": "Vincent Ventalon" },
   "license": "MIT"

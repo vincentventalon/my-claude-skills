@@ -12,6 +12,7 @@ Tu tournes face caméra, tu donnes tes rushs à Claude, il te rend la vidéo à 
 - Les sous-titres incrustés, un titre sur les premières secondes, un carton de fin, la voix au volume des plateformes.
 - En 9:16 pour TikTok, Reels et Shorts ; aussi en 16:9 pour YouTube quand tu as filmé à l'horizontale.
 - Claude relit ensuite les prises comme un monteur. Ce qui reste à couper, tu le lui dis avec tes mots.
+- Avant de monter, l'audit de ton compte TikTok ou Instagram : ce qui marche déjà chez toi, mesuré sur tes vidéos.
 
 ```
 toi     monte ma vidéo, les rushs sont dans Téléchargements, titre « Mon *gros* conseil »
@@ -48,13 +49,14 @@ claude  Remise. Nouveau rendu, sans retranscrire.
 skills : le dossier `~/.claude/skills/video-editing` que tu as cloné n'a plus la skill à sa
 racine. Supprime-le, puis installe avec les étapes ci-dessus.
 
-**Sans le système de plugins** : copie les deux dossiers `video-editing/skills/video-editing` et
-`video-editing/skills/setup` de ce dépôt dans tes skills (macOS et Linux : `~/.claude/skills/`,
-Windows : `C:\Users\<toi>\.claude\skills\`). Ils doivent rester côte à côte.
+**Sans le système de plugins** : copie les trois dossiers `video-editing/skills/video-editing`,
+`video-editing/skills/setup` et `video-editing/skills/insta-audit` de ce dépôt dans tes skills
+(macOS et Linux : `~/.claude/skills/`, Windows : `C:\Users\<toi>\.claude\skills\`). Ils doivent
+rester côte à côte.
 
 ```sh
 git clone https://github.com/vincentventalon/my-claude-skills /tmp/my-claude-skills
-cp -R /tmp/my-claude-skills/video-editing/skills/video-editing /tmp/my-claude-skills/video-editing/skills/setup ~/.claude/skills/
+cp -R /tmp/my-claude-skills/video-editing/skills/video-editing /tmp/my-claude-skills/video-editing/skills/setup /tmp/my-claude-skills/video-editing/skills/insta-audit ~/.claude/skills/
 ```
 
 ## Prérequis
@@ -70,7 +72,8 @@ savoir à l'avance ce qui va arriver sur ta machine.
 | whisper.cpp *(si whisper)* | la transcription sur ton ordinateur | `brew install whisper-cpp` | `whisper-bin-x64.zip` des [releases](https://github.com/ggml-org/whisper.cpp/releases), à mettre dans le PATH | à compiler, la skill donne la commande | ~8 Mo (Mac) |
 | le modèle `large-v3-turbo` *(si whisper)* | ce avec quoi whisper entend | se télécharge tout seul au premier montage | pareil | pareil | 1,6 Go |
 | une clé ElevenLabs *(si ElevenLabs)* | la transcription chez ElevenLabs | — | — | — | — |
-| Node 18 ou plus *(facultatif)* | Remotion anime le titre et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~250 Mo, installé tout seul au premier rendu, plus le navigateur qu'il télécharge pour rendre (à vérifier) |
+| Node 18 ou plus *(facultatif)* | Remotion anime le titre et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~400 Mo, installé tout seul au premier rendu, plus ~200 Mo pour le navigateur qu'il télécharge pour rendre (mesuré sur un Mac) |
+| yt-dlp *(pour l'audit)* | lire tes vidéos sans connexion ; l'audit l'installe s'il manque | `brew install yt-dlp` | `winget install yt-dlp` | `pipx install yt-dlp` | — |
 
 - **Mac** : la formule `ffmpeg` de Homebrew est compilée sans libass. Avec elle, la vidéo sort sans
   sous-titres incrustés. `ffmpeg-full` s'installe à côté, sans rien remplacer, et le montage le
@@ -119,8 +122,11 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
    enchaîne : la dernière prise gagne.
 2. **Dis à Claude** : « monte ma vidéo, les rushs sont dans Téléchargements ». Donne le titre si
    tu l'as : « titre : Mon *gros* conseil » (les `*` mettent un mot en couleur).
-3. **Ce qu'il te demande** : ce qu'il ne peut pas deviner, le titre s'il n'en a pas, la version
-   YouTube si tu as filmé à l'horizontale (à vérifier).
+3. **Ce qu'il te demande** : où sont tes rushs (et leur ordre, si ce n'est pas celui des noms), ta
+   langue si ta configuration ne la donne pas, et si tu veux un titre : le tien, ou il t'en propose
+   un d'après ce que tu dis. Le reste a un défaut : le carton de fin dit « Abonne-toi pour la
+   suite ». La version YouTube, c'est toi qui la demandes, si tu as filmé à l'horizontale. Si tu as
+   fait l'audit de ton compte (plus bas), il s'en sert pour te proposer le titre et la durée à viser.
 4. **Ce que tu obtiens**, dans ton dossier de sortie (`~/Videos/edited` par défaut), au nom de
    ton premier rush :
 
@@ -130,7 +136,7 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 | `<nom>.youtube.mp4` | la version 16:9 pour YouTube, quand tu l'as demandée et que tu as filmé à l'horizontale |
 | `<nom>.cut.mp4` | le montage seul, cadré comme tu as filmé, sans texte |
 | `<nom>.txt` · `<nom>.srt` | le texte de la vidéo, et les sous-titres avec leurs temps (CapCut, Premiere, YouTube) |
-| `<nom>.ass` | les sous-titres, le titre et le carton tels qu'incrustés : du texte, un mot s'y corrige à la main |
+| `<nom>.ass` | les sous-titres tels qu'incrustés, en texte (avec le titre et le carton quand c'est ffmpeg qui les dessine, pas Remotion) |
 | `<nom>.takes.tsv` | chaque morceau de ton rush, gardé ou coupé, avec ce que tu y dis |
 | `<nom>.timeline.json` | les passages gardés et les mots, avec leurs temps dans la vidéo montée |
 
@@ -149,6 +155,24 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 - **Claude relit les prises comme un monteur.** Une phrase abandonnée puis redite *avec d'autres
   mots*, seul un lecteur la voit : il la coupe d'une commande de plus, sans retranscrire. Dans le
   doute, il garde.
+
+## Auditer ton compte avant de monter
+
+La troisième skill du plugin, `insta-audit`, mesure ce qui marche déjà sur ton compte TikTok ou
+Instagram, sur tes propres vidéos. Dis « audite mon compte Instagram », « analyse mon TikTok », ou
+colle le lien de ton profil.
+
+- Elle lit tes 30 dernières vidéos sans connexion, comme un visiteur : pas de mot de passe, rien à
+  brancher. Elle te demande ton nombre d'abonnés (un visiteur ne le voit plus).
+- Elle compare chaque vidéo à la médiane de ton compte, transcrit sur ton ordinateur (whisper) ce
+  que tu dis dans les 5 premières secondes, et écrit `AUDIT.md` : ce qui marche déjà chez toi,
+  chiffres à l'appui, trois tests à faire, et un bloc « Pour le montage » (la durée à viser, la
+  forme de tes meilleurs hooks, un titre à l'écran ou non).
+- Au montage suivant, Claude relit ce bloc pour te proposer le titre et la durée à viser.
+- Gratuit, tout tourne chez toi. Compte 2 à 4 minutes pour 30 vidéos ; le dossier
+  `audit-<compte>-<date>/` se crée là où tu as lancé Claude Code.
+- Instagram refuse presque toujours la lecture sans connexion : tu donnes alors tes chiffres (un
+  export de tes statistiques, ou collés dans la conversation). TikTok passe la plupart du temps.
 
 ## Ce que ça ne fait pas, et où c'est
 
