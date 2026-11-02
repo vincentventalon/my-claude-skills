@@ -88,39 +88,44 @@ Dans le dossier de ton projet :
 npx skills add vincentventalon/my-claude-skills -a claude-code
 ```
 
-Ajoute `-g` pour les installer pour tous tes projets, `--skill setup edit` pour n'en prendre que
-certaines (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skills update`.
+Il te montre la liste et tu coches ce que tu veux : la vidéo seule, `search-console` seule, ou
+tout. Ajoute `-g` pour les installer pour tous tes projets, `--skill setup edit` pour les nommer
+sans passer par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skills update`.
 
 ### Avec le plugin Claude Code
 
-Dans Claude Code :
+Trois plugins dans le même dépôt : `video` (les sept skills vidéo), `search-console` (le SEO
+seul), `vincent-skills` (tout). Dans Claude Code, pour la vidéo :
 
 ```
 /plugin marketplace add vincentventalon/my-claude-skills
-/plugin install vincent-skills@my-claude-skills
+/plugin install video@my-claude-skills
 ```
 
-(depuis Claude Code 2.1.275, en une ligne : `/plugin install vincent-skills --marketplace
-vincentventalon/my-claude-skills`). Depuis un terminal, les mêmes commandes s'écrivent
-`claude plugin marketplace add …` et `claude plugin install …`. Relance Claude Code après
-l'installation. Le plugin installe les huit skills d'un coup ; elles apparaissent sous son nom
-(`/vincent-skills:edit`), et tu peux toujours simplement dire ce que tu veux.
+Pour le SEO seul, `/plugin install search-console@my-claude-skills` ; pour tout,
+`/plugin install vincent-skills@my-claude-skills`. Depuis Claude Code 2.1.275, en une ligne :
+`/plugin install video --marketplace vincentventalon/my-claude-skills` (de même
+`/plugin install search-console --marketplace vincentventalon/my-claude-skills`). Depuis un
+terminal, les mêmes commandes s'écrivent `claude plugin marketplace add …` et
+`claude plugin install …`. Relance Claude Code après l'installation. Les skills apparaissent sous
+le nom du plugin (`/video:edit`), et tu peux toujours simplement dire ce que tu veux.
 
 ### Installé avant novembre 2026 ?
 
 Le dépôt avait deux plugins, `video-editing` (avec les skills `video-editing`, `setup`,
-`insta-audit`) et `search-console`. Ils sont remplacés par le plugin `vincent-skills` :
-`video-editing` s'appelle maintenant `edit`, `insta-audit` s'appelle `audit`. Retire les anciens,
+`insta-audit`) et `search-console`. `video-editing` est remplacé par `video` :
+`video-editing` s'appelle maintenant `edit`, `insta-audit` s'appelle `audit`. Retire l'ancien,
 puis installe le nouveau :
 
 ```sh
 claude plugin marketplace update my-claude-skills
 claude plugin uninstall video-editing@my-claude-skills
-claude plugin uninstall search-console@my-claude-skills
-claude plugin install vincent-skills@my-claude-skills
+claude plugin install video@my-claude-skills
 ```
 
-(ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). Copiées à la main ?
+(ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). `search-console` garde
+son nom : `claude plugin update search-console@my-claude-skills` suffit. Installé
+`vincent-skills` début novembre ? Il reste le plugin « tout », rien à refaire. Copiées à la main ?
 Supprime `~/.claude/skills/video-editing` et `~/.claude/skills/insta-audit`, puis installe avec
 `npx skills`. Ta configuration (`~/.config/video-editing/`) ne bouge pas : rien à refaire.
 
@@ -152,8 +157,11 @@ elles se renvoient l'une à l'autre. Pour mettre à jour : `git -C my-claude-ski
 
 ```sh
 claude plugin marketplace update my-claude-skills
-claude plugin update vincent-skills@my-claude-skills
+claude plugin update video@my-claude-skills
 ```
+
+(`search-console@my-claude-skills` ou `vincent-skills@my-claude-skills` selon ce que tu as
+installé.)
 
 puis relance Claude Code.
 

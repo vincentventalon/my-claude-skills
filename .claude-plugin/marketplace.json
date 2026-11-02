@@ -1,20 +1,54 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "my-claude-skills",
-  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment sur ses sites et ses vidéos.",
+  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment sur ses vidéos et ses sites. Trois plugins : video (la vidéo seule), search-console (le SEO seul), vincent-skills (tout).",
   "owner": {
     "name": "Vincent Ventalon"
   },
   "plugins": [
     {
-      "name": "vincent-skills",
-      "description": "Une skill par tâche : video (l'entrée), setup, edit, audit, outliers, script, publish, search-console. Monter une vidéo face caméra, auditer ton compte, écrire, publier, lire ta Search Console.",
-      "author": {
-        "name": "Vincent Ventalon"
-      },
+      "name": "video",
+      "description": "La vidéo seule, une skill par tâche : video (l'entrée), setup, edit, audit, outliers, script, publish. Monter une vidéo face caméra, auditer ton compte, écrire, publier.",
+      "version": "2.0.0",
+      "author": { "name": "Vincent Ventalon" },
       "source": "./",
       "category": "video",
-      "homepage": "https://github.com/vincentventalon/my-claude-skills"
+      "homepage": "https://github.com/vincentventalon/my-claude-skills",
+      "license": "MIT",
+      "keywords": ["video", "editing", "tiktok", "instagram", "reels", "shorts", "subtitles", "whisper"],
+      "skills": [
+        "./skills/video",
+        "./skills/setup",
+        "./skills/edit",
+        "./skills/audit",
+        "./skills/outliers",
+        "./skills/script",
+        "./skills/publish"
+      ]
+    },
+    {
+      "name": "search-console",
+      "description": "Le SEO seul : search-console, lire ta Google Search Console avec Claude Code.",
+      "version": "1.1.0",
+      "author": { "name": "Vincent Ventalon" },
+      "source": "./",
+      "category": "seo",
+      "homepage": "https://github.com/vincentventalon/my-claude-skills",
+      "license": "MIT",
+      "keywords": ["seo", "search-console"],
+      "skills": ["./skills/search-console"]
+    },
+    {
+      "name": "vincent-skills",
+      "description": "Tout : les sept skills vidéo (video, setup, edit, audit, outliers, script, publish) et search-console.",
+      "version": "2.1.0",
+      "author": { "name": "Vincent Ventalon" },
+      "source": "./",
+      "category": "video",
+      "homepage": "https://github.com/vincentventalon/my-claude-skills",
+      "license": "MIT",
+      "keywords": ["video", "editing", "tiktok", "instagram", "reels", "shorts", "subtitles", "whisper", "seo", "search-console"],
+      "skills": ["./skills/"]
     }
   ]
 }
