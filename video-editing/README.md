@@ -64,19 +64,11 @@ skill tells it how. The transcription model downloads itself the first time.
 (subtitles with timings) and `edited.takes.tsv` (every piece of your
 footage, kept or cut, with what you said in it).
 
-## Check it, cut what is left, leave notes
+## Something left to cut?
 
-```sh
-python scripts/review.py edited.mp4
-```
-
-A page opens in your browser: the video, what you say sentence by sentence,
-the sound wave with every join, and what the script already cut. You do two
-things there. **Cut** a sentence it missed (click it, press X: you hear the
-cut straight away). **Leave a note** on a moment (N: "too long here", "keep
-the first take"). It saves as you go. Then tell Claude "apply my edits": it
-cuts, reads your notes and does what they say. No install: it is Python and
-a single HTML file.
+Tell Claude, in your own words: "cut the sentence about the price", "keep
+the pause after the joke". It finds the moment in `edited.takes.tsv` and
+renders again, without transcribing again.
 
 ## Finish it with Remotion (optional)
 

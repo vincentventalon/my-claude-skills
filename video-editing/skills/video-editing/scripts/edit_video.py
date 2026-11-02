@@ -59,8 +59,6 @@ ap.add_argument('--protect', nargs='*', default=[], metavar='A:B',
                 help='A:B windows (s, joined footage) never to cut: a deliberate pause')
 ap.add_argument('--cut', nargs='*', default=[], metavar='A:B',
                 help='A:B windows (s, joined footage) to remove on top of the automatic cuts')
-ap.add_argument('--edits', metavar='FILE',
-                help='cuts and notes saved by the review page (default: <out>.edits.json, if it exists)')
 ap.add_argument('--keep-retakes', action='store_true', help='keep every take')
 ap.add_argument('--keep-fillers', action='store_true', help='keep the islands that are only "um"')
 ap.add_argument('--no-transcript', action='store_true', help='skip whisper: silences only')
@@ -410,12 +408,6 @@ def tail_restarted(ti, nexts):
 
 
 protect, extra_cuts = windows(args.protect), windows(args.cut)
-EDITS = args.edits or f'{base}.edits.json'          # written by scripts/review.py
-edits = json.load(open(EDITS, encoding='utf-8')) if os.path.exists(EDITS) else {}
-extra_cuts += [(float(c['start']), float(c['end'])) for c in edits.get('cuts', [])]
-if edits:
-    say(f'{os.path.basename(EDITS)}: {len(edits.get("cuts", []))} cut(s), '
-        f'{len(edits.get("notes", []))} note(s)')
 
 
 def protected(a, b):
@@ -596,7 +588,7 @@ run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map'
 say(f'-> {out}')
 
 
-# 7. the timeline the review page reads (scripts/review.py) ----------------------
+# 7. the timeline (the Remotion finish reads it) ---------------------------------
 def peaks(rate=50):
     """Loudness of the EDITED sound, `rate` values a second, 0-100."""
     with wave.open(WAV) as w:
@@ -629,7 +621,7 @@ with open(f'{base}.timeline.json', 'w', encoding='utf-8') as f:
         'warnings': [{'at': round(to_out(t), 3), 'text': m} for t, m in sorted(warnings)],
         'peaks_per_second': 50, 'peaks': peaks(),
     }, f, ensure_ascii=False)
-say(f'-> {base}.timeline.json  (review it: python scripts/review.py {os.path.relpath(out)})')
+say(f'-> {base}.timeline.json')
 
 # 8. transcript + the list of takes ----------------------------------------------
 if use_whisper:
@@ -667,7 +659,5 @@ if use_whisper:
     say(f'-> {base}.txt + {base}.srt + {base}.takes.tsv')
     for t, msg in sorted(warnings):
         say(f'  to check at {to_out(t):.1f}s in the video: {msg}')
-for n in edits.get('notes', []):                             # for Claude: read them, act, say what you did
-    say(f'  note at {to_out(float(n["at"])):.1f}s in the video: {n["text"]}')
 
 shutil.rmtree(work, ignore_errors=True)

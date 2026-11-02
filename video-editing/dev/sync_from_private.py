@@ -21,6 +21,8 @@ Porting rules (the reason this is not a copy):
     `claude -p`, no personal path;
   - only the CUT travels (islands, whisper per island, retakes, joins, sync):
     no subtitles styling, no b-roll, no covers, no publishing;
+  - no review page and no interface: Claude applies the user's changes with
+    --cut / --protect from the terminal (scripts/review.* never come back);
   - every change is tested on a real rush with `test` before it is kept.
 
 `test` renders the rush twice in a temporary folder (the public script at
@@ -39,7 +41,8 @@ WATCHED = ['scripts/salves.py', 'scripts/jump_cuts.py', 'scripts/align.py',
            'scripts/postflight.py', 'references/coupes.md']
 # what must never reach the public repo
 LEAKS = ['/Users/', '/home/', 'cockpit', 'pifpafpoum', 'claude -p', 'elevenlabs',
-         'api_key', 'apikey', 'openai']
+         'api_key', 'apikey', 'openai',
+         'review.py', 'review.html', 'edits.json']   # the review page is not part of this skill
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument('cmd', choices=['status', 'test', 'mark'])
