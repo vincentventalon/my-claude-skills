@@ -87,7 +87,7 @@ sous-titres. Deux moteurs, au choix, et tu peux changer quand tu veux (« passe 
 
 | | **whisper** (par défaut) | **ElevenLabs Scribe** |
 |---|---|---|
-| Prix | gratuit | payant à l'usage, à la minute de son ([tarifs](https://elevenlabs.io/pricing)) |
+| Prix | gratuit | payant à l'usage, selon la durée du son ([tarifs](https://elevenlabs.io/pricing)) |
 | Où ça tourne | sur ton ordinateur, rien ne sort | le son de ta vidéo est envoyé à ElevenLabs |
 | À installer | whisper.cpp et un modèle de 1,6 Go | rien : une clé d'API |
 | Ce qu'il entend | bien ; un peu moins précis sur les reprises (une phrase redite juste après l'autre peut être avalée) et sur les noms propres | le meilleur verbatim : les reprises, les noms, les chiffres |

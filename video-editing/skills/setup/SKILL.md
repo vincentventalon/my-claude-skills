@@ -7,8 +7,8 @@ description: Installe et configure le plugin video-editing (le montage de vidéo
 
 Cette skill prépare l'ordinateur pour la skill de montage du même plugin (`video-editing`) :
 elle regarde ce qui est installé, pose cinq questions, installe ce qui manque et écrit
-`~/.config/video-editing/config.json`. Compte dix minutes la première fois, plus le
-téléchargement du modèle si l'utilisateur choisit whisper.
+`~/.config/video-editing/config.json`. Une fois au premier usage ; ensuite, seulement quand un
+réglage change ou que le montage s'arrête sur un manque.
 
 - Parle la langue de l'utilisateur. Le script écrit en français : traduis ce que tu en dis.
 - `<setup>` = le dossier de ce fichier. Le script : `<setup>/scripts/setup.py`, bibliothèque
@@ -57,7 +57,7 @@ sous-titres. Présente le choix tel quel, sans pousser l'un ou l'autre :
 
 | | **whisper** (défaut) | **ElevenLabs Scribe** |
 |---|---|---|
-| Prix | gratuit | payant à l'usage, à la minute de son (tarifs sur elevenlabs.io) |
+| Prix | gratuit | payant à l'usage, selon la durée du son (tarifs sur elevenlabs.io) |
 | Où ça tourne | sur ton ordinateur, rien ne sort | le son de ta vidéo est envoyé à ElevenLabs |
 | À installer | whisper.cpp et un modèle de 1,6 Go | rien : une clé d'API |
 | Ce qu'il entend | bien ; un peu moins précis sur les reprises (une phrase redite juste après l'autre peut être avalée) et les noms propres | le meilleur verbatim : les reprises, les noms, les chiffres |
