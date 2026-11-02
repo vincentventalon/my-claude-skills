@@ -15,7 +15,7 @@ environment, or a line ELEVENLABS_API_KEY=... in ~/.config/video-editing/env
 
     python scripts/edit_video.py --config     # the resolved settings, and where each comes from
 """
-import json, os, re, shutil, subprocess, sys
+import glob, json, os, re, shutil, subprocess, sys
 
 CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.config', 'video-editing')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.json')
@@ -28,6 +28,10 @@ DEFAULTS = {'stt': 'whisper', 'whisper_model': 'large-v3-turbo', 'ffmpeg': None,
 # ffmpeg builds that carry libass (the subtitles), looked at before the one on the PATH:
 # Homebrew's `ffmpeg` formula has no libass, `ffmpeg-full` has it.
 FFMPEG_CANDIDATES = ['/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg', '/usr/local/opt/ffmpeg-full/bin/ffmpeg']
+# Windows: where the setup skill unzips whisper.cpp (no PATH to touch), and where winget puts ffmpeg
+# (found without reopening the terminal after `winget install Gyan.FFmpeg`).
+LOCAL_APPDATA = os.environ.get('LOCALAPPDATA') or os.path.join(os.path.expanduser('~'), 'AppData', 'Local')
+WHISPER_DIR_WINDOWS = os.path.join(LOCAL_APPDATA, 'whisper.cpp')
 INSTALL_LIBASS = ('an ffmpeg with libass: macOS `brew install ffmpeg-full` (found by itself, '
                   'no need to touch the PATH); Windows `winget install Gyan.FFmpeg` (the full build); '
                   'Linux `sudo apt install ffmpeg`')
@@ -44,7 +48,7 @@ def load_env_file():
     if os.path.exists(ENV_FILE):
         if os.name == 'posix' and os.stat(ENV_FILE).st_mode & 0o077:
             say(f'warning: {ENV_FILE} can be read by other users: chmod 600 "{ENV_FILE}"')
-        for line in open(ENV_FILE, encoding='utf-8').read().splitlines():
+        for line in open(ENV_FILE, encoding='utf-8-sig').read().splitlines():   # -sig: saved by Notepad
             line = line.strip()
             if not line or line.startswith('#') or '=' not in line:
                 continue
@@ -62,7 +66,7 @@ def read_file():
     if not os.path.exists(CONFIG_FILE):
         return {}
     try:
-        data = json.load(open(CONFIG_FILE, encoding='utf-8'))
+        data = json.load(open(CONFIG_FILE, encoding='utf-8-sig'))
     except (OSError, ValueError) as e:
         sys.exit(f'{CONFIG_FILE} is not valid JSON ({e}): fix it or delete it')
     if not isinstance(data, dict):
@@ -84,15 +88,34 @@ def has_filter(ff, name):
     return _LIBASS[(ff, name)]
 
 
+def windows_ffmpegs():
+    """Windows: where `winget install Gyan.FFmpeg` puts ffmpeg (its link, then the package itself)."""
+    if os.name != 'nt':
+        return []
+    w = os.path.join(LOCAL_APPDATA, 'Microsoft', 'WinGet')
+    return [os.path.join(w, 'Links', 'ffmpeg.exe')] + sorted(
+        glob.glob(os.path.join(w, 'Packages', 'Gyan.FFmpeg*', '*', 'bin', 'ffmpeg.exe')), reverse=True)
+
+
 def find_ffmpeg():
     """The first ffmpeg found that can burn subtitles, else the first ffmpeg found."""
     seen = []
-    for c in [os.environ.get('FFMPEG')] + FFMPEG_CANDIDATES + [shutil.which('ffmpeg')]:
+    for c in [os.environ.get('FFMPEG')] + FFMPEG_CANDIDATES + [shutil.which('ffmpeg')] + windows_ffmpegs():
         if c and (os.path.exists(c) or shutil.which(c)) and c not in seen:
             seen.append(c)
             if has_filter(c, 'ass'):
                 return c
     return seen[0] if seen else None
+
+
+def find_whisper():
+    """whisper-cli on the PATH (whisper-cli.exe on Windows), else where setup unzipped it on Windows.
+    Never main.exe: in the Windows zips it is only a stub that says it is deprecated."""
+    w = shutil.which('whisper-cli') or shutil.which('whisper-cpp')
+    if not w and os.name == 'nt':
+        w = next((p for p in (os.path.join(WHISPER_DIR_WINDOWS, 'Release', 'whisper-cli.exe'),
+                              os.path.join(WHISPER_DIR_WINDOWS, 'whisper-cli.exe')) if os.path.exists(p)), None)
+    return w
 
 
 def ffprobe_for(ff):
@@ -173,7 +196,7 @@ def describe(vals, src, key_origin, whisper_bin, model_file, remotion_dir, out_g
         rows.append((k, shown, note))
     rows.append(('ffprobe', vals['ffprobe'], ''))
     rows.append(('whisper-cli', whisper_bin or 'not found', '' if whisper_bin else
-                 'needed for stt=whisper: brew install whisper-cpp (see SKILL.md)'))
+                 'needed for stt=whisper: the setup skill installs it'))
     rows.append(('ELEVENLABS_API_KEY', f'set ({key_origin})' if key_origin else 'not set',
                  'needed for stt=elevenlabs' if not key_origin else ''))
     rows.append(('style', USER_STYLE if os.path.exists(USER_STYLE) else 'the one shipped with the skill', ''))

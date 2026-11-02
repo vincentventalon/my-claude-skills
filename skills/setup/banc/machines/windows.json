@@ -29,7 +29,8 @@
       "winget install Gyan.FFmpeg",
       "choco install ffmpeg-full",
       "Get-Clipboard | python ",
-      "winget install OpenJS.NodeJS.LTS"
+      "winget install OpenJS.NodeJS.LTS",
+      "--accept-source-agreements"
     ],
     "jamais": [
       "brew ",

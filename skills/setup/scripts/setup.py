@@ -10,8 +10,9 @@
     pbpaste | python3 setup.py --cle-elevenlabs-stdin
                                          # la clé ElevenLabs, lue sur l'entrée standard, écrite dans
                                          # ~/.config/video-editing/env (mode 600), jamais affichée
-    python3 setup.py --installe --a-blanc    # macOS : les `brew install` qui manquent, affichés
-    python3 setup.py --installe              # ... et lancés
+    python3 setup.py --installe --a-blanc    # ce qui manque, affiché (macOS : les `brew install` ;
+                                             # Windows : whisper.cpp, que setup télécharge lui-même)
+    python3 setup.py --installe              # ... et lancé
     python3 setup.py --modele            # télécharge le modèle whisper maintenant (sinon : au premier montage)
     python3 setup.py --simule machine.json   # le diagnostic d'une machine simulée (banc/test_setup.py)
 
@@ -27,6 +28,7 @@ Le contrat, partagé avec la skill de montage :
   la clé ElevenLabs seulement dans ELEVENLABS_API_KEY (l'environnement) ou dans
   ~/.config/video-editing/env (mode 600, des lignes KEY=valeur). Jamais dans config.json.
 
+Sur Windows, `py` (le lanceur de python.org) ou `python` au lieu de `python3`.
 Bibliothèque standard seulement. Tourne dès Python 3.8, pour pouvoir dire qu'il faut 3.10.
 Exit : 0 prêt, 1 il manque quelque chose, 2 refusé (mauvaise option, clé illisible, simulation).
 """
@@ -34,7 +36,10 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import fnmatch
 import getpass
+import glob
+import hashlib
 import json
 import os
 import platform
@@ -43,13 +48,15 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import urllib.request
+import zipfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-for _s in (sys.stdout, sys.stderr):          # les accents sur la console Windows
+for _s in (sys.stdout, sys.stderr):          # Windows écrit en cp1252 dans un tube : Claude lirait des « � »
     if hasattr(_s, "reconfigure"):
-        _s.reconfigure(errors="replace")
+        _s.reconfigure(encoding="utf-8", errors="replace")
 
 ICI = Path(__file__).resolve().parent
 MONTAGE = ICI.parent.parent / "edit"                   # skills/edit, à côté de skills/setup
@@ -73,6 +80,12 @@ NODE_MIN = 18
 SORTIE_DEFAUT = "~/Videos/edited"
 HOMEBREW = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
 WHISPER_RELEASES = "https://github.com/ggml-org/whisper.cpp/releases"
+# Windows : les versions vX.Y.Z de whisper.cpp n'ont aucun fichier ; les zips sont dans les builds bNNNN.
+WHISPER_API = "https://api.github.com/repos/ggml-org/whisper.cpp/releases?per_page=20"
+# Sans ces options, winget attend un « Y » au premier usage : la commande ne rend jamais la main à Claude.
+WINGET = " -e --accept-package-agreements --accept-source-agreements"
+# Un .exe qui ne démarre pas faute de DLL (0xC0000135, 0xC0000139, 0xC000007B), signé ou non selon Python.
+DLL_MANQUANTE = {3221225781, 3221225785, 3221225595, -1073741515, -1073741511, -1073741701}
 
 
 # --------------------------------------------------------------------------- la machine, interrogée
@@ -135,9 +148,12 @@ class Sonde:
 
     def lit(self, p) -> str | None:
         try:
-            return self.chemin(p).read_text(encoding="utf-8")
+            return self.chemin(p).read_text(encoding="utf-8-sig")   # -sig : un fichier enregistré par le Bloc-notes
         except (OSError, UnicodeDecodeError):
             return None
+
+    def cherche(self, motif: str) -> list:
+        return sorted(glob.glob(motif), reverse=True)
 
     def ecrivable(self, p) -> bool:
         """Le dossier existe et s'écrit, ou son plus proche parent existant s'écrit."""
@@ -213,7 +229,13 @@ class SondeSimulee(Sonde):
             return 0, f"ffmpeg version {spec.get('version', '7.1')} Copyright (c) 2000-2026 the FFmpeg developers\n"
         if Path(exe).name.startswith("node") and exe in self.fichiers:
             return 0, str(self.m.get("node", "v22.11.0")) + "\n"
+        if Path(exe).name.startswith("whisper") and exe in self.fichiers:
+            code = int(self.m.get("whisper_code", 0))          # 3221225781 : une DLL manque (Windows)
+            return code, "usage: whisper-cli [options] file0 file1 ...\n" if code == 0 else ""
         return 127, f"{exe}: introuvable (machine simulée)"
+
+    def cherche(self, motif):
+        return sorted((f for f in self.fichiers if fnmatch.fnmatchcase(f, motif)), reverse=True)
 
     def _reel(self, p) -> Path | None:
         if not self.disque:
@@ -389,13 +411,17 @@ def homebrew(s: Sonde) -> str | None:
 def contexte(s: Sonde) -> Contexte:
     cfg, etat, err = lire_config(s)
     systeme = s.systeme()
-    py = "python" if systeme == "Windows" else "python3"
+    py = "python3"
+    if systeme == "Windows":       # python.org pose `py` ; `python` n'est dans le PATH que si la case a été cochée
+        py = "py" if s.which("py") else "python"
     if s.python() < PYTHON_MIN:
         for n in ("python3.13", "python3.12", "python3.11", "python3.10"):
             if s.which(n):
                 py = n
                 break
-    script = cite(montre(s, ICI / "setup.py"))
+    # Windows : le chemin entier, avec des / : « ~\... » ne se tape ni dans PowerShell (pas de ~ pour un
+    # .exe) ni dans le Git Bash de Claude Code (\ y est un échappement) ; « C:/... » passe dans les deux
+    script = cite((ICI / "setup.py").as_posix() if systeme == "Windows" else montre(s, ICI / "setup.py"))
     return Contexte(systeme, homebrew(s), py, script, cfg, etat, err)
 
 
@@ -412,11 +438,11 @@ def verifie_python(s: Sonde, c: Contexte) -> Constat:
     texte = ".".join(str(x) for x in v)
     if v >= PYTHON_MIN:
         return Constat("python", "Python", "ok", texte)
-    if c.py != "python3" and c.py != "python":
+    if c.py not in ("python3", "python", "py"):
         return Constat("python", "Python", "manque",
                        f"{texte} : il faut 3.10 ou plus ; {c.py} est déjà installé",
                        [f"# lance ce script et le montage avec {c.py} au lieu de python3"], bloque=True)
-    fix = {"Darwin": "brew install python", "Windows": "winget install Python.Python.3.12"}.get(
+    fix = {"Darwin": "brew install python", "Windows": f"winget install Python.Python.3.12{WINGET}"}.get(
         c.systeme, "sudo apt install python3   # Ubuntu 22.04 et plus : 3.10 ou plus")
     return Constat("python", "Python", "manque", f"{texte} : il faut 3.10 ou plus", [fix], bloque=True)
 
@@ -445,7 +471,7 @@ def installe_ffmpeg(c: Contexte) -> list:
     if c.systeme == "Darwin":
         return ["brew install ffmpeg-full" if c.sous_titres else "brew install ffmpeg"]
     if c.systeme == "Windows":
-        return ["winget install Gyan.FFmpeg   # ou : choco install ffmpeg-full ; puis rouvre le terminal"]
+        return [f"winget install Gyan.FFmpeg{WINGET}   # ou : choco install ffmpeg-full ; le montage le trouve sans rouvrir le terminal"]
     return ["sudo apt install ffmpeg   # Fedora : sudo dnf install ffmpeg"]
 
 
@@ -455,14 +481,29 @@ def ffprobe_de(s: Sonde, exe: str) -> bool:
         or bool(s.which("ffprobe"))
 
 
+def local_appdata(s: Sonde) -> Path:
+    base = s.env.get("LOCALAPPDATA")
+    return Path(base) if base else s.home / "AppData" / "Local"
+
+
+def ffmpegs_winget(s: Sonde) -> tuple:
+    """Windows : là où `winget install Gyan.FFmpeg` pose ffmpeg (settings.windows_ffmpegs) ; le montage
+    le trouve là sans attendre que le terminal soit rouvert."""
+    if s.systeme() != "Windows":
+        return ()
+    w = local_appdata(s) / "Microsoft" / "WinGet"
+    return (str(w / "Links" / "ffmpeg.exe"),) + tuple(
+        s.cherche(str(w / "Packages" / "Gyan.FFmpeg*" / "*" / "bin" / "ffmpeg.exe")))
+
+
 def auto_ffmpeg(s: Sonde) -> tuple:
     """Ce que le montage prend quand config.json ne dit rien (settings.find_ffmpeg) : le premier
     ffmpeg qui a libass, sinon le premier trouvé. Rend (celui-là, tout ce qui a été vu)."""
     vus, deja = [], set()
-    for p in (s.env.get("FFMPEG"),) + FFMPEG_CANDIDATS + (s.which("ffmpeg"),):
-        if not p or p in deja:
+    for p in (s.env.get("FFMPEG"),) + FFMPEG_CANDIDATS + (s.which("ffmpeg"),) + ffmpegs_winget(s):
+        if not p or os.path.normcase(p) in deja:
             continue
-        deja.add(p)
+        deja.add(os.path.normcase(p))
         i = lis_ffmpeg(s, p)
         if i:
             i["ffprobe"] = ffprobe_de(s, p)
@@ -520,24 +561,50 @@ def verifie_ffmpeg(s: Sonde, c: Contexte) -> Constat:
                    bloque=True)
 
 
+def dossier_whisper_windows(s: Sonde) -> Path:
+    """Windows : où --installe dézippe whisper.cpp, et où le montage le cherche (settings.find_whisper)."""
+    return local_appdata(s) / "whisper.cpp"
+
+
 def cherche_whisper(s: Sonde, c: Contexte) -> str | None:
-    w = s.which("whisper-cli") or s.which("whisper-cpp")
+    w = s.which("whisper-cli") or s.which("whisper-cpp")       # whisper-cli.exe sur Windows (PATHEXT)
     if not w and c.brew and s.existe(f"{c.brew}/bin/whisper-cli"):
         w = f"{c.brew}/bin/whisper-cli"
+    if not w and c.systeme == "Windows":                        # jamais main.exe : ce n'est plus qu'un avertissement
+        d = dossier_whisper_windows(s)
+        w = next((str(p) for p in (d / "Release" / "whisper-cli.exe", d / "whisper-cli.exe") if s.existe(p)), None)
     return w
 
 
 def verifie_whisper(s: Sonde, c: Contexte) -> Constat:
     w = cherche_whisper(s, c)
+    besoin = c.moteur == "whisper"
     if w:
-        return Constat("whisper", "whisper-cli", "ok", montre(s, w))
-    if c.moteur != "whisper":
+        code, out = s.lance([w, "-h"])
+        if code == 0:
+            return Constat("whisper", "whisper-cli", "ok", montre(s, w))
+        if c.systeme == "Windows" and code in DLL_MANQUANTE:
+            arch = "arm64" if s.machine().upper() in ("ARM64", "AARCH64") else "x64"
+            det = (f"{montre(s, w)} ne démarre pas : il manque le Visual C++ Redistributable de Microsoft "
+                   "(MSVCP140.dll, VCOMP140.dll)")
+            fix = [f"winget install Microsoft.VCRedist.2015+.{arch}{WINGET}"]
+        else:
+            det = f"{montre(s, w)} ne démarre pas (code {code}) {out.strip()[-160:]}".rstrip()
+            fix = {"Darwin": ["brew reinstall whisper-cpp"],
+                   "Windows": [f"# efface le dossier {montre(s, Path(w).parent)}, puis : {c.py} {c.script} --installe"]}.get(
+                c.systeme, ["# recompile whisper.cpp (la commande de la ligne whisper-cli quand il manque)"])
+        if not besoin:
+            return Constat("whisper", "whisper-cli", "option", det + " (pas besoin avec ElevenLabs)")
+        return Constat("whisper", "whisper-cli", "manque", det, fix, bloque=True)
+    if not besoin:
         return Constat("whisper", "whisper-cli", "option", "absent (pas besoin avec ElevenLabs)")
     if c.systeme == "Darwin":
         fix = ["brew install whisper-cpp"]
     elif c.systeme == "Windows":
-        fix = [f"# télécharge whisper-bin-x64.zip sur {WHISPER_RELEASES} (dernière version), "
-               "dézippe-le et ajoute ce dossier au PATH, puis rouvre le terminal"]
+        fix = [f"{c.py} {c.script} --installe   # télécharge whisper.cpp (le zip officiel, GitHub) dans "
+               f"{montre(s, dossier_whisper_windows(s))}, sans toucher au PATH",
+               f"# ou à la main : whisper-bin-x64.zip de la dernière build bNNNN sur {WHISPER_RELEASES} "
+               "(les versions vX.Y.Z n'ont pas de fichiers), dézippé, son dossier Release dans le PATH"]
     else:
         fix = ["sudo apt install build-essential cmake git",
                "git clone https://github.com/ggml-org/whisper.cpp && cmake -S whisper.cpp -B whisper.cpp/build "
@@ -589,7 +656,9 @@ def verifie_modele(s: Sonde, c: Contexte) -> Constat:
 
 
 def commande_cle(c: Contexte) -> list:
-    lit = {"Darwin": "pbpaste", "Windows": "Get-Clipboard"}.get(c.systeme, "xclip -selection clipboard -o")
+    # Windows : par powershell, que la commande soit tapée dans PowerShell ou dans le Git Bash de Claude Code
+    lit = {"Darwin": "pbpaste", "Windows": "powershell -NoProfile -Command Get-Clipboard"}.get(
+        c.systeme, "xclip -selection clipboard -o")
     out = ["# copie ta clé (elevenlabs.io), ne la colle pas dans la conversation, puis :",
            f"{lit} | {c.py} {c.script} --cle-elevenlabs-stdin"]
     if c.systeme == "Linux":
@@ -625,7 +694,8 @@ def verifie_node(s: Sonde, c: Contexte) -> Constat:
         code, out = s.lance([n, "-v"])
         m = re.search(r"v?(\d+\.\d+\.\d+)", out) if code == 0 else None
         v = m.group(1) if m else None
-    fix = {"Darwin": ["brew install node"], "Windows": ["winget install OpenJS.NodeJS.LTS   # puis rouvre le terminal"]}.get(
+    fix = {"Darwin": ["brew install node"],
+           "Windows": [f"winget install OpenJS.NodeJS.LTS{WINGET}   # puis rouvre le terminal et Claude Code"]}.get(
         c.systeme, ["sudo apt install nodejs npm   # node -v doit dire 18 ou plus, sinon : https://nodejs.org"])
     sans = "le titre et le carton de fin sont dessinés par ffmpeg, la vidéo sort quand même"
     if v and vers(v)[0] >= NODE_MIN:
@@ -733,6 +803,11 @@ class Diagnostic:
     def pret(self) -> bool:
         return not any(k.bloque for k in self.constats)
 
+    @property
+    def whisper_a_telecharger(self) -> bool:      # Windows : --installe le télécharge
+        return any(k.cle == "whisper" and k.bloque and any(x.split("#")[0].strip().endswith("--installe") for x in k.corrige)
+                   for k in self.constats)
+
     def plan_brew(self) -> list:
         cmds = []
         for k in self.constats:
@@ -776,6 +851,8 @@ def texte(d: Diagnostic) -> str:
         L.append(f"Il manque : {', '.join(bloquants)}. Les commandes ci-dessus réparent.")
         if c.systeme == "Darwin" and d.plan_brew():
             L.append(f"Sur macOS, `{c.py} {c.script} --installe` lance les installations Homebrew (il les affiche d'abord).")
+        if c.systeme == "Windows" and d.whisper_a_telecharger:
+            L.append(f"Sur Windows, `{c.py} {c.script} --installe` télécharge whisper.cpp (il le dit d'abord).")
     return "\n".join(L) + "\n"
 
 
@@ -916,7 +993,7 @@ def lit_cle(entree) -> str:
         cle = getpass.getpass("Colle ta clé ElevenLabs (rien ne s'affiche), puis Entrée : ")
     else:
         cle = entree.read()
-    cle = (cle or "").strip().strip('"').strip("'")
+    cle = (cle or "").strip().lstrip("\ufeff").strip('"').strip("'")
     if not cle:
         raise ValueError("rien reçu sur l'entrée : copie d'abord la clé, puis relance la commande")
     if re.search(r"\s", cle) or not cle.isascii() or not cle.isprintable():
@@ -961,11 +1038,85 @@ def telecharge_modele(s: Sonde, nom: str) -> int:
     return 0
 
 
+def telecharge_whisper_windows(s: Sonde) -> int:
+    """whisper.cpp n'a pas de paquet winget : le zip officiel de la dernière build qui en a un (GitHub),
+    vérifié (sha256 de GitHub), dézippé dans %LOCALAPPDATA%\\whisper.cpp. Pas de PATH à toucher : le
+    montage le cherche là. Ses DLL restent à côté de whisper-cli.exe, dans Release."""
+    arm = s.machine().upper() in ("ARM64", "AARCH64")
+    nom = "whisper-bin-win-cpu-arm64.zip" if arm else "whisper-bin-x64.zip"
+    dest = dossier_whisper_windows(s)
+    entetes = {"Accept": "application/vnd.github+json", "User-Agent": "video-editing-setup"}
+    try:
+        with urllib.request.urlopen(urllib.request.Request(WHISPER_API, headers=entetes), timeout=60) as r:
+            versions = json.load(r)
+        rel, a = next(((v, x) for v in versions if not v.get("draft") for x in v.get("assets", [])
+                       if x.get("name") == nom), (None, None))
+        if not a:
+            print(f"setup : aucune build de whisper.cpp n'a {nom} ({WHISPER_RELEASES})", file=sys.stderr)
+            return 1
+        print(f"téléchargement de {nom} ({rel['tag_name']}, {(a.get('size') or 0) / 1e6:.0f} Mo) vers {montre(s, dest)}",
+              flush=True)
+        with tempfile.TemporaryDirectory() as t:
+            z = os.path.join(t, nom)
+            urllib.request.urlretrieve(a["browser_download_url"], z)
+            empreinte = str(a.get("digest") or "")
+            if empreinte.startswith("sha256:"):
+                with open(z, "rb") as f:
+                    if hashlib.sha256(f.read()).hexdigest() != empreinte[7:]:
+                        print("setup : le zip téléchargé ne correspond pas à son empreinte GitHub, rien n'est installé",
+                              file=sys.stderr)
+                        return 1
+            with zipfile.ZipFile(z) as zf:
+                noms = zf.namelist()
+                if any(n.startswith(("/", "\\")) or ".." in n.replace("\\", "/").split("/") for n in noms):
+                    print("setup : le zip contient des chemins hors de son dossier, rien n'est installé", file=sys.stderr)
+                    return 1
+                if dest.exists():
+                    shutil.rmtree(str(dest))
+                zf.extractall(str(dest))
+    except (OSError, ValueError, zipfile.BadZipFile) as e:
+        print(f"setup : le téléchargement de whisper.cpp a échoué ({e}). Relance la même commande.", file=sys.stderr)
+        return 1
+    exe = next((p for p in (dest / "Release" / "whisper-cli.exe", dest / "whisper-cli.exe") if p.exists()), None)
+    if not exe:
+        print(f"setup : pas de whisper-cli.exe dans {nom} : à faire à la main ({WHISPER_RELEASES})", file=sys.stderr)
+        return 1
+    print(f"whisper-cli : {montre(s, exe)}")
+    return 0
+
+
+def installe_windows(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
+    """Windows : setup télécharge whisper.cpp lui-même ; le reste (winget), c'est Claude qui le lance,
+    avec l'accord de l'utilisateur. Rend (code, ce qui a été fait)."""
+    autres = [x for k in d.constats if k.bloque and not (k.cle == "whisper" and d.whisper_a_telecharger)
+              for x in k.corrige]
+    if d.whisper_a_telecharger:
+        print(f"Je vais télécharger whisper.cpp (whisper-bin-x64.zip, la dernière build de {WHISPER_RELEASES}) "
+              f"dans {montre(s, dossier_whisper_windows(s))}, sans toucher au PATH.")
+    if autres:
+        print("À lancer à part (winget : ensuite, rouvre le terminal et Claude Code pour Python et Node) :")
+        for x in autres:
+            print(f"  {x if x.startswith('#') else '$ ' + x}")
+    if not d.whisper_a_telecharger:
+        if not autres:
+            print("Rien à installer.")
+        return (2 if autres else 0), []
+    if a_blanc:
+        print("(à blanc : rien n'est lancé)")
+        return 0, []
+    if telecharge_whisper_windows(s):
+        return 1, []
+    return 0, ["whisper.cpp téléchargé dans " + montre(s, dossier_whisper_windows(s))]
+
+
 def installe(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
-    """macOS + Homebrew : lance les `brew install` qui manquent. Rend (code, ce qui a été fait)."""
+    """macOS + Homebrew : lance les `brew install` qui manquent ; Windows : télécharge whisper.cpp.
+    Rend (code, ce qui a été fait)."""
     c = d.contexte
+    if c.systeme == "Windows":
+        return installe_windows(s, d, a_blanc)
     if c.systeme != "Darwin":
-        print("setup : --installe ne lance rien hors de macOS. Les commandes de ta machine sont dans le diagnostic :")
+        print("setup : --installe ne lance rien sous Linux. Les commandes de ta machine sont dans le diagnostic :")
         for k in d.constats:
             if k.bloque:
                 for x in k.corrige:
@@ -1017,7 +1168,8 @@ def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> i
                          "(large-v3-turbo, large-v3-turbo-q5_0, small)")
     ap.add_argument("--cle-elevenlabs-stdin", action="store_true",
                     help=f"lit la clé ElevenLabs sur l'entrée standard et l'écrit dans {ENV} (mode 600)")
-    ap.add_argument("--installe", action="store_true", help="macOS : lance les brew install qui manquent")
+    ap.add_argument("--installe", action="store_true",
+                    help="macOS : lance les brew install qui manquent ; Windows : télécharge whisper.cpp")
     ap.add_argument("--a-blanc", action="store_true", help="avec --installe : affiche sans rien lancer")
     ap.add_argument("--simule", metavar="MACHINE.json", help="le diagnostic d'une machine simulée (rien n'est écrit)")
     a = ap.parse_args(argv)

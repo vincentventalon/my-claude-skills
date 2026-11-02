@@ -83,7 +83,7 @@ def load_style(user=None, extra=None):
     for p in (user if user and os.path.exists(user) else None, extra):
         if p and os.path.exists(p):
             try:
-                merge(st, json.load(open(p, encoding='utf-8')))
+                merge(st, json.load(open(p, encoding='utf-8-sig')))     # -sig: saved by Notepad
             except ValueError as e:
                 sys.exit(f'{p} is not valid JSON ({e})')
         elif p:
@@ -479,11 +479,13 @@ def build_ass(path, L, words, items, st, views):
 
 # --- Remotion: the title, the boards, the end card, animated (optional) --------------------
 def remotion_cli(enabled):
-    """(npx, None) when Remotion can draw the overlay, else (None, why not)."""
+    """(the command that runs the Remotion CLI, None) when Remotion can draw the overlay, else
+    (None, why not). node runs the CLI itself, not npx: on Windows npx is a .cmd, run through
+    cmd.exe, which reads %, ^ and & in the paths its own way."""
     if not enabled:
         return None, 'remotion is off'
-    node, npx = shutil.which('node'), shutil.which('npx')
-    if not node or not npx:
+    node = shutil.which('node')
+    if not node:
         return None, 'Node not found (nodejs.org, 18 or later)'
     try:
         v = subprocess.run([node, '--version'], capture_output=True, text=True, errors='replace').stdout.strip()
@@ -491,14 +493,20 @@ def remotion_cli(enabled):
             return None, f'Node {v} is too old (18 or later)'
     except (OSError, ValueError):
         return None, 'Node does not answer'
-    if not os.path.isdir(os.path.join(REMOTION, 'node_modules')):
-        npm = shutil.which('npm')
+    cli = os.path.join(REMOTION, 'node_modules', '@remotion', 'cli', 'remotion-cli.js')
+    if not os.path.exists(cli):
+        npm = shutil.which('npm')                   # npm.cmd on Windows: a fixed command line, nothing to mangle
+        if not npm:
+            return None, 'npm not found (it comes with Node)'
         say('remotion: first use, npm install in remotion/ (about a minute, once)...')
-        r = subprocess.run([npm or 'npm', 'install', '--no-audit', '--no-fund'], cwd=REMOTION,
-                           capture_output=True, text=True, errors='replace')
-        if r.returncode:
+        try:
+            r = subprocess.run([npm, 'install', '--no-audit', '--no-fund'], cwd=REMOTION,
+                               capture_output=True, text=True, encoding='utf-8', errors='replace')
+        except OSError as e:
+            return None, f'npm install failed: {e}'
+        if r.returncode or not os.path.exists(cli):
             return None, 'npm install failed: ' + (r.stderr or r.stdout).strip()[-300:]
-    return npx, None
+    return [node, cli], None
 
 
 def font_file_of(st):
@@ -509,7 +517,7 @@ def font_file_of(st):
     return src if src and os.path.exists(src) else ''
 
 
-def remotion_overlay(npx, work, name, items, L, st, seconds, fps):
+def remotion_overlay(cli, work, name, items, L, st, seconds, fps):
     """Render every overlay item, the whole length of the video, as one transparent ProRes 4444
     clip (it starts at 0). None when it fails: the .ass draws them instead."""
     font_file = ''
@@ -525,9 +533,10 @@ def remotion_overlay(npx, work, name, items, L, st, seconds, fps):
     pf = os.path.join(work, f'{name}.props.json')
     json.dump(props, open(pf, 'w', encoding='utf-8'), ensure_ascii=False)
     out = os.path.join(work, f'{name}.mov')
-    r = subprocess.run([npx, 'remotion', 'render', 'src/index.ts', 'Overlay', out, f'--props={pf}',
+    r = subprocess.run([*cli, 'render', 'src/index.ts', 'Overlay', out, f'--props={pf}',
                         '--codec=prores', '--prores-profile=4444', '--pixel-format=yuva444p10le',
-                        '--image-format=png', '--log=error'], cwd=REMOTION, capture_output=True, text=True, errors='replace')
+                        '--image-format=png', '--log=error'], cwd=REMOTION, capture_output=True, text=True,
+                       encoding='utf-8', errors='replace')
     if r.returncode or not os.path.exists(out):
         say(f'remotion: the overlay could not be rendered, ffmpeg draws it instead '
             f'({(r.stderr or r.stdout).strip()[-200:]})')
@@ -649,6 +658,6 @@ def render(ff, cut, out, L, work, views, st, ass=None, cards=(), audio_filter=No
     r = subprocess.run([ff, '-hide_banner', '-y', *inputs, '-filter_complex_script', fg,
                         '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20',
                         '-profile:v', 'high', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out],
-                       cwd=work, capture_output=True, text=True, errors='replace')
+                       cwd=work, capture_output=True, text=True, encoding='utf-8', errors='replace')
     if r.returncode:
         sys.exit(f'the final render failed:\n{r.stderr[-1500:]}')

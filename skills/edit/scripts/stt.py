@@ -48,8 +48,20 @@ DTW_PRESETS = {'tiny', 'tiny.en', 'base', 'base.en', 'small', 'small.en', 'mediu
                'large.v1', 'large.v2', 'large.v3', 'large.v3.turbo'}
 
 
+# Windows: a .exe that cannot start because a DLL is missing (0xC0000135, 0xC0000139, 0xC000007B)
+DLL_MISSING = {3221225781, 3221225785, 3221225595, -1073741515, -1073741511, -1073741701}
+
+
 def say(msg):
     print(msg, file=sys.stderr)
+
+
+def whisper_failed(binary, code, err):
+    """What to say when whisper-cli stops (instead of a traceback)."""
+    if code in DLL_MISSING:
+        return (f'{binary} cannot start (code {code}): a DLL is missing, most often the Microsoft Visual C++ '
+                'Redistributable (winget install Microsoft.VCRedist.2015+.x64; the setup skill checks it)')
+    return f'whisper-cli stopped (code {code}): {(err or "").strip()[-600:]}'
 
 
 # --- whisper ------------------------------------------------------------------------
@@ -159,11 +171,18 @@ def whisper_spans(wav, spans, todo, dur, model, lang, binary, ff, dtw=False):
                 files.append(f)
                 starts.append(fa)
         threads = str(min(8, os.cpu_count() or 4))
+        binary, model = os.path.abspath(binary), os.path.abspath(model)     # whisper-cli runs from `d`
         dtw = dtw_preset(model) if dtw else None
         timing = ['-nfa', '-dtw', dtw] if dtw else []          # DTW wants flash attention off
         for n in range(0, len(files), 150):          # command-line length, on Windows
-            subprocess.run([binary, '-m', model, '-l', lang, '-t', threads, '-np', '-ml', '1', '-sow',
-                            '-osrt', '-ojf'] + timing + files[n:n + 150], check=True, capture_output=True, text=True, errors='replace')
+            # the pieces by their bare name, from their folder: whisper-cli reads its arguments in the
+            # Windows code page, a name like 12.wav never needs it (nor makes the line long)
+            try:
+                subprocess.run([binary, '-m', model, '-l', lang, '-t', threads, '-np', '-ml', '1', '-sow',
+                                '-osrt', '-ojf'] + timing + [os.path.basename(f) for f in files[n:n + 150]],
+                               cwd=d, check=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
+            except subprocess.CalledProcessError as e:
+                sys.exit(whisper_failed(binary, e.returncode, e.stderr))
         out = []
         for k, f, fa in zip(todo, files, starts):
             a, b = spans[k]

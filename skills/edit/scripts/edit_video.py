@@ -57,9 +57,9 @@ import argparse, array, difflib, hashlib, json, math, os, re, shutil, subprocess
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import finish, settings, stt  # noqa: E402
 
-for _s in (sys.stdout, sys.stderr):          # non-ASCII on the Windows console
+for _s in (sys.stdout, sys.stderr):          # Windows writes cp1252 into a pipe: Claude would read "�"
     if hasattr(_s, 'reconfigure'):
-        _s.reconfigure(errors='replace')
+        _s.reconfigure(encoding='utf-8', errors='replace')
 
 ap = argparse.ArgumentParser(description='A talking-head video, from the raw clips to the video you post.')
 ap.add_argument('rushes', nargs='*', help='video files, in order (whatever ffmpeg reads: mp4, mov, mkv...)')
@@ -110,7 +110,7 @@ cfg, cfg_src = settings.resolve({'stt': args.stt, 'whisper_model': args.model, '
                                  'lang': args.lang, 'output_dir': None, 'subtitles': args.subtitles,
                                  'remotion': args.remotion})
 FF, FP = cfg['ffmpeg'], cfg['ffprobe']
-WHISPER = shutil.which('whisper-cli') or shutil.which('whisper-cpp')
+WHISPER = settings.find_whisper()
 if args.config:
     print(settings.describe(cfg, cfg_src, KEY_ORIGIN, WHISPER, stt.find_model(cfg['whisper_model']),
                             finish.REMOTION, bool(args.out)))
@@ -137,7 +137,7 @@ PHANTOMS = ['soustitrage', 'soustitres', 'amaraorg', 'merci davoir regarde',
 
 
 def run(cmd, **kw):
-    return subprocess.run(cmd, check=True, capture_output=True, text=True, errors='replace', **kw)
+    return subprocess.run(cmd, check=True, capture_output=True, text=True, encoding='utf-8', errors='replace', **kw)
 
 
 def probe(path, entries, stream=None):
@@ -189,8 +189,8 @@ if len(clean) == 1:
     shutil.move(clean[0], merged)
 else:
     lst = f'{work}/list.txt'
-    open(lst, 'w', encoding='utf-8').write(
-        ''.join(f"file '{c.replace(chr(92), '/')}'\n" for c in clean))   # ffmpeg wants /
+    # the clips by their bare name: concat reads them next to the list (no drive letter, no quote to escape)
+    open(lst, 'w', encoding='utf-8').write(''.join(f"file '{os.path.basename(c)}'\n" for c in clean))
     run([FF, '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-c', 'copy', merged])
 
 dur = float(probe(merged, 'format=duration'))
@@ -617,7 +617,7 @@ for a, b, t in live:                                        # an island cut by h
         log[(a, b)] = ('cut', t)
 live = [x for x in live if log.get(x[:2], ('kept',))[0] != 'cut']
 if os.environ.get('EDIT_VIDEO_SEGMENTS'):                 # for dev/check_edit.py
-    open(os.environ['EDIT_VIDEO_SEGMENTS'], 'w').writelines(f'{a:.6f}\t{b:.6f}\n' for a, b in segs)
+    open(os.environ['EDIT_VIDEO_SEGMENTS'], 'w', encoding='utf-8').writelines(f'{a:.6f}\t{b:.6f}\n' for a, b in segs)
 if not segs:
     sys.exit('nothing kept: is there any speech in the clips? (a quiet recording: try --noise 40)')
 kept_dur = sum(b - a for a, b in segs)
@@ -724,19 +724,19 @@ if not args.rough:
                                   (style['end_card'].get('text') or finish.CTA.get(args.lang, finish.CTA['en'])))
     if args.boards:
         try:
-            raw_boards = json.load(open(args.boards, encoding='utf-8'))
+            raw_boards = json.load(open(args.boards, encoding='utf-8-sig'))
         except (OSError, ValueError) as e:
             sys.exit(f'--boards {args.boards}: {e}')
         boards = finish.resolve_boards(raw_boards if isinstance(raw_boards, list) else raw_boards.get('boards', []),
                                        out_words, kept_dur)
     burn = settings.has_filter(FF, 'ass')
-    npx, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta or boards) else (None, None)
+    rcli, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta or boards) else (None, None)
     if not burn:
         say(f'this ffmpeg ({FF}) has no libass: no subtitles burned in (the .srt is written all the same)'
-            + ('' if npx or not (args.title or cta or boards)
+            + ('' if rcli or not (args.title or cta or boards)
                else ', and no title, board nor end card (no Node for Remotion either)')
             + f'. Install {settings.INSTALL_LIBASS}')
-    elif (args.title or cta or boards) and not npx:
+    elif (args.title or cta or boards) and not rcli:
         say(f'title, boards and end card drawn by ffmpeg ({why})')
     if not cfg['subtitles']:
         say('subtitles off (config or --no-subtitles): the .srt is written all the same')
@@ -773,8 +773,8 @@ if not args.rough:
         items = finish.overlay_items(L, style, views, args.title, title_sec, cta, cta_start, kept_dur,
                                      [] if wide else boards)
         cards, left = [], items
-        if npx and items:
-            clip = finish.remotion_overlay(npx, work, f'overlay{int(wide)}', items, L, style, cut_dur, fps)
+        if rcli and items:
+            clip = finish.remotion_overlay(rcli, work, f'overlay{int(wide)}', items, L, style, cut_dur, fps)
             if clip:
                 cards.append((clip, 0.0))
                 left = []

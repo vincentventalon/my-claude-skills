@@ -12,9 +12,13 @@ python scripts/edit_video.py CLIP1.MOV CLIP2.MOV --lang fr --title "J'en ai *mar
 ```
 
 (`scripts/` is in this skill's folder; `python3` on macOS / Linux if `python`
-is missing.) It joins the clips in the order given, cuts what is not speech,
-the false starts and the retakes, transcribes, and renders, next to `-o`
-(default: `~/Videos/edited/<first clip name>.mp4`):
+is missing; on Windows `py` if `python` is missing or opens the Microsoft
+Store. On Windows the commands run in Git Bash or PowerShell: write paths
+with `/`, `C:/Users/me/Downloads/clip.mp4`, quoted when they have spaces.)
+It joins the clips in the order given, cuts what is not speech, the false
+starts and the retakes, transcribes, and renders, next to `-o` (default:
+`~/Videos/edited/<first clip name>.mp4`, `C:\Users\<you>\Videos\edited` on
+Windows):
 
 | file | what it is |
 |---|---|
@@ -147,26 +151,34 @@ shows the commands before installing anything, writes the settings):
 
 > Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`,
 > installée à côté de celle-ci (`../setup/SKILL.md`, son diagnostic :
-> `python3 ../setup/scripts/setup.py --json`), puis reprends le montage là où il s'est arrêté.
+> `python3 ../setup/scripts/setup.py --json`, `py` sur Windows), puis reprends le montage là où il
+> s'est arrêté.
 
 What setup installs, for reference:
 
 | tool | for | macOS | Windows | Linux |
 |---|---|---|---|---|
-| Python 3.10+ | the scripts | `brew install python` | `winget install Python.Python.3.12` | already there |
-| ffmpeg **with libass** | everything; libass burns the subtitles in | `brew install ffmpeg-full` (Homebrew's plain `ffmpeg` has no libass; the script finds `ffmpeg-full` by itself) | `winget install Gyan.FFmpeg` | `sudo apt install ffmpeg` |
-| whisper-cli (whisper.cpp) | the local transcription | `brew install whisper-cpp` | `whisper-bin-x64.zip` from https://github.com/ggml-org/whisper.cpp/releases, unzipped, on the PATH | `sudo apt install whisper-cpp`, or build it |
-| Node 18+ (optional) | Remotion draws the title, the boards and the end card, animated | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` |
+| Python 3.10+ | the scripts | `brew install python` | `winget install Python.Python.3.12`, then `py` | already there |
+| ffmpeg **with libass** | everything; libass burns the subtitles in | `brew install ffmpeg-full` (Homebrew's plain `ffmpeg` has no libass; the script finds `ffmpeg-full` by itself) | `winget install Gyan.FFmpeg` (found without reopening the terminal) | `sudo apt install ffmpeg` |
+| whisper-cli (whisper.cpp) | the local transcription | `brew install whisper-cpp` | `py ../setup/scripts/setup.py --installe` downloads the official zip into `%LOCALAPPDATA%\whisper.cpp` (no PATH to touch); it needs the Microsoft Visual C++ Redistributable, which setup checks | `sudo apt install whisper-cpp`, or build it |
+| Node 18+ (optional) | Remotion draws the title, the boards and the end card, animated | `brew install node` | `winget install OpenJS.NodeJS.LTS`, then reopen the terminal and Claude Code | `sudo apt install nodejs npm` |
+
+On Windows, take the `winget` commands from setup's diagnostic: they carry
+`--accept-package-agreements --accept-source-agreements`, without which winget
+waits for an answer on first use and never returns.
 
 The whisper model downloads itself on the first run into
 `~/.cache/whisper-cpp/` (it is also found in
-`~/.local/share/whisper-cpp/models/`):
+`~/.local/share/whisper-cpp/models/`; `~` is `C:\Users\<you>` on Windows):
 
 | machine | `--model` | download | note |
 |---|---|---|---|
 | recent Mac (M1+) or PC with a GPU | nothing (`large-v3-turbo`) | 1.6 GB | the best |
 | little disk space or RAM (8 GB) | `large-v3-turbo-q5_0` | 0.57 GB | almost as good |
 | PC without a GPU, or too slow | `small` | 0.49 GB | several times faster on a CPU, catches a few less retakes |
+
+On Windows, the whisper.cpp setup downloads is the CPU build: a graphics card
+is not used.
 
 When one is missing, the script says it and does what it can:
 
@@ -177,7 +189,8 @@ When one is missing, the script says it and does what it can:
 - no whisper-cli: silences only (no retake cut, no subtitles);
 - no Node, or `remotion` off: ffmpeg draws the title, the boards and the
   end card (square boxes, a simple pop, no count-up); the video comes out all
-  the same;
+  the same (likewise when Remotion cannot render: Windows on ARM has no
+  Remotion build);
 - `stt` = elevenlabs without a key: it stops before doing anything.
 
 ## The two transcription engines
@@ -218,7 +231,8 @@ subtitles do not know which one spoke.
    again with `--fix "heard=meant"` (`--fix "clode code=Claude Code"`); it
    fixes the subtitles, the .srt and the .txt.
 5. **Look before handing it back**: stills of `<name>.mp4`
-   (`ffmpeg -ss 1 -i <name>.mp4 -frames:v 1 a.png`), one in each view
+   (`ffmpeg -ss 1 -i <name>.mp4 -frames:v 1 a.png`, with the ffmpeg path
+   `--config` prints when `ffmpeg` alone is not found), one in each view
    (`views` in `<name>.timeline.json`: the hook, a split, the last second),
    then read them: the title, a board, a subtitle on the seam, the end card,
    nothing over the face.

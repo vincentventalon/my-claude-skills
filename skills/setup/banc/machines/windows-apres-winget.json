@@ -1,0 +1,53 @@
+{
+  "nom": "Windows après winget et setup --installe : ffmpeg (winget) et whisper.cpp hors du PATH, le lanceur py",
+  "systeme": "Windows",
+  "machine": "AMD64",
+  "version_os": "11",
+  "python": "3.12.7",
+  "home": "C:/Users/toi",
+  "which": {
+    "py": "C:/Windows/py.exe",
+    "node": "C:/Program Files/nodejs/node.exe"
+  },
+  "ffmpeg": {
+    "~/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.0-full_build/bin/ffmpeg.exe": {"libass": true, "version": "8.0-full_build-www.gyan.dev"}
+  },
+  "fichiers": {
+    "~/AppData/Local/whisper.cpp/Release/whisper-cli.exe": 1,
+    "~/.cache/whisper-cpp/ggml-large-v3-turbo.bin": 1624555275
+  },
+  "dossiers": ["~/Videos/edited"],
+  "node": "v22.11.0",
+  "config": {
+    "stt": "whisper",
+    "whisper_model": "large-v3-turbo",
+    "lang": "fr",
+    "output_dir": "~/Videos/edited",
+    "subtitles": true,
+    "remotion": true
+  },
+  "attendu": {
+    "pret": true,
+    "etats": {
+      "python": "ok",
+      "ffmpeg": "ok",
+      "whisper": "ok",
+      "modele": "ok",
+      "elevenlabs": "option",
+      "node": "ok",
+      "sortie": "ok",
+      "config": "ok"
+    },
+    "contient": [
+      "Gyan.FFmpeg",
+      "hors du PATH",
+      "whisper.cpp/Release/whisper-cli.exe"
+    ],
+    "jamais": [
+      "brew ",
+      "pbpaste",
+      "sudo"
+    ],
+    "brew": []
+  }
+}

@@ -12,7 +12,12 @@ réglage change ou que le montage s'arrête sur un manque.
 
 - Parle la langue de l'utilisateur. Le script écrit en français : traduis ce que tu en dis.
 - `<setup>` = le dossier de ce fichier. Le script : `<setup>/scripts/setup.py`, bibliothèque
-  standard seulement. `python3` sur macOS et Linux, `python` sur Windows.
+  standard seulement. `python3` sur macOS et Linux. Sur Windows, `py` (le lanceur que pose
+  python.org ; `python` seulement s'il n'y a pas de `py`, jamais `python3`, qui y ouvre souvent le
+  Microsoft Store) : remplace `python3` par lui dans toutes les commandes ci-dessous. Les commandes
+  du diagnostic (`corrige`) sont déjà écrites pour le système.
+- Windows : Claude Code lance les commandes dans Git Bash ou PowerShell. Écris les chemins avec des
+  `/` (`C:/Users/...`), entre guillemets s'ils ont des espaces : ça passe dans les deux.
 - Une question par message, sauf les questions 2 à 5 (section 2), qui vont ensemble.
 - Rien de payant, rien d'installé sans que l'utilisateur ait vu la commande.
 
@@ -79,12 +84,17 @@ propose un modèle plus léger, passé ensuite par `--modele` à `--ecris` :
 | `large-v3-turbo-q5_0` | 0,57 Go | peu de place ou 8 Go de mémoire ; presque aussi bon |
 | `small` | 0,49 Go | PC sans carte graphique, ou trop lent : plus rapide, rate un peu plus de reprises |
 
+Sur Windows, le whisper.cpp que setup télécharge est la build processeur : la carte graphique ne
+sert pas, même sur un PC qui en a une (vitesse pas encore mesurée sur PC).
+
 ### Questions 2 à 5, ensemble
 
 2. **La langue parlée dans tes vidéos ?** Défaut : la langue dans laquelle l'utilisateur
    t'écrit. Un code : `fr`, `en`, `es`, `de`...
 3. **Où ranger les vidéos montées ?** Défaut : `~/Videos/edited`. Sur Mac, le dossier Vidéos
-   du Finder est `~/Movies` : propose `~/Movies/edited` s'il veut les y retrouver.
+   du Finder est `~/Movies` : propose `~/Movies/edited` s'il veut les y retrouver. Sur Windows,
+   `~/Videos` est le dossier Vidéos de l'Explorateur (`C:\Users\<toi>\Videos`), sauf si OneDrive
+   le sauvegarde : il est alors sous `~/OneDrive/`.
 4. **Sous-titres incrustés dans la vidéo ?** (quelques mots à la fois, le mot dit qui
    s'allume) Défaut : oui. Il faut un ffmpeg avec libass ; sur Mac, c'est `ffmpeg-full`.
 5. **Titre et carton de fin animés avec Remotion ?** Défaut : oui si Node 18 ou plus est là
@@ -106,14 +116,17 @@ Puis lance, selon le système :
 
 ```sh
 pbpaste | python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin                      # macOS
-Get-Clipboard | python <setup>/scripts/setup.py --cle-elevenlabs-stdin                  # Windows (PowerShell)
+powershell -NoProfile -Command Get-Clipboard | py <setup>/scripts/setup.py --cle-elevenlabs-stdin   # Windows
 xclip -selection clipboard -o | python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin # Linux (wl-paste sous Wayland)
 ```
 
-Le script lit la clé sur son entrée, l'écrit dans `~/.config/video-editing/env` (mode 600) et ne
-l'affiche jamais. « rien reçu » ou « pas la forme d'une clé » : le presse-papier contenait
-autre chose, fais recopier. L'utilisateur peut aussi le faire seul, dans un terminal :
-`python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin` demande la clé sans l'afficher.
+(La ligne Windows passe par `powershell` : elle marche aussi bien dans PowerShell que dans le Git
+Bash de Claude Code.) Le script lit la clé sur son entrée, l'écrit dans
+`~/.config/video-editing/env` (mode 600 ; sur Windows, le dossier personnel n'est lisible que par
+son compte) et ne l'affiche jamais. « rien reçu » ou « pas la forme d'une clé » : le
+presse-papier contenait autre chose, fais recopier. L'utilisateur peut aussi le faire seul, dans
+un terminal : `python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin` (`py` sur Windows) demande
+la clé sans l'afficher.
 
 Si l'utilisateur colle quand même sa clé dans la conversation : ne la répète pas, ne l'écris
 nulle part toi-même. Dis-lui qu'elle est maintenant dans l'historique de la conversation, qu'il
@@ -141,9 +154,20 @@ passe de l'ordinateur, c'est donc l'utilisateur qui la lance, dans son terminal.
 l'installeur affiche deux lignes « Next steps » à copier (elles mettent `brew` dans le PATH) :
 qu'il les lance aussi, puis qu'il rouvre Claude Code.
 
-**Windows** : les commandes `winget` du diagnostic. Lance-les si l'utilisateur est d'accord ;
-ensuite il doit fermer et rouvrir le terminal et Claude Code, sinon les nouveaux outils ne sont
-pas trouvés. whisper.cpp n'a pas de paquet winget : le diagnostic dit quoi télécharger.
+**Windows** : whisper.cpp n'a pas de paquet winget, setup le télécharge lui-même.
+
+```sh
+py <setup>/scripts/setup.py --installe --a-blanc     # ce qu'il fera, rien n'est lancé
+```
+
+Montre-le à l'utilisateur ; sur son accord, `--installe` sans `--a-blanc` : le zip officiel de
+whisper.cpp (GitHub, vérifié par son empreinte) dézippé dans `%LOCALAPPDATA%\whisper.cpp`, où le
+montage le trouve sans toucher au PATH. Le reste, ce sont les commandes `winget` du diagnostic :
+lance-les si l'utilisateur est d'accord (elles portent `--accept-package-agreements
+--accept-source-agreements` : sans elles, winget attend une réponse au premier usage et la
+commande ne rend jamais la main). ffmpeg installé par winget est trouvé tout de suite ; après
+Python ou Node, il faut fermer et rouvrir le terminal et Claude Code. whisper-cli « ne démarre
+pas » (une DLL manque) : le diagnostic donne la commande du Visual C++ Redistributable.
 
 **Linux** : les commandes `sudo` demandent un mot de passe, l'utilisateur les tape dans son
 terminal. Donne-les telles que le diagnostic les écrit.
@@ -185,7 +209,8 @@ La skill de montage peut citer cette phrase :
 
 > Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`,
 > installée à côté de celle-ci (`../setup/SKILL.md`, son diagnostic :
-> `python3 ../setup/scripts/setup.py --json`), puis reprends le montage là où il s'est arrêté.
+> `python3 ../setup/scripts/setup.py --json`, `py` sur Windows), puis reprends le montage là où il
+> s'est arrêté.
 
 Dans ce cas, pas de questionnaire complet :
 
@@ -211,6 +236,12 @@ son défaut :
 | `subtitles` | `true` / `false` | `true` |
 | `remotion` | `true` / `false` | `true` (sans Node, ffmpeg dessine le titre) |
 
+Sur Windows, `~` est `C:\Users\<toi>` : la configuration est dans
+`C:\Users\<toi>\.config\video-editing\` et le modèle dans `C:\Users\<toi>\.cache\whisper-cpp\`
+(des dossiers en point, à la manière de macOS et Linux : c'est voulu). whisper-cli est cherché dans
+le PATH, puis dans `%LOCALAPPDATA%\whisper.cpp\Release\` ; ffmpeg dans le PATH, puis là où
+`winget install Gyan.FFmpeg` le pose.
+
 La clé ElevenLabs : seulement dans la variable d'environnement `ELEVENLABS_API_KEY`, ou dans
 `~/.config/video-editing/env` (mode 600, une ligne `ELEVENLABS_API_KEY=...`). Jamais dans
 config.json. La variable d'environnement passe avant le fichier.
@@ -229,6 +260,9 @@ Ce que le montage en lit vraiment, et d'où vient chaque valeur :
 | le téléchargement du modèle s'est arrêté | `setup.py --modele` le recommence |
 | ElevenLabs refuse la clé (401) | clé mal copiée ou supprimée : section 3 |
 | ElevenLabs : quota épuisé | recharger le compte ElevenLabs, ou repasser à whisper (`--ecris --moteur whisper`) |
+| Windows : `python3` ou `python` ouvre le Microsoft Store, ou n'existe pas | `py`, le lanceur de python.org |
+| Windows : winget ne rend pas la main | il attend l'accord sur les conditions : les options `--accept-...` du diagnostic |
+| Windows : whisper-cli ne démarre pas (code 3221225781, « MSVCP140.dll introuvable ») | `winget install Microsoft.VCRedist.2015+.x64`, comme le dit le diagnostic |
 
 ## Le banc
 

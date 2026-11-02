@@ -59,7 +59,7 @@ savoir à l'avance ce qui va arriver sur ta machine.
 |---|---|---|---|---|---|
 | Python 3.10 ou plus | les scripts du montage | `brew install python` | `winget install Python.Python.3.12` | `sudo apt install python3` | — |
 | ffmpeg et ffprobe, avec libass | couper, assembler, rendre ; libass incruste les sous-titres | `brew install ffmpeg-full` | `winget install Gyan.FFmpeg` | `sudo apt install ffmpeg` | ~270 Mo avec ses dépendances (mesuré sur un Mac) |
-| whisper.cpp *(si whisper)* | la transcription sur ton ordinateur | `brew install whisper-cpp` | `whisper-bin-x64.zip` des [releases](https://github.com/ggml-org/whisper.cpp/releases), à mettre dans le PATH | à compiler, la skill donne la commande | ~8 Mo (Mac) |
+| whisper.cpp *(si whisper)* | la transcription sur ton ordinateur | `brew install whisper-cpp` | la skill `setup` télécharge le zip officiel (GitHub) dans `%LOCALAPPDATA%\whisper.cpp`, sans toucher au PATH ; il lui faut le Visual C++ Redistributable de Microsoft, que `setup` vérifie | à compiler, la skill donne la commande | ~8 Mo (Mac), ~23 Mo (Windows) |
 | le modèle `large-v3-turbo` *(si whisper)* | ce avec quoi whisper entend | se télécharge tout seul au premier montage | pareil | pareil | 1,6 Go |
 | une clé ElevenLabs *(si ElevenLabs)* | la transcription chez ElevenLabs | — | — | — | — |
 | Node 18 ou plus *(facultatif)* | Remotion anime le titre, les cartons et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~400 Mo, installé tout seul au premier rendu, plus ~200 Mo pour le navigateur qu'il télécharge pour rendre (mesuré sur un Mac) |
@@ -69,8 +69,9 @@ savoir à l'avance ce qui va arriver sur ta machine.
   sous-titres incrustés. `ffmpeg-full` s'installe à côté, sans rien remplacer, et le montage le
   trouve tout seul.
 - **Mac** : le Python livré par Apple est en 3.9. `brew install python` en installe un plus récent.
-- **Windows** : après un `winget install`, ferme et rouvre le terminal et Claude Code, sinon le
-  nouvel outil n'est pas trouvé.
+- **Windows** : après l'installation de Python ou de Node, ferme et rouvre le terminal et Claude
+  Code, sinon le nouvel outil n'est pas trouvé (ffmpeg et whisper.cpp, eux, sont trouvés tout de
+  suite). Les commandes Python s'y tapent avec `py`.
 
 ## Choisir son moteur de transcription
 
