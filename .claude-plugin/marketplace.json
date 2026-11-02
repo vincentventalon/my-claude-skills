@@ -18,7 +18,7 @@
     },
     {
       "name": "video-editing",
-      "description": "Le dérushage automatique d'une vidéo face caméra : silences et faux départs coupés, dernière prise gardée, transcription (ffmpeg + whisper.cpp). En anglais.",
+      "description": "Monte tes vidéos face caméra avec Claude Code : silences, faux départs et reprises coupés (la dernière prise gardée), transcription par whisper (sur ton ordinateur, gratuit) ou ElevenLabs Scribe, sous-titres incrustés, titre et carton de fin, en 9:16 ou 16:9. Avec l'installation guidée (diagnostic et questionnaire) et l'audit de ton compte TikTok ou Instagram. macOS, Windows, Linux.",
       "author": {
         "name": "Vincent Ventalon"
       },

@@ -99,4 +99,4 @@ chiffres du script. Il est réécrit à chaque rafraîchissement.
 | `Propriété introuvable` | le script liste les propriétés que ton compte voit : vérifie le compte, ou crée la propriété Domaine |
 | `Le projet … n'existe pas` | donne l'id du projet, pas son nom : `gcloud projects list` |
 
-Le détail : [references/installation.md](references/installation.md).
+Le détail : [skills/search-console/references/installation.md](skills/search-console/references/installation.md).
