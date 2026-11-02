@@ -22,8 +22,9 @@ the false starts and the retakes, transcribes, and renders, next to `-o`
 | `<name>.youtube.mp4` | with `--youtube`, 1920x1080, when the clips are horizontal |
 | `<name>.cut.mp4` | the cut alone, as filmed, no text (for someone who finishes in their own editor) |
 | `<name>.srt`, `<name>.txt` | the transcript of the video (the .srt can be uploaded as captions) |
-| `<name>.ass` | the subtitles, title and end card, plain text |
+| `<name>.ass` | the subtitles as burned in, plain text, with the title and the end card when ffmpeg draws them (not Remotion); `<name>.youtube.ass` for the 16:9 |
 | `<name>.takes.tsv` | every island of sound, kept or cut and why, with its words |
+| `<name>.timeline.json` | the kept passages and the words, with their times in the edited video |
 
 `*word*` in the title = highlighted, `" | "` = a new line. Filmed upright,
 the video fills the screen; filmed sideways, it sits in the middle of the
@@ -41,6 +42,12 @@ its HDR brought back to normal colours.
    they say once the first run has written `<name>.txt` (a new title costs
    one render, not a new cut).
 
+An audit of their account (`audit-*/AUDIT.md` in the current folder, or
+one they give, written by the `insta-audit` skill): read its "For the edit"
+block ("Pour le montage") first, to offer a title shaped like `hook_style` /
+`hook_example` (unless `title_on_screen` says no) and to give the edited
+length next to `target_duration_s`. Nothing else changes.
+
 The rest has a default: the end card says "Follow for more" in their
 language ("Abonne-toi pour la suite" in French); change it only if they ask
 (`--cta "..."`, `--no-cta`).
@@ -53,9 +60,16 @@ python scripts/edit_video.py --config
 
 prints every setting, where it comes from (command line, then
 `~/.config/video-editing/config.json`, then the default) and what is
-installed. If something is missing, the `setup` skill of this plugin
-installs it and writes the settings; or install it yourself, do not ask the
-user to:
+installed. A tool missing (ffmpeg, libass, whisper-cli, the ElevenLabs key
+with `stt` elevenlabs) or no config file yet (`(none: defaults)`): follow
+this line, the one the `setup` skill of this plugin waits for (it diagnoses,
+shows the commands before installing anything, writes the settings):
+
+> Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`
+> de ce plugin (`../setup/SKILL.md`, son diagnostic : `python3 ../setup/scripts/setup.py --json`),
+> puis reprends le montage là où il s'est arrêté.
+
+What setup installs, for reference:
 
 | tool | for | macOS | Windows | Linux |
 |---|---|---|---|---|
@@ -133,14 +147,17 @@ subtitles do not know which one spoke.
 ## What the user asks next
 
 Run `edit_video.py` again with the **same clips and the same `-o`**, and
-every `--cut`, `--protect`, `--fix`, `--title`, `--cta` of the previous runs
-(each run starts from the clips). It re-transcribes nothing, and the cut is
-not rendered again when it did not change.
+every option of the previous runs (`--cut`, `--protect`, `--fix`,
+`--title`, `--cta`, `--noise`...: each run starts from the clips). It
+re-transcribes nothing, and the cut is not rendered again when it did not
+change.
 
 | they say | you pass |
 |---|---|
 | "cut the part about the price" | `--cut A:B` (times from `<name>.takes.tsv`) |
 | "keep the pause after the joke" | `--protect A:B` |
+| "cut harder, there is background noise", nothing got cut | `--noise 25` (the islands change: the new ones are transcribed) |
+| "in the subtitles it's cloud, not clown" | `--fix "clown=cloud"` |
 | "another title", "no title" | `--title "..."`, `--title ""` |
 | "another end card", "no end card" | `--cta "..."`, `--no-cta` |
 | "a YouTube version" | `--youtube` (horizontal clips only; a vertical video goes on YouTube as a Short) |
@@ -196,7 +213,7 @@ transcription (silences only, no subtitles).
 
 - A 0 s video or a `concat` error: the clips do not share the same format
   (an iPhone clip and another camera's): edit each clip alone.
-- `nothing kept`: very quiet recording, `--noise 25`.
+- `nothing kept`: a very quiet recording, `--noise 40` (25 is for background noise).
 - No subtitles on the video: `--config` says `NO libass` (install table above).
 - `ElevenLabs refused the key` / `no credits left`: the key or the account;
   `--stt whisper` works meanwhile, free.

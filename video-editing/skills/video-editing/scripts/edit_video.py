@@ -608,7 +608,7 @@ live = [x for x in live if log.get(x[:2], ('kept',))[0] != 'cut']
 if os.environ.get('EDIT_VIDEO_SEGMENTS'):                 # for dev/check_edit.py
     open(os.environ['EDIT_VIDEO_SEGMENTS'], 'w').writelines(f'{a:.6f}\t{b:.6f}\n' for a, b in segs)
 if not segs:
-    sys.exit('nothing kept: is there any speech in the clips? (try --noise 25)')
+    sys.exit('nothing kept: is there any speech in the clips? (a quiet recording: try --noise 40)')
 kept_dur = sum(b - a for a, b in segs)
 n_ret = sum(1 for s, _t in log.values() if s == 'retake')
 n_emp = sum(1 for s, _t in log.values() if s in ('no-speech', 'filler'))
