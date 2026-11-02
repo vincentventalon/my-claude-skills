@@ -1,0 +1,43 @@
+{
+  "_about": "The look of the subtitles, the title and the end card. Sizes in px on the 1080x1920 frame (x wide_scale in 16:9). y = height of the text centre, 0 = top, 1 = bottom (y_wide in 16:9). Colours #RRGGBB, or #RRGGBBAA with opacity. Do not edit this copy: put the keys you change in ~/.config/video-editing/style.json.",
+  "font": "Anton",
+  "font_file": "",
+  "captions": {
+    "size": 118,
+    "color": "#FFFFFF",
+    "highlight": "#FFE14D",
+    "outline": "#000000",
+    "outline_width": 7,
+    "shadow": 3,
+    "uppercase": true,
+    "punctuation": false,
+    "max_words": 3,
+    "max_chars": 16,
+    "pop": true,
+    "y": 0.68,
+    "y_wide": 0.85
+  },
+  "title": {
+    "size": 108,
+    "color": "#111111",
+    "box": "#FFFFFF",
+    "highlight": "#E5322D",
+    "uppercase": false,
+    "duration": 3.5,
+    "y": 0.17,
+    "y_wide": 0.14
+  },
+  "end_card": {
+    "text": "",
+    "size": 90,
+    "color": "#111111",
+    "box": "#FFE14D",
+    "highlight": "#E5322D",
+    "uppercase": false,
+    "duration": 3.0,
+    "y": 0.2,
+    "y_wide": 0.2
+  },
+  "wide_scale": 0.72,
+  "loudness": -14
+}

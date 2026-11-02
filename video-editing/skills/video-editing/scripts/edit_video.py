@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""edit_video.py — rough cut of a talking-head video in one command.
+"""edit_video.py — a talking-head video, from the raw clips to the video you post, in one command.
 
-    python scripts/edit_video.py clip1.MP4 [clip2.MP4 ...] -o edited.mp4 --lang fr
+    python scripts/edit_video.py clip1.MOV [clip2.MOV ...] --lang fr --title "My *big* idea"
 
-How it cuts (v1): THE SOUND DECIDES WHERE, WHISPER SAYS WHAT, THE LAST TAKE WINS.
+THE CUT. THE SOUND DECIDES WHERE, THE TRANSCRIPT SAYS WHAT, THE LAST TAKE WINS.
 
   1. joins the clips back to back without re-encoding (and drops the
      thumbnail stream some cameras, DJI for instance, hide in the file);
   2. splits the audio into ISLANDS of sound: whatever lies between two
      silences. A cut can only ever fall in a silence, never inside a word;
-  3. transcribes EACH island ON ITS OWN (whisper.cpp). Transcribed in one
-     go, whisper glues two takes into one sentence and swallows the
-     repeat; island by island, it cannot. An island with no word in it (a
+  3. transcribes each island, word by word, with one of two engines that
+     give the same thing (stt.py): whisper.cpp on this computer (default,
+     free; each island ON ITS OWN — transcribed in one go, whisper glues two
+     takes into one sentence and swallows the repeat), or ElevenLabs Scribe
+     (--stt elevenlabs, paid, one call). An island with no word in it (a
      breath, a click, a lone "um") goes;
   4. drops the retakes: an island (or a run of islands) that is the
      beginning of what comes right after is a false start — it goes, the
@@ -19,36 +21,64 @@ How it cuts (v1): THE SOUND DECIDES WHERE, WHISPER SAYS WHAT, THE LAST TAKE WINS
      server") is re-split on finer silences, each piece transcribed alone
      and judged again; no silence to cut in = kept and reported, never cut
      at a guessed timestamp;
-  5. renders, with every segment a whole number of frames (picture and
-     sound stay in sync) and a 10 ms fade at each join (no click);
-  6. writes the transcript of the result (edited.txt, edited.srt) from the
-     islands it kept, and the list of every island with what happened to it
-     (edited.takes.tsv). That list doubles as a cache: running again with
-     other settings re-transcribes nothing.
+  5. renders the cut, <name>.cut.mp4 (the framing of the clips, no text),
+     every segment a whole number of frames (picture and sound stay in
+     sync), a 10 ms fade at each join (no click); an iPhone clip comes out
+     upright, its HDR brought back to normal colours.
 
-Dependencies: ffmpeg + ffprobe on the PATH, whisper-cli (whisper.cpp).
-The model downloads itself the first time (~/.cache/whisper-cpp/).
-Without whisper-cli the edit still comes out: silences only.
-macOS, Windows, Linux. Nothing leaves the machine.
+THE FINISH (finish.py).
+
+  6. <name>.mp4, 1080x1920 for TikTok and Instagram: the subtitles word by
+     word, a title on top for the first seconds (--title), an end card on
+     the last ones, the voice evened out to about -14 LUFS. With --youtube, also
+     <name>.youtube.mp4 in 1920x1080 when the clips are horizontal;
+  7. writes the transcript (<name>.txt, <name>.srt), the subtitles
+     (<name>.ass), the list of every island with what happened to it
+     (<name>.takes.tsv) and the timeline (<name>.timeline.json).
+
+Running again with the same -o re-transcribes nothing (<name>.stt.json; the
+ElevenLabs answer is cached too) and does not render the cut again when it
+did not change: a new title costs one render.
+
+Settings: the command line, else ~/.config/video-editing/config.json, else
+the defaults (settings.py). `--config` prints them and where each comes from.
+Needs Python 3.10+, ffmpeg + ffprobe (with libass for the subtitles) and,
+for stt=whisper, whisper-cli (whisper.cpp; the model downloads itself the
+first time). Optional: Node 18+, then Remotion draws the title and the end
+card. Without whisper-cli the edit still comes out: silences only.
 """
-import argparse, array, difflib, json, math, os, re, shutil, subprocess, sys, tempfile, unicodedata, urllib.request, wave
+import argparse, array, difflib, hashlib, json, math, os, re, shutil, subprocess, sys, tempfile, unicodedata, wave
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import finish, settings, stt  # noqa: E402
 
 for _s in (sys.stdout, sys.stderr):          # non-ASCII on the Windows console
     if hasattr(_s, 'reconfigure'):
         _s.reconfigure(errors='replace')
 
-FF = os.environ.get('FFMPEG', 'ffmpeg')
-FP = os.environ.get('FFPROBE', 'ffprobe')
-MODELS_DIR = os.path.join(os.path.expanduser('~'), '.cache', 'whisper-cpp')
-MODELS_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/'
-
-ap = argparse.ArgumentParser(description='Rough cut: silences, false starts, retakes, transcript.')
-ap.add_argument('rushes', nargs='+', help='video files, in order')
-ap.add_argument('-o', '--out', default='edited.mp4', help='output video')
-ap.add_argument('--lang', default='en', help='spoken language for whisper (en); fr, es, de...')
-ap.add_argument('--model', default='large-v3-turbo',
-                help='whisper model: a name (large-v3-turbo, large-v3-turbo-q5_0, small, base) '
-                     'downloaded automatically, or the path to a ggml-*.bin file')
+ap = argparse.ArgumentParser(description='A talking-head video, from the raw clips to the video you post.')
+ap.add_argument('rushes', nargs='*', help='video files, in order (whatever ffmpeg reads: mp4, mov, mkv...)')
+ap.add_argument('-o', '--out', help='the finished video (default: <output_dir>/<first clip name>.mp4)')
+ap.add_argument('--lang', help='spoken language: en, fr, es, de... (config: lang, default en)')
+ap.add_argument('--title', default='', help='title on top for the first seconds; *word* = highlighted, " | " = new line')
+ap.add_argument('--cta', help='end card text (default: end_card.text of the style, else "Follow for more" in the language)')
+ap.add_argument('--no-cta', action='store_true', help='no end card')
+ap.add_argument('--youtube', action='store_true', help='also a 16:9 version for YouTube, when the clips are horizontal')
+ap.add_argument('--fit', choices=['auto', 'fill', 'frame'], default='auto',
+                help='9:16 from horizontal clips: frame = in the middle on a blurred copy (auto), fill = cropped')
+ap.add_argument('--rough', action='store_true', help='the cut only, as filmed: no subtitles, no title, no 9:16')
+ap.add_argument('--stt', choices=['whisper', 'elevenlabs'], help='transcription engine (config: stt, default whisper)')
+ap.add_argument('--model', help='whisper model: large-v3-turbo, large-v3-turbo-q5_0, small... downloaded '
+                                 'automatically, or a ggml-*.bin path (config: whisper_model)')
+ap.add_argument('--ffmpeg', help='the ffmpeg to use (config: ffmpeg; default: the first found with libass)')
+ap.add_argument('--subtitles', action=argparse.BooleanOptionalAction, default=None,
+                help='burn the subtitles in (config: subtitles, default yes)')
+ap.add_argument('--remotion', action=argparse.BooleanOptionalAction, default=None,
+                help='let Remotion draw the title and the end card when Node is there (config: remotion, default yes)')
+ap.add_argument('--style', help='a JSON file with the style keys to change (see style.json)')
+ap.add_argument('--fix', nargs='*', default=[], metavar='HEARD=MEANT',
+                help='fix a misheard word in the subtitles and the transcript: --fix "clode=Claude"')
+ap.add_argument('--config', action='store_true', help='print the settings, where each comes from, and stop')
 ap.add_argument('--min-sil', type=float, default=0.22,
                 help='a silence this long (s) separates two islands and is cut (0.22)')
 ap.add_argument('--noise', type=float, default=32,
@@ -61,8 +91,22 @@ ap.add_argument('--cut', nargs='*', default=[], metavar='A:B',
                 help='A:B windows (s, joined footage) to remove on top of the automatic cuts')
 ap.add_argument('--keep-retakes', action='store_true', help='keep every take')
 ap.add_argument('--keep-fillers', action='store_true', help='keep the islands that are only "um"')
-ap.add_argument('--no-transcript', action='store_true', help='skip whisper: silences only')
+ap.add_argument('--no-transcript', action='store_true', help='no transcription: silences only, no subtitles')
 args = ap.parse_args()
+
+KEY_ORIGIN = settings.load_env_file()
+cfg, cfg_src = settings.resolve({'stt': args.stt, 'whisper_model': args.model, 'ffmpeg': args.ffmpeg,
+                                 'lang': args.lang, 'output_dir': None, 'subtitles': args.subtitles,
+                                 'remotion': args.remotion})
+FF, FP = cfg['ffmpeg'], cfg['ffprobe']
+WHISPER = shutil.which('whisper-cli') or shutil.which('whisper-cpp')
+if args.config:
+    print(settings.describe(cfg, cfg_src, KEY_ORIGIN, WHISPER, stt.find_model(cfg['whisper_model']),
+                            finish.REMOTION, bool(args.out)))
+    sys.exit()
+if not args.rushes:
+    ap.error('give the video files to edit (or --config)')
+args.lang, args.model, ENGINE = cfg['lang'], cfg['whisper_model'], cfg['stt']
 
 # Filler words per language (an island that is only these goes), and the
 # lead-in words that are not part of the sentence ("So, the server..." is
@@ -82,7 +126,7 @@ PHANTOMS = ['soustitrage', 'soustitres', 'amaraorg', 'merci davoir regarde',
 
 
 def run(cmd, **kw):
-    return subprocess.run(cmd, check=True, capture_output=True, text=True, **kw)
+    return subprocess.run(cmd, check=True, capture_output=True, text=True, errors='replace', **kw)
 
 
 def probe(path, entries, stream=None):
@@ -102,16 +146,31 @@ def windows(specs):
     return [tuple(map(float, p.split(':'))) for p in specs]
 
 
+for r in args.rushes:
+    if not os.path.isfile(r):
+        sys.exit(f'not found: {r}')
+    if not probe(r, 'stream=index', 'a:0'):
+        sys.exit(f'{r}: no sound in this file (the edit follows the voice)')
+use_stt = not args.no_transcript
+if use_stt and ENGINE == 'whisper' and not WHISPER:
+    say('whisper-cli not found: silences only, no retakes, no subtitles (see SKILL.md to install it)')
+    use_stt = False
+if use_stt and ENGINE == 'elevenlabs':
+    stt.scribe_key()                     # no key: stop now, not after the join
+
 work = tempfile.mkdtemp(prefix='monte-')
-out = os.path.abspath(args.out)
+out = os.path.abspath(args.out) if args.out else os.path.join(
+    cfg['output_dir'], os.path.splitext(os.path.basename(args.rushes[0]))[0] + '.mp4')
+os.makedirs(os.path.dirname(out), exist_ok=True)
 base = os.path.splitext(out)[0]
+CUT = out if args.rough else f'{base}.cut.mp4'
 
 # 1. lossless join ---------------------------------------------------------------
 clean = []
 for i, r in enumerate(args.rushes):
     c = f'{work}/clip{i}.mp4'
     # 0:v:0 / 0:a:0 = first video and first audio stream; everything else
-    # (mjpeg thumbnail, data tracks) is dropped.
+    # (mjpeg thumbnail, data tracks) is dropped. A rotation (iPhone) travels along.
     run([FF, '-y', '-i', r, '-map', '0:v:0', '-map', '0:a:0', '-c', 'copy', c])
     clean.append(c)
 merged = f'{work}/merged.mp4'
@@ -133,7 +192,23 @@ num, den = (probe(merged, 'stream=r_frame_rate', 'v:0').split('/') + ['1'])[:2]
 FRAME = float(den) / float(num)          # one frame's duration
 say(f'joined footage: {dur:.1f}s, {len(args.rushes)} clip(s), {float(num)/float(den):.2f} fps')
 
-WAV = f'{work}/full.wav'                 # 16 kHz mono: what whisper and the detector read
+# HDR (iPhone: HLG; some cameras: PQ) -> normal colours, else it plays grey and washed out
+TONEMAP = ''
+colour = dict(l.split('=', 1) for l in run([FP, '-v', 'error', '-select_streams', 'v:0', '-show_entries',
+                                             'stream=color_transfer,color_primaries,color_space', '-of',
+                                             'default=nw=1', merged]).stdout.split() if '=' in l)
+trc, prim, spc = (colour.get(k, '') for k in ('color_transfer', 'color_primaries', 'color_space'))
+prim, spc = (x if x and x != 'unknown' else d for x, d in ((prim, 'bt2020'), (spc, 'bt2020nc')))
+if trc in ('arib-std-b67', 'smpte2084'):
+    if settings.has_filter(FF, 'zscale'):
+        TONEMAP = (f',zscale=tin={trc}:pin={prim}:min={spc}:t=linear:npl=100,'
+                   'format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,'
+                   'zscale=t=bt709:m=bt709:r=tv,format=yuv420p')
+        say('HDR clip: brought back to normal colours')
+    else:
+        say(f'HDR clip but this ffmpeg has no zscale: colours may look washed out (install {settings.INSTALL_LIBASS})')
+
+WAV = f'{work}/full.wav'                 # 16 kHz mono: what the transcription and the detector read
 run([FF, '-y', '-i', merged, '-vn', '-ac', '1', '-ar', '16000', '-c:a', 'pcm_s16le', WAV])
 
 
@@ -143,7 +218,7 @@ def silences(noise, d, a=0.0, b=None):
     if b is not None:
         cmd += ['-ss', f'{a}', '-to', f'{b}']
     det = subprocess.run(cmd + ['-i', WAV, '-af', f'silencedetect=noise=-{noise}dB:d={d}',
-                                '-f', 'null', '-'], capture_output=True, text=True).stderr
+                                '-f', 'null', '-'], capture_output=True, text=True, errors='replace').stderr
     off = a if b is not None else 0.0
     ss = [float(x) + off for x in re.findall(r'silence_start:\s*([-\d.]+)', det)]
     se = [float(x) + off for x in re.findall(r'silence_end:\s*([-\d.]+)', det)]
@@ -178,23 +253,7 @@ islands = islands_between(silences(args.noise, args.min_sil), 0.0, dur)
 say(f'islands of sound: {len(islands)} (silences >= {args.min_sil}s at -{args.noise:g} dB)')
 
 
-# 3. whisper, island by island ---------------------------------------------------
-def model_path(name):
-    """An existing path, else a model name downloaded into ~/.cache/whisper-cpp/."""
-    if os.path.exists(name):
-        return name
-    fn = f'ggml-{name}.bin'
-    dest = os.path.join(MODELS_DIR, fn)
-    if not os.path.exists(dest):
-        os.makedirs(MODELS_DIR, exist_ok=True)
-        say(f'downloading model {fn} (once; 1.6 GB for large-v3-turbo, 0.5 GB for small)...')
-        tmp = dest + '.part'
-        urllib.request.urlretrieve(MODELS_URL + fn, tmp,
-            lambda n, b, t: say(f'  {n * b / 1e6:.0f} / {t / 1e6:.0f} MB') if n % 200 == 0 else None)
-        os.replace(tmp, dest)
-    return dest
-
-
+# 3. the words, island by island (stt.py: whisper or ElevenLabs, one contract) ----
 def norm(word):
     w = unicodedata.normalize('NFD', word.lower())
     w = ''.join(c for c in w if unicodedata.category(c) != 'Mn')
@@ -206,57 +265,51 @@ def toks(text):
     return [t for t in (norm(x) for x in re.split(r"[\s'’\-]+", text)) if t]
 
 
-whisper = shutil.which('whisper-cli') or shutil.which('whisper-cpp')
-use_whisper = whisper and not args.no_transcript
-if not use_whisper and not args.no_transcript:
-    say('whisper-cli not found: silences only, no retakes, no transcript (see SKILL.md to install it)')
-
-CACHE = f'{base}.takes.tsv'
-TAG = f'# model={os.path.basename(args.model)} lang={args.lang}'
-cache = {}
-if use_whisper and os.path.exists(CACHE):
-    lines = open(CACHE, encoding='utf-8').read().splitlines()
-    if lines and lines[0] == TAG:
-        for l in lines[1:]:
-            p = l.split('\t')
-            if len(p) >= 4 and not l.startswith('#'):
-                cache[(round(float(p[0]), 3), round(float(p[1]), 3))] = p[3]
-
-
 def key(s):
     return (round(s[0], 3), round(s[1], 3))
 
 
+STT_CACHE = f'{base}.stt.json'
+TAG = {'engine': ENGINE, 'lang': args.lang,
+       'model': os.path.basename(args.model) if ENGINE == 'whisper' else stt.SCRIBE_MODEL}
+WORDS = {}           # key(span) -> [(start, end, word)], joined-footage time: what the cut reads
+TIMED = {}           # the same, kept spans only, starts from the DTW pass (whisper): what the subtitles show
+if use_stt and ENGINE == 'whisper' and os.path.exists(STT_CACHE):
+    try:
+        c = json.load(open(STT_CACHE, encoding='utf-8'))
+        if c.get('tag') == TAG:
+            WORDS, TIMED = ({tuple(map(float, k.split(':'))): [tuple(w) for w in v] for k, v in c.get(n, {}).items()}
+                            for n in ('spans', 'timed'))
+    except (ValueError, KeyError, AttributeError):
+        pass
+SCRIBE = None        # ElevenLabs: the words of each island, from the one call
+MODEL = None
+
+
 def transcribe(spans):
-    """[(a, b, text)] — each span transcribed ON ITS OWN, with a little air on
-    each side that never reaches into the neighbouring span. One whisper-cli
-    call for all of them (the model loads once)."""
-    todo = [k for k, s in enumerate(spans) if key(s) not in cache]
+    """[(a, b, text)] — each span heard ON ITS OWN; its words, timed, in WORDS."""
+    global SCRIBE, MODEL
+    todo = [k for k, s in enumerate(spans) if key(s) not in WORDS]
     if todo:
-        model = model_path(args.model)
-        d = tempfile.mkdtemp(dir=work)
-        with wave.open(WAV) as w:
-            sr, params = w.getframerate(), w.getparams()
-            files = []
-            for k in todo:
-                a, b = spans[k]
-                lo = spans[k - 1][1] + 0.02 if k else 0.0
-                hi = spans[k + 1][0] - 0.02 if k + 1 < len(spans) else dur
-                fa, fb = max(lo, a - 0.15), min(hi, b + 0.15)
-                w.setpos(max(0, int(fa * sr)))
-                f = os.path.join(d, f'{k}.wav')
-                with wave.open(f, 'wb') as o:
-                    o.setparams(params)
-                    o.writeframes(w.readframes(max(1, int((fb - fa) * sr))))
-                files.append(f)
-        threads = str(min(8, os.cpu_count() or 4))
-        for n in range(0, len(files), 150):          # command-line length, on Windows
-            batch = files[n:n + 150]
-            run([whisper, '-m', model, '-l', args.lang, '-t', threads, '-np', '-otxt'] + batch)
-        for k, f in zip(todo, files):
-            txt = open(f + '.txt', encoding='utf-8').read() if os.path.exists(f + '.txt') else ''
-            cache[key(spans[k])] = ' '.join(txt.split())
-    return [(a, b, cache[key((a, b))]) for a, b in spans]
+        if ENGINE == 'elevenlabs':
+            if SCRIBE is None:
+                SCRIBE = stt.assign(stt.scribe(WAV, args.lang, FF), islands)
+            lo, hi = min(a for a, _b in spans), max(b for _a, b in spans)
+            pool = [w for (a, b), ws in zip(islands, SCRIBE) if a < hi and lo < b for w in ws]
+            every = stt.assign(pool, spans)
+            got = [every[k] for k in todo]
+        else:
+            if MODEL is None:
+                MODEL = stt.model_path(args.model)
+                say(f'transcript: whisper.cpp ({os.path.basename(MODEL)}), each island on its own...')
+            got = stt.whisper_spans(WAV, spans, todo, dur, MODEL, args.lang, WHISPER, FF)
+        for k, ws in zip(todo, got):
+            WORDS[key(spans[k])] = ws
+    return [(a, b, ' '.join(t for _s, _e, t in WORDS[key((a, b))])) for a, b in spans]
+
+
+def text_of(span):
+    return ' '.join(t for _s, _e, t in WORDS.get(key(span), []))
 
 
 # 4. decisions: what goes ---------------------------------------------------------
@@ -416,7 +469,7 @@ def protected(a, b):
 
 log = {}            # (a, b) -> (status, text)
 warnings = []       # (source time, message)
-if use_whisper:
+if use_stt:
     items = transcribe(islands)
     live = []
     for a, b, t in items:
@@ -499,9 +552,10 @@ if use_whisper:
 else:
     live = [(a, b, '') for a, b in islands]
 
+
 for (a, b), (st, t) in sorted(log.items()):
     if st == 'retake':
-        say(f'  cut {a:7.2f} -> {b:7.2f}  {st}  "{cache.get(key((a, b)), "")[:70]}"')
+        say(f'  cut {a:7.2f} -> {b:7.2f}  {st}  "{text_of((a, b))[:70]}"')
 
 # 5. kept segments ---------------------------------------------------------------
 def snap_in(a, b):
@@ -574,21 +628,149 @@ def to_out(t):
     return cum
 
 
-# 6. render ----------------------------------------------------------------------
-F = 0.01                                                    # 10 ms fade: no click at the joins
-v = ''.join(f'[0:v]trim={a:.6f}:{b:.6f},setpts=PTS-STARTPTS[v{i}];' for i, (a, b) in enumerate(segs))
-a_ = ''.join(f'[0:a]atrim={a:.6f}:{b:.6f},asetpts=PTS-STARTPTS,afade=t=in:d={F},'
-             f'afade=t=out:st={max(0, b - a - F):.6f}:d={F}[a{i}];' for i, (a, b) in enumerate(segs))
-pairs = ''.join(f'[v{i}][a{i}]' for i in range(len(segs)))
-fg = f'{work}/fg.txt'
-open(fg, 'w', encoding='utf-8').write(v + a_ + f'{pairs}concat=n={len(segs)}:v=1:a=1[v][a]')
-run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map', '[a]',
-     '-c:v', 'libx264', '-crf', '20', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
-     '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out])
-say(f'-> {out}')
+# 6. the cut ---------------------------------------------------------------------
+TIMELINE = f'{base}.timeline.json'
+signature = hashlib.sha1(json.dumps(
+    [[os.path.abspath(r), os.path.getsize(r), int(os.path.getmtime(r))] for r in args.rushes]
+    + [[round(a, 6), round(b, 6)] for a, b in segs] + [TONEMAP, 2]).encode()).hexdigest()
+try:
+    before = json.load(open(TIMELINE, encoding='utf-8')).get('cut_signature')
+except (OSError, ValueError, AttributeError):
+    before = None
+if before == signature and os.path.exists(CUT) and not args.rough:
+    say(f'the cut did not change: {os.path.basename(CUT)} kept as it is')
+else:
+    F = 0.01                                                # 10 ms fade: no click at the joins
+    v = ''.join(f'[0:v]trim={a:.6f}:{b:.6f},setpts=PTS-STARTPTS[v{i}];' for i, (a, b) in enumerate(segs))
+    a_ = ''.join(f'[0:a]atrim={a:.6f}:{b:.6f},asetpts=PTS-STARTPTS,afade=t=in:d={F},'
+                 f'afade=t=out:st={max(0, b - a - F):.6f}:d={F}[a{i}];' for i, (a, b) in enumerate(segs))
+    pairs = ''.join(f'[v{i}][a{i}]' for i in range(len(segs)))
+    fg = f'{work}/fg.txt'
+    open(fg, 'w', encoding='utf-8').write(
+        v + a_ + f'{pairs}concat=n={len(segs)}:v=1:a=1[vc][a];[vc]null{TONEMAP}[v]')
+    say(f'rendering the cut ({kept_dur:.0f}s)...')
+    run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map', '[a]',
+         '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
+         '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', CUT])
+say(f'-> {CUT}')
+width, height = map(int, probe(CUT, 'stream=width,height', 'v:0').split(',')[:2])
 
 
-# 7. the timeline (the Remotion finish reads it) ---------------------------------
+# 7. the words of the edited video -----------------------------------------------
+def fixed(words, fixes):
+    """--fix "HEARD=MEANT": a misheard word (or words) replaced wherever it is said,
+    its time shared out between the new words."""
+    for spec in fixes:
+        if '=' not in spec:
+            sys.exit(f'--fix wants HEARD=MEANT, not "{spec}"')
+        heard, meant = spec.split('=', 1)
+        h, m = [norm(x) for x in heard.split() if norm(x)], meant.split()
+        if not h or not m:
+            continue
+        res, i = [], 0
+        while i < len(words):
+            if [norm(w[2]) for w in words[i:i + len(h)]] == h:
+                s, e = words[i][0], words[i + len(h) - 1][1]
+                end = re.search(r'[.,;:!?…]+$', words[i + len(h) - 1][2])
+                tail = end.group(0) if end and not re.search(r'[.,;:!?…]$', meant) else ''
+                total, cur = sum(len(x) for x in m), s
+                for j, x in enumerate(m):
+                    d = (e - s) * len(x) / total
+                    res.append((cur, cur + d, x + (tail if j == len(m) - 1 else '')))
+                    cur += d
+                i += len(h)
+            else:
+                res.append(words[i])
+                i += 1
+        words = res
+    return words
+
+
+if use_stt and ENGINE == 'whisper' and stt.dtw_preset(args.model):
+    kept = sorted(x[:2] for x in live)
+    todo = [k for k, s in enumerate(kept) if key(s) not in TIMED and WORDS.get(key(s))]
+    if todo:
+        say(f'word timing: the {len(todo)} kept islands heard again (DTW)...')
+        got = stt.whisper_spans(WAV, kept, todo, dur, MODEL or stt.model_path(args.model), args.lang,
+                                WHISPER, FF, dtw=True)
+        for k, ws in zip(todo, got):
+            TIMED[key(kept[k])] = stt.retime(WORDS[key(kept[k])], ws)
+
+out_words = []                       # [(start, end, word)], time of the edited video
+for a, b, _t in sorted(live):
+    for s, e, w in TIMED.get(key((a, b))) or WORDS.get(key((a, b)), []):
+        mid = (s + e) / 2
+        if any(sa <= mid <= sb for sa, sb in segs):
+            os_ = to_out(s)
+            out_words.append((round(os_, 3), round(max(os_, to_out(e)), 3), w))
+out_words = fixed(sorted(out_words), args.fix)
+
+# 8. the finish: 9:16 (and 16:9) with subtitles, title, end card -------------------
+finals = []
+if not args.rough:
+    style = finish.load_style(settings.USER_STYLE, args.style)
+    cta = '' if args.no_cta else (args.cta if args.cta is not None else
+                                  (style['end_card'].get('text') or finish.CTA.get(args.lang, finish.CTA['en'])))
+    burn = settings.has_filter(FF, 'ass')
+    npx, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta) else (None, None)
+    if not burn:
+        say(f'this ffmpeg ({FF}) has no libass: no subtitles burned in (the .srt is written all the same)'
+            + ('' if npx or not (args.title or cta) else ', and no title nor end card (no Node for Remotion either)')
+            + f'. Install {settings.INSTALL_LIBASS}')
+    elif (args.title or cta) and not npx:
+        say(f'title and end card drawn by ffmpeg ({why})')
+    if not cfg['subtitles']:
+        say('subtitles off (config or --no-subtitles): the .srt is written all the same')
+    formats = [(out, False)]
+    if args.youtube:
+        if width > height:
+            formats.append((f'{base}.youtube.mp4', True))
+        else:
+            say('--youtube: the clips are vertical, no 16:9 version (the 9:16 goes on YouTube as a Short)')
+    audio = finish.loudness_filter(FF, CUT, style.get('loudness'))
+    fps = round(1 / FRAME, 3)
+    title_sec = min(style['title']['duration'], kept_dur) if args.title else 0.0
+    cta_start = max(kept_dur - style['end_card']['duration'], title_sec)
+    if cta and kept_dur - cta_start < 1.0:                  # a very short video: the title says it all
+        say(f'no end card: the video ({kept_dur:.1f}s) is too short for a title and an end card')
+        cta = ''
+    for path, wide in formats:
+        L = finish.layout(width, height, wide, args.fit, style)
+        cards, title_left, cta_left = [], args.title, cta
+        if npx:
+            if args.title:
+                clip = finish.remotion_card(npx, work, f'title{int(wide)}', args.title, 'title', style['title'],
+                                            L, style, title_sec, fps)
+                if clip:
+                    cards.append((clip, 0.0))
+                    title_left = ''
+            if cta:
+                clip = finish.remotion_card(npx, work, f'cta{int(wide)}', cta, 'end', style['end_card'],
+                                            L, style, kept_dur - cta_start, fps)
+                if clip:
+                    cards.append((clip, cta_start))
+                    cta_left = ''
+        ass = None
+        if burn:
+            ass = f'{base}.youtube.ass' if wide else f'{base}.ass'
+            n = finish.build_ass(ass, L, out_words if cfg['subtitles'] else [], title_left, cta_left,
+                                 kept_dur, style, title_sec, cta_start)
+            if n:                                       # a plain name: nothing to escape in the filtergraph
+                shutil.copy(ass, os.path.join(work, f'subs{int(wide)}.ass'))
+            else:
+                ass = None
+        drawn = ', '.join(x for x in [
+            'subtitles' if ass and out_words and cfg['subtitles'] else '',
+            ('title (Remotion)' if not title_left else 'title (ffmpeg)' if ass else '') if args.title else '',
+            ('end card (Remotion)' if not cta_left else 'end card (ffmpeg)' if ass else '') if cta else ''] if x)
+        say(f'rendering {L["W"]}x{L["H"]} ({L["fit"]}{", " + drawn if drawn else ""})...')
+        finish.render(FF, CUT, path, L, work, os.path.join(work, f'subs{int(wide)}.ass') if ass else None,
+                      cards, audio, style.get('font_file'), float(probe(CUT, 'stream=duration', 'v:0')))
+        finals.append(path)
+        say(f'-> {path}')
+
+
+# 9. the timeline, the transcript, the list of takes ------------------------------
 def peaks(rate=50):
     """Loudness of the EDITED sound, `rate` values a second, 0-100."""
     with wave.open(WAV) as w:
@@ -606,56 +788,52 @@ def peaks(rate=50):
     return [round(100 * v / top) for v in vals]
 
 
-width, height = map(int, probe(out, 'stream=width,height', 'v:0').split(',')[:2])
-with open(f'{base}.timeline.json', 'w', encoding='utf-8') as f:
+with open(TIMELINE, 'w', encoding='utf-8') as f:
     json.dump({
-        'video': os.path.basename(out), 'width': width, 'height': height,
-        'fps': round(1 / FRAME, 3), 'lang': args.lang,
+        'video': os.path.basename(out), 'cut': os.path.basename(CUT),
+        'finals': [os.path.basename(p) for p in finals], 'cut_signature': signature,
+        'width': width, 'height': height, 'fps': round(1 / FRAME, 3), 'lang': args.lang,
+        'stt': ENGINE if use_stt else None,
         'source_duration': round(dur, 3), 'duration': round(kept_dur, 3),
         'segments': [[round(a, 3), round(b, 3)] for a, b in segs],
         'islands': [{'a': round(a, 3), 'b': round(b, 3), 'start': round(to_out(a), 3),
                      'end': round(to_out(b), 3), 'text': t} for a, b, t in sorted(live)],
-        'removed': [{'at': round(to_out(a), 3), 'a': a, 'b': b, 'why': st,
-                     'text': cache.get(key((a, b)), t)}
+        'words': [{'start': s, 'end': e, 'text': w} for s, e, w in out_words],
+        'removed': [{'at': round(to_out(a), 3), 'a': a, 'b': b, 'why': st, 'text': text_of((a, b)) or t}
                     for (a, b), (st, t) in sorted(log.items()) if st != 'kept'],
         'warnings': [{'at': round(to_out(t), 3), 'text': m} for t, m in sorted(warnings)],
         'peaks_per_second': 50, 'peaks': peaks(),
     }, f, ensure_ascii=False)
-say(f'-> {base}.timeline.json')
+say(f'-> {TIMELINE}')
 
-# 8. transcript + the list of takes ----------------------------------------------
-if use_whisper:
+if use_stt:
     def ts(t):
         ms = int(round(t * 1000))
         return f'{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}'
 
-    cues = []
-    for a, b, t in sorted(live):
-        ws = t.split()
-        if not ws:
-            continue
-        oa, ob = to_out(a), to_out(b)
-        n = max(1, math.ceil(len(ws) / 8))                  # <= 8 words per subtitle
-        chunks = [ws[k * len(ws) // n:(k + 1) * len(ws) // n] for k in range(n)]
-        total = sum(len(''.join(c)) for c in chunks) or 1
-        cur = oa
-        for c in chunks:
-            nxt = cur + (ob - oa) * len(''.join(c)) / total
-            cues.append((cur, nxt, ' '.join(c)))
-            cur = nxt
+    cues, cur = [], []                                      # <= 7 words, a new cue after each sentence
+    for n, w in enumerate(out_words):
+        cur.append(w)
+        nxt = out_words[n + 1] if n + 1 < len(out_words) else None
+        if (len(cur) >= 7 or not nxt or nxt[0] - w[1] > 0.6
+                or w[2].rstrip('"»”)').endswith(('.', '!', '?', '…'))):
+            end = w[1] + 0.2 if not nxt else min(w[1] + 0.2, nxt[0])
+            cues.append((cur[0][0], max(end, cur[0][0] + 0.3), ' '.join(x[2] for x in cur)))
+            cur = []
     with open(f'{base}.srt', 'w', encoding='utf-8') as f:
         for n, (a, b, t) in enumerate(cues, 1):
             f.write(f'{n}\n{ts(a)} --> {ts(b)}\n{t}\n\n')
     with open(f'{base}.txt', 'w', encoding='utf-8') as f:
-        f.write(' '.join(t for _a, _b, t in sorted(live)).strip() + '\n')
-    with open(CACHE, 'w', encoding='utf-8') as f:
-        f.write(TAG + '\n# start\tend\tstatus\ttext   (times on the joined footage, before cuts)\n')
+        f.write(' '.join(w for _s, _e, w in out_words).strip() + '\n')
+    with open(f'{base}.takes.tsv', 'w', encoding='utf-8') as f:
+        f.write(f'# stt={ENGINE} lang={args.lang}\n'
+                '# start\tend\tstatus\ttext   (times on the joined footage, before cuts)\n')
         for (a, b), (st, t) in sorted(log.items()):
-            f.write(f'{a:.3f}\t{b:.3f}\t{st}\t{cache.get(key((a, b)), t)}\n')
-        seen = set(log)                                     # pieces tried but not logged: cache only
-        for (a, b), t in sorted(cache.items()):
-            if (a, b) not in {key(s) for s in seen}:
-                f.write(f'{a:.3f}\t{b:.3f}\t-\t{t}\n')
+            f.write(f'{a:.3f}\t{b:.3f}\t{st}\t{text_of((a, b)) or t}\n')
+    if ENGINE == 'whisper':
+        with open(STT_CACHE, 'w', encoding='utf-8') as f:
+            json.dump({'tag': TAG, 'spans': {f'{a:.3f}:{b:.3f}': ws for (a, b), ws in WORDS.items()},
+                       'timed': {f'{a:.3f}:{b:.3f}': ws for (a, b), ws in TIMED.items()}}, f, ensure_ascii=False)
     say(f'-> {base}.txt + {base}.srt + {base}.takes.tsv')
     for t, msg in sorted(warnings):
         say(f'  to check at {to_out(t):.1f}s in the video: {msg}')

@@ -1,10 +1,10 @@
 {
   "name": "reel-remotion",
   "private": true,
-  "description": "Optional: turn edited.mp4 into a finished reel (captions, title, full screen or framed). Needs Node 18+.",
+  "description": "Optional: the title and the end card, animated, on a transparent background (scripts/finish.py lays them over the video). Needs Node 18+.",
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts Reel out/reel.mp4"
+    "render": "remotion render src/index.ts Card out/card.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png"
   },
   "dependencies": {
     "@remotion/cli": "4.0.528",
