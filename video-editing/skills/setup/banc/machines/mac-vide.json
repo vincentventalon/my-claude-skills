@@ -1,0 +1,37 @@
+{
+  "nom": "Mac neuf : rien d'installé, le Python d'Apple (3.9)",
+  "systeme": "Darwin",
+  "machine": "arm64",
+  "version_os": "15.5",
+  "python": "3.9.6",
+  "home": "/Users/toi",
+  "which": {
+    "python3": "/usr/bin/python3"
+  },
+  "attendu": {
+    "pret": false,
+    "etats": {
+      "python": "manque",
+      "homebrew": "manque",
+      "ffmpeg": "manque",
+      "whisper": "manque",
+      "modele": "a_faire",
+      "elevenlabs": "option",
+      "node": "attention",
+      "sortie": "a_faire",
+      "config": "a_faire"
+    },
+    "contient": [
+      "brew install python",
+      "brew install ffmpeg-full",
+      "brew install whisper-cpp",
+      "raw.githubusercontent.com/Homebrew/install",
+      "1,6 Go"
+    ],
+    "brew": [
+      "brew install python",
+      "brew install ffmpeg-full",
+      "brew install whisper-cpp"
+    ]
+  }
+}

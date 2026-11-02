@@ -1,0 +1,46 @@
+{
+  "nom": "Mac dont config.json pointe un ffmpeg disparu, ffmpeg-full installé depuis",
+  "systeme": "Darwin",
+  "machine": "arm64",
+  "version_os": "15.5",
+  "python": "3.12.4",
+  "home": "/Users/toi",
+  "which": {
+    "brew": "/opt/homebrew/bin/brew",
+    "whisper-cli": "/opt/homebrew/bin/whisper-cli"
+  },
+  "ffmpeg": {
+    "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg": {
+      "version": "8.1.2",
+      "libass": true
+    }
+  },
+  "fichiers": {
+    "~/.cache/whisper-cpp/ggml-large-v3-turbo.bin": 900000000
+  },
+  "dossiers": [
+    "~/Videos/edited"
+  ],
+  "config": {
+    "stt": "whisper",
+    "ffmpeg": "/usr/local/bin/ffmpeg-ancien",
+    "lang": "fr",
+    "subtitles": true,
+    "remotion": false
+  },
+  "attendu": {
+    "pret": false,
+    "etats": {
+      "ffmpeg": "a_faire",
+      "modele": "manque",
+      "config": "ok"
+    },
+    "contient": [
+      "config.json pointe /usr/local/bin/ffmpeg-ancien (introuvable)",
+      "--ecris retire la ligne",
+      "incomplet (0,90 Go sur 1,6 Go)",
+      "--modele"
+    ],
+    "brew": []
+  }
+}

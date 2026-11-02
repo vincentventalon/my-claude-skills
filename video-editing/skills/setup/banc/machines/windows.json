@@ -1,0 +1,41 @@
+{
+  "nom": "Windows : rien d'installé, ElevenLabs choisi sans clé, Remotion voulu sans Node",
+  "systeme": "Windows",
+  "machine": "AMD64",
+  "version_os": "11",
+  "python": "3.12.7",
+  "home": "C:/Users/toi",
+  "which": {
+    "python": "C:/Users/toi/AppData/Local/Programs/Python/Python312/python.exe"
+  },
+  "config": {
+    "stt": "elevenlabs",
+    "lang": "fr",
+    "subtitles": true,
+    "remotion": true
+  },
+  "attendu": {
+    "pret": false,
+    "etats": {
+      "python": "ok",
+      "ffmpeg": "manque",
+      "whisper": "option",
+      "modele": "option",
+      "elevenlabs": "manque",
+      "node": "attention",
+      "config": "ok"
+    },
+    "contient": [
+      "winget install Gyan.FFmpeg",
+      "choco install ffmpeg-full",
+      "Get-Clipboard | python ",
+      "winget install OpenJS.NodeJS.LTS"
+    ],
+    "jamais": [
+      "brew ",
+      "pbpaste",
+      "sudo"
+    ],
+    "brew": []
+  }
+}

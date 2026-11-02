@@ -1,0 +1,22 @@
+{
+  "nom": "Mac prêt : ElevenLabs avec sa clé dans le fichier env, Remotion avec Node",
+  "systeme": "Darwin", "machine": "arm64", "version_os": "15.5", "python": "3.12.4",
+  "home": "/Users/toi",
+  "which": {"brew": "/opt/homebrew/bin/brew", "ffmpeg": "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg",
+            "node": "/opt/homebrew/bin/node"},
+  "ffmpeg": {"/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg": {"version": "8.1.2", "libass": true}},
+  "node": "v22.11.0",
+  "dossiers": ["~/Movies/montages"],
+  "env_fichier": "ELEVENLABS_API_KEY=sk_simulee_0123456789abcdef0123456789abcdef\n",
+  "env_mode": 384,
+  "config": {"stt": "elevenlabs", "lang": "fr", "output_dir": "~/Movies/montages", "subtitles": true, "remotion": true},
+  "attendu": {
+    "pret": true,
+    "etats": {"ffmpeg": "ok", "whisper": "option", "modele": "option", "elevenlabs": "ok", "node": "ok",
+              "sortie": "ok", "config": "ok"},
+    "contient": ["Prêt pour le montage", "ElevenLabs · fr · ~/Movies/montages · sous-titres oui · Remotion oui",
+                 "npm install"],
+    "jamais": ["sk_simulee"],
+    "brew": []
+  }
+}

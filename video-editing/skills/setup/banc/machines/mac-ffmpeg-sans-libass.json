@@ -1,0 +1,18 @@
+{
+  "nom": "Mac avec le ffmpeg de Homebrew (sans libass) et les sous-titres voulus",
+  "systeme": "Darwin", "machine": "arm64", "version_os": "15.5", "python": "3.12.4",
+  "home": "/Users/toi",
+  "which": {"brew": "/opt/homebrew/bin/brew", "ffmpeg": "/opt/homebrew/bin/ffmpeg",
+            "whisper-cli": "/opt/homebrew/bin/whisper-cli", "python3": "/opt/homebrew/bin/python3"},
+  "ffmpeg": {"/opt/homebrew/bin/ffmpeg": {"version": "8.1.2", "libass": false}},
+  "fichiers": {"~/.cache/whisper-cpp/ggml-large-v3-turbo.bin": 1624555275},
+  "dossiers": ["~/Videos/edited"],
+  "config": {"stt": "whisper", "lang": "fr", "output_dir": "~/Videos/edited", "subtitles": true, "remotion": false},
+  "attendu": {
+    "pret": false,
+    "etats": {"homebrew": "ok", "python": "ok", "ffmpeg": "manque", "whisper": "ok", "modele": "ok",
+              "elevenlabs": "option", "node": "option", "sortie": "ok", "config": "ok"},
+    "contient": ["sans libass", "brew install ffmpeg-full", "ffmpeg-full l'a", "--sous-titres non"],
+    "brew": ["brew install ffmpeg-full"]
+  }
+}

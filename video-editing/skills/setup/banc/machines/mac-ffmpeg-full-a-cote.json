@@ -1,0 +1,50 @@
+{
+  "nom": "Mac avec ffmpeg-full installé à côté (keg-only, hors du PATH), modèle rangé dans ~/.local/share",
+  "systeme": "Darwin",
+  "machine": "arm64",
+  "version_os": "15.5",
+  "python": "3.12.4",
+  "home": "/Users/toi",
+  "which": {
+    "brew": "/opt/homebrew/bin/brew",
+    "ffmpeg": "/opt/homebrew/bin/ffmpeg",
+    "whisper-cli": "/opt/homebrew/bin/whisper-cli"
+  },
+  "ffmpeg": {
+    "/opt/homebrew/bin/ffmpeg": {
+      "version": "8.1.2",
+      "libass": false
+    },
+    "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg": {
+      "version": "8.1.2",
+      "libass": true
+    }
+  },
+  "fichiers": {
+    "~/.local/share/whisper-cpp/models/ggml-large-v3-turbo.bin": 1624555275
+  },
+  "dossiers": [
+    "~/Videos/edited"
+  ],
+  "config": {
+    "stt": "whisper",
+    "lang": "fr",
+    "subtitles": true
+  },
+  "attendu": {
+    "pret": true,
+    "etats": {
+      "ffmpeg": "ok",
+      "modele": "ok",
+      "config": "ok",
+      "node": "attention"
+    },
+    "contient": [
+      "hors du PATH : le montage le trouve tout seul",
+      "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg",
+      "~/.local/share/whisper-cpp/models",
+      "dessinés par ffmpeg"
+    ],
+    "brew": []
+  }
+}

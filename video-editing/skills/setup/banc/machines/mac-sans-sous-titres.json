@@ -1,0 +1,47 @@
+{
+  "nom": "Le même Mac, sous-titres refusés : le ffmpeg sans libass suffit",
+  "systeme": "Darwin",
+  "machine": "arm64",
+  "version_os": "15.5",
+  "python": "3.12.4",
+  "home": "/Users/toi",
+  "which": {
+    "brew": "/opt/homebrew/bin/brew",
+    "ffmpeg": "/opt/homebrew/bin/ffmpeg",
+    "whisper-cli": "/opt/homebrew/bin/whisper-cli"
+  },
+  "ffmpeg": {
+    "/opt/homebrew/bin/ffmpeg": {
+      "version": "8.1.2",
+      "libass": false
+    }
+  },
+  "fichiers": {
+    "~/.cache/whisper-cpp/ggml-large-v3-turbo.bin": 1624555275
+  },
+  "dossiers": [
+    "~/Videos/edited"
+  ],
+  "config": {
+    "stt": "whisper",
+    "lang": "fr",
+    "output_dir": "~/Videos/edited",
+    "subtitles": false,
+    "remotion": false
+  },
+  "attendu": {
+    "pret": true,
+    "etats": {
+      "ffmpeg": "attention",
+      "whisper": "ok",
+      "modele": "ok",
+      "config": "ok"
+    },
+    "contient": [
+      "Prêt pour le montage",
+      "tu n'en veux pas",
+      "délavée"
+    ],
+    "brew": []
+  }
+}
