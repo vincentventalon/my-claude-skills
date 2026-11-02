@@ -158,11 +158,12 @@ coupe les blancs, les faux départs et les reprises (il garde toujours ta
 **dernière** prise), sans jamais couper un mot en deux, et te rend la
 transcription. Tout tourne sur ta machine, sans compte ni clé d'API.
 
-Ensuite, **« ouvre la page de relecture »** : tu vois la vidéo, le texte et
-l'onde sonore. Tu coupes ce qui reste (clic sur la phrase, X) et tu laisses
-des notes (N). Puis **« applique mes coupes »**. Tu as Node ? **« finis-la
-avec Remotion »** : sous-titres et titre, toi en plein écran ou ta vidéo
-dans un cadre si tu as filmé à l'horizontale.
+Il reste une phrase à couper, une pause à garder ? Dis-le-lui avec tes
+mots : **« coupe la phrase sur le prix »**, **« garde la pause après la
+blague »**. Il retrouve le moment dans `edited.takes.tsv` et rend à nouveau,
+sans retranscrire. Tu as Node ? **« finis-la avec Remotion »** : sous-titres
+et titre, toi en plein écran ou ta vidéo dans un cadre si tu as filmé à
+l'horizontale.
 
 **Ordinateur modeste ?** Le modèle par défaut pèse 1,6 Go. Sur un PC sans
 carte graphique, dis-lui « prends le modèle small » (0,49 Go, plusieurs
