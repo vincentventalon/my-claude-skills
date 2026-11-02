@@ -1,0 +1,12 @@
+[
+  {"say": "90 jours", "text": "90 jours | une vidéo par jour", "kind": "stat"},
+  {"say": "il me reste dix jours", "text": "10 jours | avant la fin du challenge", "kind": "stat"},
+  {"say": "transmettre des choses", "text": "Ce que j'adore : *transmettre*", "kind": "text"},
+  {"say": "15 minutes", "text": "15 min | par vidéo, grâce à Claude", "kind": "stat"},
+  {"say": "2h30", "text": "Une dizaine de vidéos | 2 h 30 à 3 h | Dimanche, 17 h", "kind": "list"},
+  {"say": "mon logiciel de montage", "text": "Mon logiciel de montage | Mon outil qui planifie mes posts", "kind": "list"},
+  {"say": "obligatoire", "text": "Ce qui m'énerve : *l'obligation*", "kind": "text"},
+  {"say": "après ces 100 jours", "text": "Et après *100 jours* ?", "kind": "text"},
+  {"say": "deux sujets", "text": "Des projets avec Claude Code | Une vraie expertise technique", "kind": "list"},
+  {"say": "2-3 heures", "text": "2-3 h | et le challenge est fini", "kind": "stat"}
+]

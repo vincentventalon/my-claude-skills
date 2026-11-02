@@ -28,13 +28,18 @@ THE CUT. THE SOUND DECIDES WHERE, THE TRANSCRIPT SAYS WHAT, THE LAST TAKE WINS.
 
 THE FINISH (finish.py).
 
-  6. <name>.mp4, 1080x1920 for TikTok and Instagram: the subtitles word by
-     word, a title on top for the first seconds (--title), an end card on
-     the last ones, the voice evened out to about -14 LUFS. With --youtube, also
+  6. <name>.mp4, 1080x1920 for TikTok and Instagram, in two views that take
+     turns between sentences (--scene auto; split or full for one only): full
+     frame, and split (a flat top zone over the camera in a card); the
+     subtitles word by word, a title on top for the first seconds (--title),
+     the boards on their words (--boards), an end card on the last seconds,
+     the voice evened out to about -14 LUFS. With --youtube, also
      <name>.youtube.mp4 in 1920x1080 when the clips are horizontal;
   7. writes the transcript (<name>.txt, <name>.srt), the subtitles
      (<name>.ass), the list of every island with what happened to it
-     (<name>.takes.tsv) and the timeline (<name>.timeline.json).
+     (<name>.takes.tsv), the timeline (<name>.timeline.json: the views and
+     the boards too) and the state (<name>.state.json: the clips and the
+     options of this run, the steps done, for picking the video up later).
 
 Running again with the same -o re-transcribes nothing (<name>.stt.json; the
 ElevenLabs answer is cached too) and does not render the cut again when it
@@ -64,6 +69,12 @@ ap.add_argument('--title', default='', help='title on top for the first seconds;
 ap.add_argument('--cta', help='end card text (default: end_card.text of the style, else "Follow for more" in the language)')
 ap.add_argument('--no-cta', action='store_true', help='no end card')
 ap.add_argument('--youtube', action='store_true', help='also a 16:9 version for YouTube, when the clips are horizontal')
+ap.add_argument('--scene', choices=['auto', 'split', 'full'], default='auto',
+                help='9:16 views: auto = full frame for the hook, then full frame and split take turns between '
+                     'sentences; split = the camera in a card under a flat top zone; full = the camera fills it')
+ap.add_argument('--boards', metavar='FILE',
+                help='boards.json: [{"at": 12.4 or "say": "the words", "text": "150 min | = 3 h", '
+                     '"kind": "text|stat|list"}], drawn in the top zone of the split')
 ap.add_argument('--fit', choices=['auto', 'fill', 'frame'], default='auto',
                 help='9:16 from horizontal clips: frame = in the middle on a blurred copy (auto), fill = cropped')
 ap.add_argument('--rough', action='store_true', help='the cut only, as filmed: no subtitles, no title, no 9:16')
@@ -705,20 +716,28 @@ for a, b, _t in sorted(live):
             out_words.append((round(os_, 3), round(max(os_, to_out(e)), 3), w))
 out_words = fixed(sorted(out_words), args.fix)
 
-# 8. the finish: 9:16 (and 16:9) with subtitles, title, end card -------------------
-finals = []
+# 8. the finish: 9:16 (and 16:9) with subtitles, title, boards, end card ----------
+finals, views_out, boards = [], [], []
 if not args.rough:
     style = finish.load_style(settings.USER_STYLE, args.style)
     cta = '' if args.no_cta else (args.cta if args.cta is not None else
                                   (style['end_card'].get('text') or finish.CTA.get(args.lang, finish.CTA['en'])))
+    if args.boards:
+        try:
+            raw_boards = json.load(open(args.boards, encoding='utf-8'))
+        except (OSError, ValueError) as e:
+            sys.exit(f'--boards {args.boards}: {e}')
+        boards = finish.resolve_boards(raw_boards if isinstance(raw_boards, list) else raw_boards.get('boards', []),
+                                       out_words, kept_dur)
     burn = settings.has_filter(FF, 'ass')
-    npx, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta) else (None, None)
+    npx, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta or boards) else (None, None)
     if not burn:
         say(f'this ffmpeg ({FF}) has no libass: no subtitles burned in (the .srt is written all the same)'
-            + ('' if npx or not (args.title or cta) else ', and no title nor end card (no Node for Remotion either)')
+            + ('' if npx or not (args.title or cta or boards)
+               else ', and no title, board nor end card (no Node for Remotion either)')
             + f'. Install {settings.INSTALL_LIBASS}')
-    elif (args.title or cta) and not npx:
-        say(f'title and end card drawn by ffmpeg ({why})')
+    elif (args.title or cta or boards) and not npx:
+        say(f'title, boards and end card drawn by ffmpeg ({why})')
     if not cfg['subtitles']:
         say('subtitles off (config or --no-subtitles): the .srt is written all the same')
     formats = [(out, False)]
@@ -734,38 +753,47 @@ if not args.rough:
     if cta and kept_dur - cta_start < 1.0:                  # a very short video: the title says it all
         say(f'no end card: the video ({kept_dur:.1f}s) is too short for a title and an end card')
         cta = ''
+    if not cta:
+        cta_start = kept_dur
+    cut_dur = float(probe(CUT, 'stream=duration', 'v:0'))
     for path, wide in formats:
         L = finish.layout(width, height, wide, args.fit, style)
-        cards, title_left, cta_left = [], args.title, cta
-        if npx:
-            if args.title:
-                clip = finish.remotion_card(npx, work, f'title{int(wide)}', args.title, 'title', style['title'],
-                                            L, style, title_sec, fps)
-                if clip:
-                    cards.append((clip, 0.0))
-                    title_left = ''
-            if cta:
-                clip = finish.remotion_card(npx, work, f'cta{int(wide)}', cta, 'end', style['end_card'],
-                                            L, style, kept_dur - cta_start, fps)
-                if clip:
-                    cards.append((clip, cta_start))
-                    cta_left = ''
+        L['fps'] = fps
+        joins = [sum(y - x for x, y in segs[:n + 1]) for n in range(len(segs) - 1)]     # where pauses were cut
+        views = (finish.plan_views(out_words, kept_dur, args.scene, boards, bool(args.title), cta_start, joins)
+                 if not wide else [(0.0, kept_dur, 'full')])
+        if not wide:
+            views_out = views
+            if args.scene == 'auto' and len(views) == 1:
+                say('scene: full frame only (nothing for the top of a split: give a --title or --boards)')
+            elif args.scene == 'auto':
+                n_split = sum(1 for v in views if v[2] == 'split')
+                say(f'scene: {len(views)} turns, {n_split} split (' + ', '.join(
+                    f'{v[2]} {v[0]:.1f}-{v[1]:.1f}s' for v in views[:6]) + (', ...' if len(views) > 6 else '') + ')')
+        items = finish.overlay_items(L, style, views, args.title, title_sec, cta, cta_start, kept_dur,
+                                     [] if wide else boards)
+        cards, left = [], items
+        if npx and items:
+            clip = finish.remotion_overlay(npx, work, f'overlay{int(wide)}', items, L, style, cut_dur, fps)
+            if clip:
+                cards.append((clip, 0.0))
+                left = []
         ass = None
         if burn:
             ass = f'{base}.youtube.ass' if wide else f'{base}.ass'
-            n = finish.build_ass(ass, L, out_words if cfg['subtitles'] else [], title_left, cta_left,
-                                 kept_dur, style, title_sec, cta_start)
+            n = finish.build_ass(ass, L, out_words if cfg['subtitles'] else [], left, style, views)
             if n:                                       # a plain name: nothing to escape in the filtergraph
                 shutil.copy(ass, os.path.join(work, f'subs{int(wide)}.ass'))
             else:
                 ass = None
+        kinds = sorted({it['kind'] for it in items})
         drawn = ', '.join(x for x in [
             'subtitles' if ass and out_words and cfg['subtitles'] else '',
-            ('title (Remotion)' if not title_left else 'title (ffmpeg)' if ass else '') if args.title else '',
-            ('end card (Remotion)' if not cta_left else 'end card (ffmpeg)' if ass else '') if cta else ''] if x)
+            (', '.join(kinds) + (' (Remotion)' if not left else ' (ffmpeg)')) if items and (cards or ass) else ''] if x)
         say(f'rendering {L["W"]}x{L["H"]} ({L["fit"]}{", " + drawn if drawn else ""})...')
-        finish.render(FF, CUT, path, L, work, os.path.join(work, f'subs{int(wide)}.ass') if ass else None,
-                      cards, audio, style.get('font_file'), float(probe(CUT, 'stream=duration', 'v:0')))
+        finish.render(FF, CUT, path, L, work, views, style,
+                      os.path.join(work, f'subs{int(wide)}.ass') if ass else None,
+                      cards, audio, style.get('font_file'), cut_dur)
         finals.append(path)
         say(f'-> {path}')
 
@@ -802,9 +830,45 @@ with open(TIMELINE, 'w', encoding='utf-8') as f:
         'removed': [{'at': round(to_out(a), 3), 'a': a, 'b': b, 'why': st, 'text': text_of((a, b)) or t}
                     for (a, b), (st, t) in sorted(log.items()) if st != 'kept'],
         'warnings': [{'at': round(to_out(t), 3), 'text': m} for t, m in sorted(warnings)],
+        'scene': args.scene, 'views': [[round(a, 3), round(b, 3), v] for a, b, v in views_out],
+        'boards': boards,
         'peaks_per_second': 50, 'peaks': peaks(),
     }, f, ensure_ascii=False)
 say(f'-> {TIMELINE}')
+
+# the state of this video, for picking it up later (the `video` skill reads it): which clips, the
+# options of this run (run again = the same ones plus the new), what is done. Other skills add
+# their step (publish) to `steps`; a run of the edit keeps them.
+STATE = f'{base}.state.json'
+try:
+    state = json.load(open(STATE, encoding='utf-8'))
+except (OSError, ValueError):
+    state = {}
+options, after = [], None
+for a in sys.argv[1:]:
+    if after:                                              # a path given after its flag: made absolute
+        options.append(os.path.abspath(a))
+        after = None
+    elif a in ('-o', '--out', '--boards', '--style'):
+        options.append(a)
+        after = a
+    elif a.split('=', 1)[0] in ('--out', '--boards', '--style') and '=' in a:
+        options.append(a.split('=', 1)[0] + '=' + os.path.abspath(a.split('=', 1)[1]))
+    elif os.path.abspath(a) not in {os.path.abspath(r) for r in args.rushes}:
+        options.append(a)
+state.update({
+    'video': os.path.basename(base), 'clips': [os.path.abspath(r) for r in args.rushes],
+    'command': [os.path.abspath(__file__), *[os.path.abspath(r) for r in args.rushes], *options],
+    'final': os.path.basename(out) if not args.rough else None,
+    'youtube': os.path.basename(f'{base}.youtube.mp4') if len(finals) > 1 else None,
+    'duration': round(kept_dur, 3), 'lang': args.lang, 'title': args.title,
+    'boards': os.path.abspath(args.boards) if args.boards else None,
+})
+steps = state.setdefault('steps', {})
+steps['edit'] = {'done': __import__('datetime').datetime.now().isoformat(timespec='seconds'),
+                 'rough': bool(args.rough)}
+with open(STATE, 'w', encoding='utf-8') as f:
+    json.dump(state, f, ensure_ascii=False, indent=1)
 
 if use_stt:
     def ts(t):

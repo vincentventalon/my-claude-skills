@@ -1,4 +1,4 @@
-# video-editing : monter ses vidéos face caméra avec Claude Code
+# edit : monter ses vidéos face caméra avec Claude Code
 
 *La skill comprend aussi l'anglais : parle-lui dans ta langue (« edit my video »).
 This guide is in French; the skill works just as well in English.*
@@ -10,54 +10,44 @@ Tu tournes face caméra, tu donnes tes rushs à Claude, il te rend la vidéo à 
 - Les blancs, les faux départs et les reprises coupés : il garde ta **dernière** prise et ne coupe jamais un mot en deux.
 - Le texte de la vidéo, mot par mot : avec **whisper**, sur ton ordinateur (gratuit), ou **ElevenLabs** (payant, plus précis).
 - Les sous-titres incrustés, un titre sur les premières secondes, un carton de fin, la voix au volume des plateformes.
+- Deux vues qui alternent entre deux phrases : plein cadre pour le hook, puis un split (un haut en aplat, toi dans
+  une carte aux coins arrondis en bas, les sous-titres sur la couture), avec ton titre et tes cartons en haut.
+- Des cartons sur le mot qui les dit : un chiffre, une liste, une phrase. Dis « mets des cartons », Claude les
+  propose à partir de ce que tu dis.
 - En 9:16 pour TikTok, Reels et Shorts ; aussi en 16:9 pour YouTube quand tu as filmé à l'horizontale.
 - Claude relit ensuite les prises comme un monteur. Ce qui reste à couper, tu le lui dis avec tes mots.
-- Avant de monter, l'audit de ton compte TikTok ou Instagram : ce qui marche déjà chez toi, mesuré sur tes vidéos.
+- Avant de monter, la skill `audit` mesure ce qui marche déjà sur ton compte TikTok ou Instagram.
 
 ```
 toi     monte ma vidéo, les rushs sont dans Téléchargements, titre « Mon *gros* conseil »
 claude  Un rush de 9 min. Les blancs et 22 reprises coupés : il reste 1 min 58.
         Une phrase recommencée avec d'autres mots, que le script ne voit pas : je la coupe aussi.
-        → ~/Videos/edited/IMG_4127.mp4 (9:16, sous-titres, titre, carton de fin)
-toi     garde la pause après la blague
+        → ~/Videos/edited/IMG_4127.mp4 (9:16, plein cadre et split, sous-titres, titre, carton de fin)
+toi     mets des cartons
+claude  Six cartons : « 15 min » sur « quinze minutes », la liste des trois étapes… Je rends ?
+toi     oui, et garde la pause après la blague
 claude  Remise. Nouveau rendu, sans retranscrire.
 ```
 
-## Installer en 3 étapes
+## Installer
 
-1. Dans Claude Code, ajoute le catalogue de skills (une fois) :
-
-   ```
-   /plugin marketplace add vincentventalon/my-claude-skills
-   ```
-
-2. Installe le plugin, puis relance Claude Code :
-
-   ```
-   /plugin install video-editing@my-claude-skills
-   ```
-
-3. Dis **« installe la skill vidéo »**.
-
-   Claude regarde ce qui est installé sur ta machine, te pose cinq questions (whisper ou
-   ElevenLabs, la langue de tes vidéos, où ranger les vidéos montées, les sous-titres, Remotion),
-   installe ce qui manque une fois que tu as vu les commandes, et écrit ta configuration dans
-   `~/.config/video-editing/config.json`. Un réglage à changer plus tard : « passe à ElevenLabs »,
-   « change le dossier de sortie ».
-
-**Installée avant le 20 octobre 2026 avec `git clone` ?** Ce dépôt est devenu une collection de
-skills : le dossier `~/.claude/skills/video-editing` que tu as cloné n'a plus la skill à sa
-racine. Supprime-le, puis installe avec les étapes ci-dessus.
-
-**Sans le système de plugins** : copie les trois dossiers `video-editing/skills/video-editing`,
-`video-editing/skills/setup` et `video-editing/skills/insta-audit` de ce dépôt dans tes skills
-(macOS et Linux : `~/.claude/skills/`, Windows : `C:\Users\<toi>\.claude\skills\`). Ils doivent
-rester côte à côte.
+Dans un terminal, dans le dossier de ton projet :
 
 ```sh
-git clone https://github.com/vincentventalon/my-claude-skills /tmp/my-claude-skills
-cp -R /tmp/my-claude-skills/video-editing/skills/video-editing /tmp/my-claude-skills/video-editing/skills/setup /tmp/my-claude-skills/video-editing/skills/insta-audit ~/.claude/skills/
+npx skills add vincentventalon/my-claude-skills -a claude-code
 ```
+
+(ou le plugin Claude Code : [le README du dépôt](../../README.md#installer)), puis, dans Claude Code,
+dis **« installe la skill vidéo »** (ou `/setup`).
+
+Claude regarde ce qui est installé sur ta machine, te pose cinq questions (whisper ou ElevenLabs,
+la langue de tes vidéos, où ranger les vidéos montées, les sous-titres, Remotion), installe ce qui
+manque une fois que tu as vu les commandes, et écrit ta configuration dans
+`~/.config/video-editing/config.json`. Un réglage à changer plus tard : « passe à ElevenLabs »,
+« change le dossier de sortie ».
+
+Les skills `setup` et `edit` doivent rester côte à côte (elles se renvoient l'une à l'autre) :
+les deux installations les posent ainsi.
 
 ## Prérequis
 
@@ -72,8 +62,8 @@ savoir à l'avance ce qui va arriver sur ta machine.
 | whisper.cpp *(si whisper)* | la transcription sur ton ordinateur | `brew install whisper-cpp` | `whisper-bin-x64.zip` des [releases](https://github.com/ggml-org/whisper.cpp/releases), à mettre dans le PATH | à compiler, la skill donne la commande | ~8 Mo (Mac) |
 | le modèle `large-v3-turbo` *(si whisper)* | ce avec quoi whisper entend | se télécharge tout seul au premier montage | pareil | pareil | 1,6 Go |
 | une clé ElevenLabs *(si ElevenLabs)* | la transcription chez ElevenLabs | — | — | — | — |
-| Node 18 ou plus *(facultatif)* | Remotion anime le titre et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~400 Mo, installé tout seul au premier rendu, plus ~200 Mo pour le navigateur qu'il télécharge pour rendre (mesuré sur un Mac) |
-| yt-dlp *(pour l'audit)* | lire tes vidéos sans connexion ; l'audit l'installe s'il manque | `brew install yt-dlp` | `winget install yt-dlp` | `pipx install yt-dlp` | — |
+| Node 18 ou plus *(facultatif)* | Remotion anime le titre, les cartons et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~400 Mo, installé tout seul au premier rendu, plus ~200 Mo pour le navigateur qu'il télécharge pour rendre (mesuré sur un Mac) |
+| yt-dlp *(pour la skill `audit`)* | lire tes vidéos sans connexion ; l'audit l'installe s'il manque | `brew install yt-dlp` | `winget install yt-dlp` | `pipx install yt-dlp` | — |
 
 - **Mac** : la formule `ffmpeg` de Homebrew est compilée sans libass. Avec elle, la vidéo sort sans
   sous-titres incrustés. `ffmpeg-full` s'installe à côté, sans rien remplacer, et le montage le
@@ -132,17 +122,40 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 
 | Fichier | Ce que c'est |
 |---|---|
-| `<nom>.mp4` | la vidéo à publier, 1080×1920 : sous-titres, titre, carton de fin, voix à -14 LUFS |
+| `<nom>.mp4` | la vidéo à publier, 1080×1920 : plein cadre et split, sous-titres, titre, cartons, carton de fin, voix à -14 LUFS |
 | `<nom>.youtube.mp4` | la version 16:9 pour YouTube, quand tu l'as demandée et que tu as filmé à l'horizontale |
 | `<nom>.cut.mp4` | le montage seul, cadré comme tu as filmé, sans texte |
 | `<nom>.txt` · `<nom>.srt` | le texte de la vidéo, et les sous-titres avec leurs temps (CapCut, Premiere, YouTube) |
 | `<nom>.ass` | les sous-titres tels qu'incrustés, en texte (avec le titre et le carton quand c'est ffmpeg qui les dessine, pas Remotion) |
 | `<nom>.takes.tsv` | chaque morceau de ton rush, gardé ou coupé, avec ce que tu y dis |
-| `<nom>.timeline.json` | les passages gardés et les mots, avec leurs temps dans la vidéo montée |
+| `<nom>.timeline.json` | les passages gardés et les mots, avec leurs temps dans la vidéo montée ; les vues et les cartons |
+| `<nom>.state.json` | où en est la vidéo : les rushs, la dernière commande, les étapes faites (montage, publication). « reprends ma vidéo » repart de là |
 
 5. **Il reste quelque chose ?** « coupe la phrase sur le prix », « garde la pause après la
-   blague », « change le titre », « dans les sous-titres, c'est cloud, pas clown ». Claude
-   retrouve le moment et rend à nouveau, sans retranscrire.
+   blague », « change le titre », « mets des cartons », « que du plein cadre », « dans les
+   sous-titres, c'est cloud, pas clown ». Claude retrouve le moment et rend à nouveau, sans
+   retranscrire.
+
+### Les deux vues et les cartons
+
+- **Plein cadre** : tu remplis l'écran. Le hook (les 3 à 5 premières secondes) est toujours en
+  plein cadre, ton titre posé dessus dans un cadre blanc.
+- **Split** : un haut en aplat (anthracite par défaut), toi en bas dans une carte aux coins
+  arrondis (58 % de la hauteur), les sous-titres sur la couture. Ton titre et tes cartons sont
+  en haut. Filmé à la verticale, la carte montre ta tête (la tranche qui commence à 7 % du haut
+  de l'image) ; filmé à l'horizontale, ton image entière, sans recadrage.
+- **L'alternance** : une phrase avec un carton passe en split, une phrase sans rien à montrer en
+  plein cadre, jamais beaucoup plus de 8 secondes sans changer, et toujours entre deux phrases.
+  Sans carton, les deux vues alternent toutes les 4 à 8 secondes, ton titre en haut du split.
+  Sans titre ni carton : plein cadre seulement.
+- « que du plein cadre » ou « que du split » : une seule vue pour toute la vidéo.
+- **Les cartons** : trois formes, un chiffre (« 15 min », qui défile jusqu'à sa valeur), une
+  liste numérotée, une phrase. Ils tombent sur le mot qui les dit. Claude te les propose à partir
+  du texte de ta vidéo ; un vrai exemple : [examples/boards.json](examples/boards.json), pour la
+  vidéo dont le texte est [examples/jen-ai-marre.txt](examples/jen-ai-marre.txt).
+- **Le style** : Inter ExtraBold, le mot dit en vert menthe. Tout se change dans
+  `~/.config/video-editing/style.json` (seulement les clés qui changent) : « mets mes sous-titres
+  en jaune », « un haut gris clair ». La géométrie du split, elle, est fixe.
 
 ### Comment il coupe
 
@@ -158,32 +171,22 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 
 ## Auditer ton compte avant de monter
 
-La troisième skill du plugin, `insta-audit`, mesure ce qui marche déjà sur ton compte TikTok ou
-Instagram, sur tes propres vidéos. Dis « audite mon compte Instagram », « analyse mon TikTok », ou
-colle le lien de ton profil.
-
-- Elle lit tes 30 dernières vidéos sans connexion, comme un visiteur : pas de mot de passe, rien à
-  brancher. Elle te demande ton nombre d'abonnés (un visiteur ne le voit plus).
-- Elle compare chaque vidéo à la médiane de ton compte, transcrit sur ton ordinateur (whisper) ce
-  que tu dis dans les 5 premières secondes, et écrit `AUDIT.md` : ce qui marche déjà chez toi,
-  chiffres à l'appui, trois tests à faire, et un bloc « Pour le montage » (la durée à viser, la
-  forme de tes meilleurs hooks, un titre à l'écran ou non).
-- Au montage suivant, Claude relit ce bloc pour te proposer le titre et la durée à viser.
-- Gratuit, tout tourne chez toi. Compte 2 à 4 minutes pour 30 vidéos ; le dossier
-  `audit-<compte>-<date>/` se crée là où tu as lancé Claude Code.
-- Instagram refuse presque toujours la lecture sans connexion : tu donnes alors tes chiffres (un
-  export de tes statistiques, ou collés dans la conversation). TikTok passe la plupart du temps.
+La skill `audit` mesure ce qui marche déjà sur ton compte TikTok ou Instagram, sur tes propres
+vidéos, sans connexion, et écrit `AUDIT.md` avec un bloc « Pour le montage ». Au montage suivant,
+Claude relit ce bloc pour te proposer le titre et la durée à viser. Dis « audite mon compte
+Instagram » ou colle le lien de ton profil ; le détail est dans [sa SKILL.md](../audit/SKILL.md).
 
 ## Ce que ça ne fait pas, et où c'est
 
 Pas de page pour relire et couper à la souris (tu dis à Claude ce qu'il faut couper), pas de
-scènes (ta tête en petit, une capture en grand), pas de motion design. Ça existe dans Pif Paf
-Cut : [pifpafcut.com/pro](https://pifpafcut.com/pro).
+split réglé sur ton propre cadrage ni d'autres scènes, pas de motion design. Ça existe dans Pif
+Paf Cut : [pifpafcut.com/pro](https://pifpafcut.com/pro).
 
 ## Publier
 
-Le plugin s'arrête à la vidéo. Pour la programmer sur tes réseaux depuis Claude :
-[Nadia](https://usenadia.com).
+La skill `publish` prend la vidéo finie : avec le connecteur Claude de [Nadia](https://usenadia.com),
+elle la programme sur TikTok et Instagram après ton « oui » ; sans Nadia, elle te prépare un kit
+prêt à poster (`post.md` : titre, descriptions, hashtags, couverture, où cliquer).
 
 ## Problèmes fréquents
 
@@ -199,27 +202,24 @@ Le plugin s'arrête à la vidéo. Pour la programmer sur tes réseaux depuis Cla
 | ElevenLabs refuse la clé | clé mal copiée ou supprimée : « change ma clé ElevenLabs » |
 | c'est lent, sur un PC sans carte graphique | « prends le modèle small » |
 | savoir quels réglages il utilise | « montre-moi la configuration du montage » (`edit_video.py --config`) |
+| le split coupe ma tête (cadrage très serré ou très large) | « que du plein cadre » (`--scene full`) ; régler le split sur ton cadrage, c'est la version payante |
+| un carton n'apparaît pas | ses mots ne sont pas dits tels quels dans `<nom>.txt` : Claude reprend les mots exacts, ou un instant (`at`) |
 
 ## Mettre à jour
 
-Dans Claude Code, le menu `/plugin` ; ou dans un terminal :
-
-```sh
-claude plugin marketplace update my-claude-skills
-claude plugin update video-editing@my-claude-skills
-```
-
-puis relance Claude Code. Ta configuration (`~/.config/video-editing/`) vit en dehors du plugin :
-une mise à jour n'y touche pas. Après une mise à jour, « vérifie l'installation du montage » refait
-le diagnostic.
+Installé avec `npx skills` : `npx skills update`. Avec le plugin Claude Code : les commandes du
+[README du dépôt](../../README.md#mettre-à-jour), puis relance Claude Code. Ta configuration (`~/.config/video-editing/`) vit en dehors des skills : une mise à jour n'y
+touche pas. Après une mise à jour, « vérifie l'installation du montage » refait le diagnostic.
 
 ## Pour qui maintient ce dépôt
 
-`dev/` ne fait pas partie de la skill. `dev/check_edit.py` mesure un montage (durée, décalage
-image et son, mots coupés aux jointures, redites restées). `dev/sync_from_private.py` reporte ici
-les améliorations de coupe de ma chaîne privée et les teste sur un vrai rush ; lis son en-tête,
-il ne commite ni ne pousse rien. Le banc de l'installation :
-`python3 skills/setup/banc/test_setup.py` (des machines simulées, rien n'est installé).
+`dev/edit/`, à la racine du dépôt, ne fait pas partie de la skill (rien n'en est installé).
+`dev/edit/check_edit.py` mesure un montage (durée, décalage image et son, mots coupés aux
+jointures, redites restées). `dev/edit/sync_from_private.py` reporte ici les améliorations de
+coupe de ma chaîne privée et les teste sur un vrai rush ; lis son en-tête, il ne commite ni ne
+pousse rien. `dev/edit/test_stt.py` teste le chemin ElevenLabs sans réseau. Le banc de
+l'installation : `python3 skills/setup/banc/test_setup.py` (des machines simulées, rien n'est
+installé).
 
 ## Licence
 

@@ -1,10 +1,10 @@
 {
   "name": "reel-remotion",
   "private": true,
-  "description": "Optional: the title and the end card, animated, on a transparent background (scripts/finish.py lays them over the video). Needs Node 18+.",
+  "description": "Optional: the title, the end card and the boards, animated, on a transparent background (scripts/finish.py lays them over the video). Needs Node 18+.",
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts Card out/card.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png"
+    "render": "remotion render src/index.ts Overlay out/overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png"
   },
   "dependencies": {
     "@remotion/cli": "4.0.528",
