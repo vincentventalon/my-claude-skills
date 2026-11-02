@@ -35,15 +35,16 @@ sur claude.ai.
 
 ## Installation
 
-Dans Claude Code :
+Avec les autres skills du dépôt, dans le dossier de ton projet :
 
-```
-/plugin marketplace add vincentventalon/my-claude-skills
-/plugin install search-console@my-claude-skills
+```sh
+npx skills add vincentventalon/my-claude-skills -a claude-code
 ```
 
-Ou à la main : copie le dossier `search-console/skills/search-console` de ce repo dans `~/.claude/skills/`
-(pour tous tes projets) ou dans `.claude/skills/` d'un projet.
+(`--skill search-console` pour ne prendre qu'elle, `-g` pour tous tes projets), ou le plugin Claude
+Code : [le README du dépôt](../../README.md#installer). Ou à la main : copie le dossier
+`skills/search-console` de ce dépôt dans `~/.claude/skills/` (pour tous tes projets) ou dans
+`.claude/skills/` d'un projet.
 
 Il faut Python 3 (rien d'autre à installer côté Python).
 
@@ -99,4 +100,4 @@ chiffres du script. Il est réécrit à chaque rafraîchissement.
 | `Propriété introuvable` | le script liste les propriétés que ton compte voit : vérifie le compte, ou crée la propriété Domaine |
 | `Le projet … n'existe pas` | donne l'id du projet, pas son nom : `gcloud projects list` |
 
-Le détail : [skills/search-console/references/installation.md](skills/search-console/references/installation.md).
+Le détail : [references/installation.md](references/installation.md).

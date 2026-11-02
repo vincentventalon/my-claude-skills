@@ -1,143 +1,208 @@
 # my-claude-skills
 
-Les skills Claude Code que j'utilise vraiment, sur mes sites et pour mes vidéos.
+Des skills Claude Code gratuites pour écrire, monter et publier tes vidéos face caméra (TikTok,
+Reels, Shorts), auditer ton compte, et lire ta Search Console : une skill par tâche.
 
-Je suis Vincent Ventalon. Je publie une vidéo par jour pendant 100 jours sur TikTok
-([@vincentleserpent_](https://www.tiktok.com/@vincentleserpent_)), et chaque mardi
-[ma newsletter](https://vincentventalon.com/newsletter) raconte un sujet de ma semaine, mon process,
-et la skill qui m'a servi. La skill arrive ici le même jour. Mes vidéos, je les monte avec
-[Pif Paf Cut](https://pifpafcut.com), mon logiciel de montage pour agents IA.
+Pas d'application, pas de serveur, pas d'abonnement. Les skills disent à Claude comment
+travailler, et leurs scripts tournent sur ton ordinateur : ffmpeg pour couper et rendre,
+whisper.cpp pour le texte (gratuit, rien ne sort de ta machine), Remotion pour animer les titres
+et les cartons si tu as Node. En option, une clé ElevenLabs pour une transcription plus fidèle, et
+le connecteur Claude de [Nadia](https://usenadia.com) pour programmer tes posts. Je les utilise
+pour mes propres vidéos et mes sites ; une nouvelle arrive chaque mardi avec
+[ma newsletter](https://vincentventalon.com/newsletter).
 
-## Les plugins
+## Commence ici
 
-| Plugin | Ce qu'il fait | Skills |
-|---|---|---|
-| [**video-editing**](video-editing/) | Monter une vidéo face caméra avec Claude, du rush brut à la vidéo à publier : coupe, sous-titres, titre, carton de fin, en 9:16 et en 16:9. Avec l'installation guidée et l'audit de ton compte TikTok ou Instagram. | `setup`, `video-editing`, `insta-audit` |
-| [**search-console**](search-console/) | Un compte rendu SEO de ton site à partir de Google Search Console : ce qui bouge vraiment, ce qui n'est que du hasard, et un tableau de bord qui se rafraîchit d'une phrase. | `search-console` |
+Trois étapes jusqu'à ta première vidéo montée :
 
-Tu n'appelles pas une skill par son nom : tu dis à Claude ce que tu veux, il reconnaît la tâche et
-suit la bonne skill. Les phrases ci-dessous sont des exemples qui la déclenchent.
+1. **Installe** les skills (ci-dessous), puis ouvre Claude Code dans le dossier de ton projet.
+2. **`/setup`** (ou « installe la skill vidéo ») : Claude regarde ce qui est installé sur ta
+   machine, te fait choisir whisper ou ElevenLabs, pose ta langue et ton dossier de sortie, et
+   installe ce qui manque une fois que tu as vu les commandes. Une fois.
+3. Tourne une prise (téléphone, webcam, caméra), puis **`/edit`** : « monte ma vidéo, le rush est
+   dans Téléchargements, titre : J'en ai *marre* ». Tu obtiens `~/Videos/edited/<nom>.mp4`, plus
+   le texte, les sous-titres en `.srt` et l'état de la vidéo.
 
-### video-editing
+Tu ne sais pas quelle skill prendre ? **`/video <ce que tu veux>`** la choisit pour toi et reprend
+la vidéo en cours au lieu de repartir de zéro.
 
-| Skill | Ce qu'elle fait | Ce que tu dis à Claude |
-|---|---|---|
-| `setup` | Regarde ce qui est installé sur ta machine, te fait choisir le moteur de transcription (whisper, gratuit et sur ton ordinateur, ou ElevenLabs Scribe, payant à l'usage), pose les réglages (langue, dossier de sortie, sous-titres, Remotion) et installe ce qui manque une fois que tu as vu les commandes. À lancer en premier. | « installe la skill vidéo », « configure le montage », « je veux utiliser ElevenLabs », « passe à whisper » |
-| `video-editing` | Le montage : joint tes rushs, coupe les blancs, les faux départs et les reprises (ta dernière prise est gardée, aucun mot coupé en deux), transcrit (whisper ou ElevenLabs Scribe), incruste les sous-titres, un titre et un carton de fin, et rend la vidéo en 9:16 pour TikTok, Reels et Shorts, en 16:9 pour YouTube si tu le demandes et que tu as filmé à l'horizontale. Ce qui reste à couper, tu le lui dis avec tes mots. | « monte ma vidéo, les rushs sont dans Téléchargements », « enlève mes reprises », « ajoute des sous-titres », « fais-en un Reel » ; ensuite « garde la pause après la blague », « une version YouTube » |
-| `insta-audit` | Lit tes dernières vidéos sans connexion (30 par défaut), compare chacune à la médiane de ton compte, transcrit sur ton ordinateur ce que tu dis dans les 5 premières secondes, et écrit `AUDIT.md` : ce qui marche déjà chez toi, trois tests à faire, un bloc pour le prochain montage. Gratuit. Instagram refuse presque toujours la lecture sans connexion : tu donnes alors tes chiffres (un export, ou collés). | « audite mon compte Instagram », « analyse mon TikTok », « qu'est-ce qui marche sur mon compte », ou le lien de ton profil |
+## Ce que tu obtiens par défaut
 
-Prérequis, réglages et pannes courantes : [video-editing/README.md](video-editing/README.md).
+![Le montage par défaut : le hook en plein cadre avec le titre, puis le split, un carton chiffré et une liste en haut, la caméra dans une carte en bas, les sous-titres sur la couture](assets/default-render.png)
 
-### search-console
+*Trois images d'une vraie vidéo de 82 s, montée par `edit` depuis un rush de près de 6 min : le
+hook, un carton chiffré, une liste.*
 
-| Skill | Ce qu'elle fait | Ce que tu dis à Claude |
-|---|---|---|
-| `search-console` | Récupère tes données Search Console, calcule ce qui est du signal et ce qui est du bruit, suit l'effet de chaque changement que tu mets en ligne et rend un tableau de bord HTML avec un calendrier de relecture. | « fais-moi un compte rendu SEO de monsite.com », « rafraîchis le dashboard », « est-ce que mon changement de titre a marché ? » |
+- **Les coupes** : les blancs, les faux départs et les reprises partent, ta dernière prise reste,
+  et une coupe ne tombe jamais au milieu d'un mot.
+- **Deux vues qui alternent** : le hook en plein cadre, ton titre posé dessus ; puis un split,
+  un haut en aplat anthracite et toi dans une carte aux coins arrondis en bas. Elles changent
+  toujours entre deux phrases, en visant 4 à 8 secondes par vue.
+- **Des cartons sur le mot qui les dit** : un chiffre qui défile jusqu'à sa valeur, une liste
+  numérotée, une phrase. Dis « mets des cartons » : Claude les propose à partir de ce que tu dis.
+- **Les sous-titres** mot à mot, le mot dit en vert, sur la couture du split.
+- **Un carton de fin** (« Abonne-toi pour la suite » dans ta langue), la voix à -14 LUFS, le
+  volume des plateformes.
+- **En 9:16** pour TikTok, Reels et Shorts ; en 16:9 pour YouTube si tu as filmé à l'horizontale.
 
-Brancher ton accès Google, ce que tu obtiens, pannes courantes : [search-console/README.md](search-console/README.md).
+Le style (police, couleurs, taille des sous-titres, couleur du haut) se change dans
+`~/.config/video-editing/style.json` : « mets mes sous-titres en jaune », « un haut gris clair ».
+Exemples réels de ce que produit une vidéo : [skills/edit/examples/](skills/edit/examples/).
+
+## Les skills
+
+| Skill | Ce qu'elle fait |
+|---|---|
+| [`/video`](skills/video/SKILL.md) | L'entrée. Dis ce que tu veux (« monte ma vidéo », « audite mon compte », « écris-moi un script », « publie-la ») : elle choisit la bonne skill et reprend la vidéo en cours (l'état est noté à côté de chaque vidéo : ses rushs, la dernière commande, les étapes faites) au lieu de repartir de zéro. |
+| [`/setup`](skills/setup/SKILL.md) | À lancer en premier. Regarde ce qui est installé (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, Node), te fait choisir le moteur de transcription (whisper, gratuit et sur ton ordinateur, ou ElevenLabs Scribe, payant à l'usage, la clé jamais collée dans la conversation), pose tes réglages et installe ce qui manque une fois que tu as vu les commandes. macOS, Windows, Linux. |
+| [`/audit`](skills/audit/SKILL.md) | Ton propre compte TikTok ou Instagram : tes 30 dernières vidéos lues sans connexion, chacune comparée à la médiane de ton compte, ce que tu dis dans les 5 premières secondes transcrit sur ton ordinateur, et `AUDIT.md` : ce qui marche déjà chez toi, chiffres à l'appui, 3 tests à faire et un bloc que `edit` relit pour ton titre et ta durée. Gratuit. Instagram refuse presque toujours la lecture sans connexion : tu donnes alors tes chiffres. |
+| [`/outliers`](skills/outliers/SKILL.md) | Ce qui a explosé chez les comptes TikTok que tu suis : les 30 dernières vidéos de chaque compte lues sans connexion, chacune contre la médiane de son propre compte (×3 ou plus), les vidéos trop récentes et sponsorisées à part, les succès qui se répètent, le hook des 5 premières secondes transcrit sur ton ordinateur, une liste de comptes qui grandit avec toi, et 5 idées à refaire avec ta voix dans `OUTLIERS.md`, comme des tests. Gratuit ; Instagram à la main. |
+| [`/script`](skills/script/SKILL.md) | Le script de ta prochaine vidéo courte : 3 hooks tirés de 22 formules nommées (un hook se récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script en beats « mais / donc » avec double payoff et appels à l'action aux coutures, les notes pour le montage, une passe anti-slop et le timing à ton débit, dans `script.md`. Part de ton audit et de tes outliers s'ils sont dans le dossier. |
+| [`/edit`](skills/edit/SKILL.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16 (16:9 pour YouTube), plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
+| [`/publish`](skills/publish/SKILL.md) | La vidéo finie en ligne : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de Nadia : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
+| [`/search-console`](skills/search-console/README.md) | Un compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment et ce qui n'est que du hasard (les seuils calculés par script, jamais à l'œil), si une baisse vient de la demande ou de ton classement, l'effet de chaque changement mis en ligne, et un tableau de bord qui se rafraîchit d'une phrase. |
+
+Tu n'es pas obligé de taper le nom d'une skill : dis à Claude ce que tu veux, il reconnaît la tâche.
+
+## Le parcours
+
+```text
+/setup            une fois : les outils, le moteur de transcription, tes réglages
+/audit            ce qui marche sur ton compte              → AUDIT.md
+/outliers         ce qui a explosé dans ta niche            → OUTLIERS.md, 5 idées à refaire
+/script           le script de la prochaine vidéo           → script.md
+                  tu tournes
+/edit             ton rush → la vidéo à publier             → ~/Videos/edited/<nom>.mp4
+/publish          TikTok, Instagram (YouTube si tu veux)    → Nadia, ou post.md
+```
+
+`/video <ce que tu veux>` à n'importe quelle étape : elle sait où tu en es.
 
 ## Installer
 
-### Skill, plugin, marketplace
+### Avec `npx skills` (Claude Code, et les autres agents)
 
-Une **skill**, c'est un dossier que Claude Code lit quand tu lui demandes un travail précis : des
-instructions (le fichier `SKILL.md`), et souvent des scripts qu'il lance pour toi.
+Dans le dossier de ton projet :
 
-Un **plugin**, c'est l'emballage qui installe une ou plusieurs skills en une commande et les met à
-jour. Ce dépôt est un **marketplace**, un catalogue de plugins : tu l'ajoutes une fois à Claude
-Code, puis tu installes les plugins qui t'intéressent, un par un.
+```sh
+npx skills add vincentventalon/my-claude-skills -a claude-code
+```
 
-### Avec le marketplace
+Ajoute `-g` pour les installer pour tous tes projets, `--skill setup edit` pour n'en prendre que
+certaines (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skills update`.
 
-Dans Claude Code, ajoute le dépôt une fois :
+### Avec le plugin Claude Code
+
+Dans Claude Code :
 
 ```
 /plugin marketplace add vincentventalon/my-claude-skills
+/plugin install vincent-skills@my-claude-skills
 ```
 
-puis installe le plugin que tu veux :
+(depuis Claude Code 2.1.275, en une ligne : `/plugin install vincent-skills --marketplace
+vincentventalon/my-claude-skills`). Depuis un terminal, les mêmes commandes s'écrivent
+`claude plugin marketplace add …` et `claude plugin install …`. Relance Claude Code après
+l'installation. Le plugin installe les huit skills d'un coup ; elles apparaissent sous son nom
+(`/vincent-skills:edit`), et tu peux toujours simplement dire ce que tu veux.
 
-```
-/plugin install video-editing@my-claude-skills
-/plugin install search-console@my-claude-skills
+### Installé avant novembre 2026 ?
+
+Le dépôt avait deux plugins, `video-editing` (avec les skills `video-editing`, `setup`,
+`insta-audit`) et `search-console`. Ils sont remplacés par le plugin `vincent-skills` :
+`video-editing` s'appelle maintenant `edit`, `insta-audit` s'appelle `audit`. Retire les anciens,
+puis installe le nouveau :
+
+```sh
+claude plugin marketplace update my-claude-skills
+claude plugin uninstall video-editing@my-claude-skills
+claude plugin uninstall search-console@my-claude-skills
+claude plugin install vincent-skills@my-claude-skills
 ```
 
-C'est pareil sur macOS, Windows et Linux. Depuis un terminal, les mêmes commandes s'écrivent
-`claude plugin marketplace add vincentventalon/my-claude-skills` puis
-`claude plugin install video-editing@my-claude-skills`. Relance Claude Code après l'installation.
+(ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). Copiées à la main ?
+Supprime `~/.claude/skills/video-editing` et `~/.claude/skills/insta-audit`, puis installe avec
+`npx skills`. Ta configuration (`~/.config/video-editing/`) ne bouge pas : rien à refaire.
 
 ### À la main
-
-Copie les skills d'un plugin dans le dossier des skills de Claude Code (ici `video-editing` ;
-remplace par `search-console` pour l'autre).
 
 macOS et Linux :
 
 ```sh
 git clone https://github.com/vincentventalon/my-claude-skills.git
-mkdir -p ~/.claude/skills
-cp -R my-claude-skills/video-editing/skills/* ~/.claude/skills/
+mkdir -p .claude/skills
+cp -R my-claude-skills/skills/* .claude/skills/
 ```
 
 Windows (PowerShell) :
 
 ```powershell
 git clone https://github.com/vincentventalon/my-claude-skills.git
-New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
-Copy-Item -Recurse -Force my-claude-skills\video-editing\skills\* $HOME\.claude\skills\
+New-Item -ItemType Directory -Force .claude\skills | Out-Null
+Copy-Item -Recurse -Force my-claude-skills\skills\* .claude\skills\
 ```
 
-Pour un seul projet, copie dans `.claude/skills/` à la racine du projet au lieu de `~/.claude/skills/`.
-Garde ensemble les skills d'un même plugin : elles renvoient l'une à l'autre. Installées à la main,
-elles ne se mettent pas à jour toutes seules.
+`~/.claude/skills/` au lieu de `.claude/skills/` pour tous tes projets. Garde les skills côte à côte :
+elles se renvoient l'une à l'autre. Pour mettre à jour : `git -C my-claude-skills pull`, puis copie
+à nouveau.
 
 ### Mettre à jour
 
-Avec le marketplace, depuis un terminal :
+`npx skills update`, ou pour le plugin :
 
 ```sh
 claude plugin marketplace update my-claude-skills
-claude plugin update video-editing@my-claude-skills
+claude plugin update vincent-skills@my-claude-skills
 ```
 
-(ou le menu `/plugin` dans Claude Code), puis relance Claude Code.
+puis relance Claude Code.
 
-À la main : `git -C my-claude-skills pull`, puis copie à nouveau.
+### Ce qu'il faut sur ta machine
+
+`/setup` vérifie tout et donne la commande de ton système. Le détail (Python, ffmpeg avec libass,
+whisper.cpp et son modèle, Node pour Remotion, par système et avec leur taille), le choix entre
+whisper et ElevenLabs, et les pannes courantes avec le message que tu verras :
+[le guide de `edit`](skills/edit/README.md). Pour Search Console, brancher ton accès Google :
+[le guide de `search-console`](skills/search-console/README.md).
+
+## Ce qu'il n'y a pas ici
+
+- La relecture dans le navigateur, le split réglé sur ton propre cadrage et les scènes mesurées
+  sur ce qui marche, le motion design : c'est avec ça que je monte mes vidéos, dans
+  [Pif Paf Cut Pro](https://pifpafcut.com/pro).
+- Plus de hooks que les 22 formules de `/script` : le connecteur Claude de
+  [Nadia](https://usenadia.com).
 
 ## Ce que tu trouveras ici
 
-- Des skills testées sur mes propres sites et mes propres vidéos avant d'arriver ici.
+- Des skills testées sur mes propres vidéos et mes propres sites avant d'arriver ici.
 - Le calcul est dans des scripts, pas laissé au modèle : deux lancements donnent le même résultat.
-- Pour chaque plugin, les prérequis et les pannes courantes, avec le message d'erreur que tu verras.
 - Les scripts tournent sur ton ordinateur. Ce qui part ailleurs est dit : le son de ta vidéo si
-  tu choisis ElevenLabs pour la transcription, les appels à l'API Google pour Search Console.
-
-## Ce que tu ne trouveras pas ici
-
-- La relecture dans le navigateur, les scènes (ta tête en petit, une capture en grand) et la
-  motion : ce sont les outils avec lesquels je monte mes propres vidéos, ils sont dans
-  [Pif Paf Cut Pro](https://pifpafcut.com/pro).
-- La publication : les plugins s'arrêtent à la vidéo. Je programme les miennes avec
-  [Nadia](https://usenadia.com).
+  tu choisis ElevenLabs, ta vidéo et ses textes vers Nadia si tu publies avec elle, les appels à
+  l'API Google pour Search Console.
+- Rien ne se publie sans ton « oui ».
 
 ## Signaler un problème, contribuer
 
-Une panne, un message d'erreur qui n'est pas dans le README du plugin, une idée : ouvre une
+Une panne, un message d'erreur qui n'est pas dans le guide d'une skill, une idée : ouvre une
 [issue](https://github.com/vincentventalon/my-claude-skills/issues) avec le nom de la skill, ton
 système (macOS, Windows, Linux) et le message exact. Une correction est la bienvenue en pull
-request ; avant de l'envoyer, vérifie que le catalogue et les plugins restent valides :
+request ; avant de l'envoyer, vérifie que le plugin et les skills restent valides :
 
 ```sh
+python3 dev/check_skills.py
 claude plugin validate . --strict
-claude plugin validate video-editing --strict
-claude plugin validate search-console --strict
 ```
+
+(`git config core.hooksPath .githooks` les lance à chaque commit.)
 
 ## In English
 
-Claude Code skills I actually use on my own sites and videos, one new skill every Tuesday with my
-newsletter. The video-editing plugin works in English as well as in French (its guide is in
-French); search-console is written in French. Install with the commands above.
+Free Claude Code skills to script, edit and publish talking-head videos (TikTok, Reels, Shorts),
+audit your own account and read your Search Console, one skill per job. Install with
+`npx skills add vincentventalon/my-claude-skills -a claude-code`, run `/setup`, then `/edit`.
+`video`, `edit`, `audit`, `outliers` and `publish` work in English as well as in French (their
+guides are in French); `setup`, `script` and `search-console` are written in French.
 
 ## Licence
 

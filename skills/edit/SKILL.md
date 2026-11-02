@@ -261,7 +261,7 @@ ask, do not guess.
 (shipped, SIL OFL), white subtitles with the said word in mint green, an
 anthracite top zone. To change the look,
 write **only the keys that change** in `~/.config/video-editing/style.json`
-(kept when the plugin updates), or in a file passed with `--style FILE`:
+(kept when the skill updates), or in a file passed with `--style FILE`:
 
 ```json
 {"captions": {"size": 130, "highlight": "#7CFF6B", "y": 0.62, "max_words": 1}}
