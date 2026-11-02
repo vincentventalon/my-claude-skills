@@ -1,12 +1,14 @@
 # my-claude-skills
 
 Des skills Claude Code gratuites pour écrire, monter et publier tes vidéos face caméra (TikTok,
-Reels, Shorts), auditer ton compte, et lire ta Search Console : une skill par tâche.
+Reels, Shorts), auditer ton compte, et faire le SEO de ton site (l'audit, les concurrents, les
+mots-clés, le maillage, Search Console) : une skill par tâche.
 
 Pas d'application, pas de serveur, pas d'abonnement. Les skills disent à Claude comment
 travailler, et leurs scripts tournent sur ton ordinateur : ffmpeg pour couper et rendre,
 whisper.cpp pour le texte (gratuit, rien ne sort de ta machine), Remotion pour animer les titres
-et les cartons si tu as Node. En option, une clé ElevenLabs pour une transcription plus fidèle, et
+et les cartons si tu as Node, et pour le SEO l'API Google Search Console et tes propres pages,
+sans outil payant. En option, une clé ElevenLabs pour une transcription plus fidèle, et
 le connecteur Claude de [Nadia](https://usenadia.com) pour programmer tes posts. Je les utilise
 pour mes propres vidéos et mes sites ; une nouvelle arrive chaque mardi avec
 [ma newsletter](https://vincentventalon.com/newsletter).
@@ -60,7 +62,11 @@ Exemples réels de ce que produit une vidéo : [skills/edit/examples/](skills/ed
 | [`/script`](skills/script/SKILL.md) | Le script de ta prochaine vidéo courte : 3 hooks tirés de 22 formules nommées (un hook se récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script en beats « mais / donc » avec double payoff et appels à l'action aux coutures, les notes pour le montage, une passe anti-slop et le timing à ton débit, dans `script.md`. Part de ton audit et de tes outliers s'ils sont dans le dossier. |
 | [`/edit`](skills/edit/SKILL.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16 (16:9 pour YouTube), plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
 | [`/publish`](skills/publish/SKILL.md) | La vidéo finie en ligne : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de Nadia : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
-| [`/search-console`](skills/search-console/README.md) | Un compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment et ce qui n'est que du hasard (les seuils calculés par script, jamais à l'œil), si une baisse vient de la demande ou de ton classement, l'effet de chaque changement mis en ligne, et un tableau de bord qui se rafraîchit d'une phrase. |
+| [`/seo-audit`](skills/seo-audit/SKILL.md) | L'audit technique de ton site : est-ce que Google arrive à lire tes pages. Le script lit robots.txt, le sitemap et chaque page (redirections, titles, descriptions, H1, canonical, noindex, images, dates), compte les liens dans le texte à part des liens de menu, demande à Google l'état de chaque adresse (inspection d'URL) et passe Lighthouse si tu as Node. Un rapport classé par priorité, avec la preuve de chaque constat. Il ne modifie rien. |
+| [`/competitors`](skills/competitors/SKILL.md) | Qui tient la première page sur ta requête : Claude la cherche, le script mesure chaque page contre la tienne (mots, sections, tableaux, FAQ, dates, liens), puis lit le sitemap d'un concurrent et dit ce qu'il couvre que tu ne couvres pas. |
+| [`/keywords`](skills/keywords/SKILL.md) | Quoi écrire ensuite, d'après ta propre Search Console : les requêtes où tu sors déjà sans page dédiée, celles en page 2 à renforcer, les gros gisements lointains, deux pages qui se battent sur la même requête, les requêtes neuves, les questions, et les suggestions Google. Un verdict par candidat ; sous 10 impressions, pas de page. |
+| [`/internal-links`](skills/internal-links/SKILL.md) | Le maillage dans le texte : les liens entre tes pages que le menu et le footer ne font pas, les pages orphelines, les ancres vides, et des propositions phrase par phrase (quelle page, quelle phrase, quelle ancre, vers quelle page) que Claude pose dans ton code quand tu dis oui. |
+| [`/search-console`](skills/search-console/README.md) | Un compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment et ce qui n'est que du hasard (les seuils calculés par script, jamais à l'œil), si une baisse vient de la demande ou de ton classement, l'effet de chaque changement mis en ligne (les autres skills SEO les notent dans le même journal), et un tableau de bord qui se rafraîchit d'une phrase. |
 
 Tu n'es pas obligé de taper le nom d'une skill : dis à Claude ce que tu veux, il reconnaît la tâche.
 
@@ -78,6 +84,20 @@ Tu n'es pas obligé de taper le nom d'une skill : dis à Claude ce que tu veux, 
 
 `/video <ce que tu veux>` à n'importe quelle étape : elle sait où tu en es.
 
+Et pour le site :
+
+```text
+/seo-audit        une fois, puis une semaine après : Google lit-il tes pages → seo/<site>/seo-audit/AUDIT.md
+/competitors      qui tient la page 1 sur ta requête              → seo/<site>/competitors/
+/keywords         quoi écrire ensuite, d'après ta Search Console   → seo/<site>/keywords/MOTS-CLES.md
+                  tu écris la page
+/internal-links   le maillage, le jour où la page sort            → seo/<site>/internal-links/MAILLAGE.md
+/search-console   chaque semaine : ce qui a vraiment bougé         → seo/<site>/tableau-de-bord.html
+```
+
+Les cinq partagent un dossier `./seo/<site>/` et un journal des changements : ce qu'une skill
+met en ligne, `search-console` le mesure trois semaines après.
+
 ## Installer
 
 ### Avec `npx skills` (Claude Code, et les autres agents)
@@ -88,24 +108,23 @@ Dans le dossier de ton projet :
 npx skills add vincentventalon/my-claude-skills -a claude-code
 ```
 
-Il te montre la liste et tu coches ce que tu veux : la vidéo seule, `search-console` seule, ou
-tout. Ajoute `-g` pour les installer pour tous tes projets, `--skill setup edit` pour les nommer
+Il te montre la liste et tu coches ce que tu veux : la vidéo seule, le SEO seul, ou tout. Ajoute `-g` pour les installer pour tous tes projets, `--skill setup edit` pour les nommer
 sans passer par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skills update`.
 
 ### Avec le plugin Claude Code
 
-Trois plugins dans le même dépôt : `video` (les sept skills vidéo), `search-console` (le SEO
-seul), `vincent-skills` (tout). Dans Claude Code, pour la vidéo :
+Trois plugins dans le même dépôt : `video` (les sept skills vidéo), `seo` (les cinq skills SEO),
+`vincent-skills` (tout). Dans Claude Code, pour la vidéo :
 
 ```
 /plugin marketplace add vincentventalon/my-claude-skills
 /plugin install video@my-claude-skills
 ```
 
-Pour le SEO seul, `/plugin install search-console@my-claude-skills` ; pour tout,
+Pour le SEO seul, `/plugin install seo@my-claude-skills` ; pour tout,
 `/plugin install vincent-skills@my-claude-skills`. Depuis Claude Code 2.1.275, en une ligne :
 `/plugin install video --marketplace vincentventalon/my-claude-skills` (de même
-`/plugin install search-console --marketplace vincentventalon/my-claude-skills`). Depuis un
+`/plugin install seo --marketplace vincentventalon/my-claude-skills`). Depuis un
 terminal, les mêmes commandes s'écrivent `claude plugin marketplace add …` et
 `claude plugin install …`. Relance Claude Code après l'installation. Les skills apparaissent sous
 le nom du plugin (`/video:edit`), et tu peux toujours simplement dire ce que tu veux.
@@ -123,9 +142,12 @@ claude plugin uninstall video-editing@my-claude-skills
 claude plugin install video@my-claude-skills
 ```
 
-(ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). `search-console` garde
-son nom : `claude plugin update search-console@my-claude-skills` suffit. Installé
-`vincent-skills` début novembre ? Il reste le plugin « tout », rien à refaire. Copiées à la main ?
+(ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). Installé le plugin
+`search-console` ? Il reste installable, mais `seo` le contient avec quatre skills de plus :
+`claude plugin uninstall search-console@my-claude-skills` puis
+`claude plugin install seo@my-claude-skills` (les deux à la fois donneraient la skill en double).
+Tes données dans `./seo/` ne bougent pas. Installé `vincent-skills` début novembre ?
+`claude plugin update vincent-skills@my-claude-skills` ajoute les skills SEO. Copiées à la main ?
 Supprime `~/.claude/skills/video-editing` et `~/.claude/skills/insta-audit`, puis installe avec
 `npx skills`. Ta configuration (`~/.config/video-editing/`) ne bouge pas : rien à refaire.
 
@@ -160,8 +182,7 @@ claude plugin marketplace update my-claude-skills
 claude plugin update video@my-claude-skills
 ```
 
-(`search-console@my-claude-skills` ou `vincent-skills@my-claude-skills` selon ce que tu as
-installé.)
+(`seo@my-claude-skills` ou `vincent-skills@my-claude-skills` selon ce que tu as installé.)
 
 puis relance Claude Code.
 
@@ -170,8 +191,10 @@ puis relance Claude Code.
 `/setup` vérifie tout et donne la commande de ton système. Le détail (Python, ffmpeg avec libass,
 whisper.cpp et son modèle, Node pour Remotion, par système et avec leur taille), le choix entre
 whisper et ElevenLabs, et les pannes courantes avec le message que tu verras :
-[le guide de `edit`](skills/edit/README.md). Pour Search Console, brancher ton accès Google :
-[le guide de `search-console`](skills/search-console/README.md).
+[le guide de `edit`](skills/edit/README.md). Pour le SEO : Python 3 et rien d'autre ; brancher
+ton accès Google une fois : [le guide de `search-console`](skills/search-console/README.md)
+(les quatre autres skills SEO l'utilisent, et marchent sans en disant ce qu'elles n'ont pas pu
+lire).
 
 ## Ce qu'il n'y a pas ici
 
@@ -207,10 +230,11 @@ claude plugin validate . --strict
 ## In English
 
 Free Claude Code skills to script, edit and publish talking-head videos (TikTok, Reels, Shorts),
-audit your own account and read your Search Console, one skill per job. Install with
+audit your own account and do your site's SEO (audit, competitors, keywords, internal links,
+Search Console), one skill per job. Install with
 `npx skills add vincentventalon/my-claude-skills -a claude-code`, run `/setup`, then `/edit`.
 `video`, `edit`, `audit`, `outliers` and `publish` work in English as well as in French (their
-guides are in French); `setup`, `script` and `search-console` are written in French.
+guides are in French); `setup`, `script` and the five SEO skills are written in French.
 
 ## Licence
 

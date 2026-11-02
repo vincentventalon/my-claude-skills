@@ -64,6 +64,10 @@ rafraîchir depuis n'importe où (l'effacer suffit pour l'oublier).
 
 Pour lire un cluster ou un type de page à part, remplis `groupes.csv`.
 
+Les autres skills SEO du dépôt (`seo-audit`, `competitors`, `keywords`, `internal-links`)
+écrivent dans le même `./seo/<site>/` et posent elles-mêmes une ligne dans `journal.csv` quand
+elles mettent quelque chose en ligne : tu la retrouves ici au rafraîchissement suivant.
+
 ## Le régime du site (le script le choisit sur les clics des 28 derniers jours)
 
 - **Établi** (200 clics ou plus) : écart réel s'il dépasse 1,96 × √(avant + après).
