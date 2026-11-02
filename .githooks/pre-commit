@@ -1,0 +1,16 @@
+#!/bin/bash
+# Validates the marketplace manifest and every plugin it lists before a commit.
+# Offline, no model call. Enabled with `git config core.hooksPath .githooks`.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "pre-commit: \`claude\` not found, skipping validation" >&2
+  exit 0
+fi
+
+claude plugin validate . --strict
+# Every `source` of the marketplace (a missing folder passed unnoticed before, 2026-11-02).
+for d in $(python3 -c 'import json;print(" ".join(p["source"] for p in json.load(open(".claude-plugin/marketplace.json"))["plugins"]))'); do
+  claude plugin validate "$d" --strict
+done
