@@ -1,178 +1,202 @@
-# Claude Code video editing skill — automatic rough cut of your raw footage
+# video-editing : monter ses vidéos face caméra avec Claude Code
 
-Let Claude edit your talking-head videos. You hand it the raw clips, it
-gives you back the rough cut: **silences removed, false starts removed,
-only the last take of each sentence kept, no word cut in half**, plus
-**the transcript**. One script, a handful of settings, nothing else. Runs
-on your own computer (macOS, Windows, Linux), nothing is uploaded
-anywhere, no account, no API key.
+*La skill comprend aussi l'anglais : parle-lui dans ta langue (« edit my video »).
+This guide is in French; the skill works just as well in English.*
+
+## Ce que ça fait
+
+Tu tournes face caméra, tu donnes tes rushs à Claude, il te rend la vidéo à publier.
+
+- Les blancs, les faux départs et les reprises coupés : il garde ta **dernière** prise et ne coupe jamais un mot en deux.
+- Le texte de la vidéo, mot par mot : avec **whisper**, sur ton ordinateur (gratuit), ou **ElevenLabs** (payant, plus précis).
+- Les sous-titres incrustés, un titre sur les premières secondes, un carton de fin, la voix au volume des plateformes.
+- En 9:16 pour TikTok, Reels et Shorts ; aussi en 16:9 pour YouTube quand tu as filmé à l'horizontale.
+- Claude relit ensuite les prises comme un monteur. Ce qui reste à couper, tu le lui dis avec tes mots.
 
 ```
-you:     edit my video, the clips are in Downloads
-claude:  joined footage: 538.0s, 1 clip(s), 29.97 fps
-         islands of sound: 71 (silences >= 0.22s at -32 dB)
-           cut   24.17 ->   25.09  retake  "La plupart des gens..."
-           cut  250.48 ->  253.03  retake  "Si tu as encore de plus en plus d'utilisateurs sur ton application,"
-           cut  254.11 ->  255.63  retake  "si tu as encore de plus en plus"
-           ...
-         kept 54 segments: 538.0s -> 117.8s (22 retakes and 3 islands without speech dropped)
-         -> edited.mp4, edited.txt, edited.srt, edited.takes.tsv
+toi     monte ma vidéo, les rushs sont dans Téléchargements, titre « Mon *gros* conseil »
+claude  Un rush de 9 min. Les blancs et 22 reprises coupés : il reste 1 min 58.
+        Une phrase recommencée avec d'autres mots, que le script ne voit pas : je la coupe aussi.
+        → ~/Videos/edited/IMG_4127.mp4 (9:16, sous-titres, titre, carton de fin)
+toi     garde la pause après la blague
+claude  Remise. Nouveau rendu, sans retranscrire.
 ```
 
-A 9 min raw take became a 1 min 58 video, in about two minutes
-of compute on a Mac.
+## Installer en 3 étapes
 
-## Install
-
-1. In Claude Code, add this repo as a plugin marketplace and install the skill:
+1. Dans Claude Code, ajoute le catalogue de skills (une fois) :
 
    ```
    /plugin marketplace add vincentventalon/my-claude-skills
+   ```
+
+2. Installe le plugin, puis relance Claude Code :
+
+   ```
    /plugin install video-editing@my-claude-skills
    ```
 
-   Or by hand: copy the folder `video-editing/skills/video-editing` of this repo into your Claude Code skills
-   (macOS / Linux: `~/.claude/skills/video-editing/`, Windows: `C:\Users\<you>\.claude\skills\video-editing\`).
+3. Dis **« installe la skill vidéo »**.
 
-   ```sh
-   git clone https://github.com/vincentventalon/my-claude-skills /tmp/my-claude-skills
-   cp -R /tmp/my-claude-skills/video-editing/skills/video-editing ~/.claude/skills/video-editing
-   ```
+   Claude regarde ce qui est installé sur ta machine, te pose cinq questions (whisper ou
+   ElevenLabs, la langue de tes vidéos, où ranger les vidéos montées, les sous-titres, Remotion),
+   installe ce qui manque une fois que tu as vu les commandes, et écrit ta configuration dans
+   `~/.config/video-editing/config.json`. Un réglage à changer plus tard : « passe à ElevenLabs »,
+   « change le dossier de sortie ».
 
-   Installed it before October 20, 2026 with `git clone` straight into `~/.claude/skills/video-editing`?
-   This repo is now a collection of skills, so that folder no longer has the skill at its root: delete it
-   and install again with one of the two ways above.
+**Installée avant le 20 octobre 2026 avec `git clone` ?** Ce dépôt est devenu une collection de
+skills : le dossier `~/.claude/skills/video-editing` que tu as cloné n'a plus la skill à sa
+racine. Supprime-le, puis installe avec les étapes ci-dessus.
 
-2. Open Claude Code and say: **"edit my video, the clips are in Downloads"**.
+**Sans le système de plugins** : copie les deux dossiers `video-editing/skills/video-editing` et
+`video-editing/skills/setup` de ce dépôt dans tes skills (macOS et Linux : `~/.claude/skills/`,
+Windows : `C:\Users\<toi>\.claude\skills\`). Ils doivent rester côte à côte.
 
-That's it. If a tool is missing (ffmpeg, whisper), Claude installs it: the
-skill tells it how. The transcription model downloads itself the first time.
+```sh
+git clone https://github.com/vincentventalon/my-claude-skills /tmp/my-claude-skills
+cp -R /tmp/my-claude-skills/video-editing/skills/video-editing /tmp/my-claude-skills/video-editing/skills/setup ~/.claude/skills/
+```
 
-## Which model for your computer
+## Prérequis
 
-| your computer | say to Claude | download |
+Tu n'as rien à installer à la main : l'étape 3 vérifie tout et donne la commande de ton
+système ; sur Mac, elle lance les installations Homebrew avec ton accord. Ce tableau sert à
+savoir à l'avance ce qui va arriver sur ta machine.
+
+| Quoi | Pourquoi | macOS | Windows | Linux | Taille |
+|---|---|---|---|---|---|
+| Python 3.10 ou plus | les scripts du montage | `brew install python` | `winget install Python.Python.3.12` | `sudo apt install python3` | — |
+| ffmpeg et ffprobe, avec libass | couper, assembler, rendre ; libass incruste les sous-titres | `brew install ffmpeg-full` | `winget install Gyan.FFmpeg` | `sudo apt install ffmpeg` | ~270 Mo avec ses dépendances (mesuré sur un Mac) |
+| whisper.cpp *(si whisper)* | la transcription sur ton ordinateur | `brew install whisper-cpp` | `whisper-bin-x64.zip` des [releases](https://github.com/ggml-org/whisper.cpp/releases), à mettre dans le PATH | à compiler, la skill donne la commande | ~8 Mo (Mac) |
+| le modèle `large-v3-turbo` *(si whisper)* | ce avec quoi whisper entend | se télécharge tout seul au premier montage | pareil | pareil | 1,6 Go |
+| une clé ElevenLabs *(si ElevenLabs)* | la transcription chez ElevenLabs | — | — | — | — |
+| Node 18 ou plus *(facultatif)* | Remotion anime le titre et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~250 Mo, installé tout seul au premier rendu, plus le navigateur qu'il télécharge pour rendre (à vérifier) |
+
+- **Mac** : la formule `ffmpeg` de Homebrew est compilée sans libass. Avec elle, la vidéo sort sans
+  sous-titres incrustés. `ffmpeg-full` s'installe à côté, sans rien remplacer, et le montage le
+  trouve tout seul.
+- **Mac** : le Python livré par Apple est en 3.9. `brew install python` en installe un plus récent.
+- **Windows** : après un `winget install`, ferme et rouvre le terminal et Claude Code, sinon le
+  nouvel outil n'est pas trouvé.
+
+## Choisir son moteur de transcription
+
+Le montage a besoin du texte de ta vidéo, mot par mot, pour savoir où couper et pour les
+sous-titres. Deux moteurs, au choix, et tu peux changer quand tu veux (« passe à ElevenLabs »,
+« reviens à whisper ») :
+
+| | **whisper** (par défaut) | **ElevenLabs Scribe** |
 |---|---|---|
-| recent Mac (M1 or later), PC with a GPU | nothing, it is the default (`large-v3-turbo`) | 1.6 GB |
-| little disk space, 8 GB of RAM | "use the model large-v3-turbo-q5_0" | 0.57 GB, almost as good |
-| PC without a GPU, or it is too slow | "use the small model" | 0.49 GB, several times faster on a CPU, catches a few less retakes |
+| Prix | gratuit | payant à l'usage, à la minute de son ([tarifs](https://elevenlabs.io/pricing)) |
+| Où ça tourne | sur ton ordinateur, rien ne sort | le son de ta vidéo est envoyé à ElevenLabs |
+| À installer | whisper.cpp et un modèle de 1,6 Go | rien : une clé d'API |
+| Ce qu'il entend | bien ; un peu moins précis sur les reprises (une phrase redite juste après l'autre peut être avalée) et sur les noms propres | le meilleur verbatim : les reprises, les noms, les chiffres |
+| Remonter la même vidéo | rien à retranscrire | la réponse est gardée sur ton ordinateur : tu ne paies pas deux fois |
 
-`medium` is not worth it: as heavy as the default and slower.
+Pour commencer sans compte ni carte : whisper. ElevenLabs quand whisper laisse passer des
+reprises que tu entends, toi.
 
-## What you get
+**Poser la clé ElevenLabs.** Crée une clé d'API sur elevenlabs.io (si on te propose de limiter
+ses droits, « Speech to Text » suffit). Copie-la, **ne la colle pas dans la conversation**, et
+dis à Claude « c'est copié » : il la lit dans ton presse-papier
+(`pbpaste | python3 …/setup.py --cle-elevenlabs-stdin`) et l'écrit dans
+`~/.config/video-editing/env`, lisible par toi seul. Elle n'apparaît jamais à l'écran ni dans
+`config.json`. Si tu préfères, une variable d'environnement `ELEVENLABS_API_KEY` marche aussi.
 
-`edited.mp4` (the rough cut), `edited.txt` (the text), `edited.srt`
-(subtitles with timings) and `edited.takes.tsv` (every piece of your
-footage, kept or cut, with what you said in it).
+**Ordinateur modeste ?** Avec whisper, le modèle par défaut est le meilleur, mais il pèse.
 
-## Something left to cut?
-
-Tell Claude, in your own words: "cut the sentence about the price", "keep
-the pause after the joke". It finds the moment in `edited.takes.tsv` and
-renders again, without transcribing again.
-
-## Finish it with Remotion (optional)
-
-If you have Node, `remotion/` turns the rough cut into a reel: captions
-where the word being said lights up, a title on top. Two layouts, no split
-screen: you **full screen**, or your video **in a card** on a dark
-background, for a clip filmed sideways. It picks by itself from the way you
-filmed. Ask Claude "finish it with Remotion".
-
-## How it cuts
-
-1. **Joins your clips**, in the order you give them, without re-encoding.
-2. **The sound decides where to cut.** The audio is split into islands of
-   sound, whatever lies between two silences. A cut can only fall in a
-   silence: never in the middle of a word.
-3. **Each island is transcribed on its own** (whisper.cpp, locally).
-   Transcribed in one go, whisper glues two takes into one sentence and
-   quietly writes the repeat only once; island by island, it cannot. An
-   island with no word in it (a breath, a click, a lone "um") goes.
-4. **The last take wins.** When an island is the beginning of what you say
-   right after, it was a false start: it goes, the last take stays. Every
-   island is also re-split on its short inner pauses and each piece is read
-   again on its own: that is where the "and so you, and so now you have"
-   that whisper had swallowed come out. Shoot the way you talk: say it
-   again until it is right, and move on.
-5. **Renders** an .mp4 ready to post, picture and sound in sync to the
-   frame, a 10 ms fade at each join so you never hear a click.
-6. **Claude reads the takes** like an editor: a sentence you abandoned and
-   restarted *in other words* is something only a reader sees. It cuts it
-   with one more command, which re-renders without re-transcribing.
-
-## What it does not do (yet)
-
-Without Remotion: no burned-in subtitles. And no cover on frame 0, no music, no b-roll. I have
-all of that in my own pipeline; if you want one of them here, open an issue
-or say so under the video, and I will add the ones people ask for.
-
-## Why it is so small
-
-I post one video a day, edited by Claude, since August 2026. My real
-pipeline is 1,400 lines of instructions and thirty scripts: word-level
-subtitles, title cards, covers, a TikTok and an Instagram render, automatic
-posting. It is far too personal to be useful to anyone else as is.
-
-This repo is its cutting engine, simplified: **get the audio, remove the
-dead air and the retakes**. It works right away, and it is meant for you to
-iterate on with Claude, the way you shoot.
-
-## The next steps are yours
-
-Ask Claude, one video at a time, in the order you miss them: "burn the
-subtitles into the video", "put a title on the first three seconds", "add
-music under my voice". It edits this script. That is exactly how my version
-grew.
-
-## Settings
-
-| Setting | Default | When to touch it |
+| ton ordinateur | dis à Claude | téléchargement |
 |---|---|---|
-| `--min-sil` | 0.22 s | the edit feels breathless: 0.35. Pauses left between sentences: 0.18. |
-| `--noise` | 32 dB | background noise (street, fan) and nothing gets cut: 25. |
-| `--model` | large-v3-turbo | see "Which model" above. |
+| Mac M1 ou plus récent, PC avec carte graphique | rien, c'est le défaut (`large-v3-turbo`) | 1,6 Go |
+| peu de place, 8 Go de mémoire | « prends le modèle large-v3-turbo-q5_0 » | 0,57 Go, presque aussi bon |
+| PC sans carte graphique, ou c'est trop lent | « prends le modèle small » | 0,49 Go, plusieurs fois plus rapide, rate un peu plus de reprises |
 
-`--lang fr` for French (or any whisper language), `--cut 12.5:14.0` to
-remove a window and `--protect 12.5:14.0` to keep one (times of the joined
-footage, as in `edited.takes.tsv`), `--pad 0.08` for more air around each
-island, `--keep-retakes` / `--keep-fillers` to leave them in,
-`--no-transcript` to skip whisper (silences only).
+`medium` ne vaut pas le coup : aussi lourd que le défaut, et plus lent.
 
-## For the maintainer
+## Première vidéo
 
-`dev/` is not part of the skill. `dev/check_edit.py` measures an edit
-(duration, A/V desync, words cut at the joins, repeats left).
-`dev/sync_from_private.py` carries the cutting improvements of my private
-pipeline over to this repo and tests them on a real rush — read its header.
-It never commits nor pushes.
+1. **Tourne comme tu parles.** Une phrase ratée ? Redis-la jusqu'à ce qu'elle soit juste, et
+   enchaîne : la dernière prise gagne.
+2. **Dis à Claude** : « monte ma vidéo, les rushs sont dans Téléchargements ». Donne le titre si
+   tu l'as : « titre : Mon *gros* conseil » (les `*` mettent un mot en couleur).
+3. **Ce qu'il te demande** : ce qu'il ne peut pas deviner, le titre s'il n'en a pas, la version
+   YouTube si tu as filmé à l'horizontale (à vérifier).
+4. **Ce que tu obtiens**, dans ton dossier de sortie (`~/Videos/edited` par défaut), au nom de
+   ton premier rush :
 
----
+| Fichier | Ce que c'est |
+|---|---|
+| `<nom>.mp4` | la vidéo à publier, 1080×1920 : sous-titres, titre, carton de fin, voix à -14 LUFS |
+| `<nom>.youtube.mp4` | la version 16:9 pour YouTube, quand tu l'as demandée et que tu as filmé à l'horizontale |
+| `<nom>.cut.mp4` | le montage seul, cadré comme tu as filmé, sans texte |
+| `<nom>.txt` · `<nom>.srt` | le texte de la vidéo, et les sous-titres avec leurs temps (CapCut, Premiere, YouTube) |
+| `<nom>.ass` | les sous-titres, le titre et le carton tels qu'incrustés : du texte, un mot s'y corrige à la main |
+| `<nom>.takes.tsv` | chaque morceau de ton rush, gardé ou coupé, avec ce que tu y dis |
+| `<nom>.timeline.json` | les passages gardés et les mots, avec leurs temps dans la vidéo montée |
 
-## 🇫🇷 En français
+5. **Il reste quelque chose ?** « coupe la phrase sur le prix », « garde la pause après la
+   blague », « change le titre », « dans les sous-titres, c'est cloud, pas clown ». Claude
+   retrouve le moment et rend à nouveau, sans retranscrire.
 
-Tu clones le dossier dans tes skills Claude Code (`~/.claude/skills/video-editing/`
-sur Mac, `C:\Users\<toi>\.claude\skills\video-editing\` sur Windows), tu
-ouvres Claude Code et tu lui dis **« monte ma vidéo, les rushes sont dans
-Téléchargements »**. S'il manque un outil, c'est lui qui l'installe. Il
-coupe les blancs, les faux départs et les reprises (il garde toujours ta
-**dernière** prise), sans jamais couper un mot en deux, et te rend la
-transcription. Tout tourne sur ta machine, sans compte ni clé d'API.
+### Comment il coupe
 
-Il reste une phrase à couper, une pause à garder ? Dis-le-lui avec tes
-mots : **« coupe la phrase sur le prix »**, **« garde la pause après la
-blague »**. Il retrouve le moment dans `edited.takes.tsv` et rend à nouveau,
-sans retranscrire. Tu as Node ? **« finis-la avec Remotion »** : sous-titres
-et titre, toi en plein écran ou ta vidéo dans un cadre si tu as filmé à
-l'horizontale.
+- **Le son décide où couper.** L'audio est découpé en îlots de son, ce qu'il y a entre deux
+  silences. Une coupe ne tombe que dans un silence, jamais au milieu d'un mot.
+- **La transcription dit quoi.** Avec whisper, chaque îlot est transcrit seul : d'un seul
+  tenant, whisper colle deux prises en une phrase et n'écrit la redite qu'une fois.
+- **La dernière prise gagne.** Un îlot qui est le début de ce que tu dis juste après était un
+  faux départ : il part, la dernière prise reste.
+- **Claude relit les prises comme un monteur.** Une phrase abandonnée puis redite *avec d'autres
+  mots*, seul un lecteur la voit : il la coupe d'une commande de plus, sans retranscrire. Dans le
+  doute, il garde.
 
-**Ordinateur modeste ?** Le modèle par défaut pèse 1,6 Go. Sur un PC sans
-carte graphique, dis-lui « prends le modèle small » (0,49 Go, plusieurs
-fois plus rapide, rate un peu plus de reprises) ; si c'est la place ou la
-mémoire qui manque (8 Go), « prends large-v3-turbo-q5_0 » (0,57 Go,
-presque aussi bon). `medium` ne vaut pas le coup : aussi lourd, plus lent.
+## Ce que ça ne fait pas, et où c'est
 
-Vidéo, contexte et la version française de cette page : [deviensdev.fr/claude-code-montage](https://deviensdev.fr/claude-code-montage).
+Pas de page pour relire et couper à la souris (tu dis à Claude ce qu'il faut couper), pas de
+scènes (ta tête en petit, une capture en grand), pas de motion design. Ça existe dans Pif Paf
+Cut : [pifpafcut.com/pro](https://pifpafcut.com/pro).
 
-## License
+## Publier
+
+Le plugin s'arrête à la vidéo. Pour la programmer sur tes réseaux depuis Claude :
+[Nadia](https://usenadia.com).
+
+## Problèmes fréquents
+
+| Ce que tu vois | Quoi faire |
+|---|---|
+| `command not found` juste après une installation | ferme et rouvre le terminal et Claude Code |
+| Mac : la vidéo sort sans sous-titres incrustés | la formule `ffmpeg` de Homebrew n'a pas libass : `brew install ffmpeg-full` (ou dis « installe la skill vidéo », il le voit) |
+| Mac : `brew` introuvable juste après l'avoir installé | lance les deux lignes « Next steps » que l'installeur de Homebrew a affichées, puis rouvre le terminal |
+| le premier montage est long | le modèle whisper (1,6 Go) se télécharge, une seule fois |
+| le téléchargement du modèle s'est arrêté | « relance le téléchargement du modèle whisper » |
+| rien n'est coupé, il y a du bruit de fond (rue, ventilateur) | « coupe plus fort, il y a du bruit » (le seuil de silence, `--noise 25`) |
+| une vidéo de 0 s ou une erreur `concat` | tes rushs n'ont pas le même format (taille, images par seconde) : monte-les un par un |
+| ElevenLabs refuse la clé | clé mal copiée ou supprimée : « change ma clé ElevenLabs » |
+| c'est lent, sur un PC sans carte graphique | « prends le modèle small » |
+| savoir quels réglages il utilise | « montre-moi la configuration du montage » (`edit_video.py --config`) |
+
+## Mettre à jour
+
+Dans Claude Code, le menu `/plugin` ; ou dans un terminal :
+
+```sh
+claude plugin marketplace update my-claude-skills
+claude plugin update video-editing@my-claude-skills
+```
+
+puis relance Claude Code. Ta configuration (`~/.config/video-editing/`) vit en dehors du plugin :
+une mise à jour n'y touche pas. Après une mise à jour, « vérifie l'installation du montage » refait
+le diagnostic.
+
+## Pour qui maintient ce dépôt
+
+`dev/` ne fait pas partie de la skill. `dev/check_edit.py` mesure un montage (durée, décalage
+image et son, mots coupés aux jointures, redites restées). `dev/sync_from_private.py` reporte ici
+les améliorations de coupe de ma chaîne privée et les teste sur un vrai rush ; lis son en-tête,
+il ne commite ni ne pousse rien. Le banc de l'installation :
+`python3 skills/setup/banc/test_setup.py` (des machines simulées, rien n'est installé).
+
+## Licence
 
 MIT — Vincent Ventalon.
