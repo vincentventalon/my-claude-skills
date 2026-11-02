@@ -1,5 +1,5 @@
 ---
-name: video-editing
+name: edit
 description: Edits a talking-head video from the raw clips to the video you post, in one command - joins the clips, cuts the silences, the false starts and the retakes (the last take wins, never inside a word), transcribes word by word (whisper.cpp on the computer, or ElevenLabs Scribe with the user's key), burns in subtitles word by word, adds a title on top and an end card, renders 9:16 for TikTok, Instagram Reels and Shorts (16:9 for YouTube on request). macOS first, Windows, Linux. Use when the user says "edit my video", "cut the silences", "remove my retakes", "add subtitles", "add captions", "make it a TikTok / a Reel / a Short", "monte ma vidéo", "coupe les blancs", "enlève mes reprises", "ajoute des sous-titres", "mets un titre sur ma vidéo", "fais-en un TikTok / un Reel", or drops raw clips to edit.
 ---
 
@@ -43,7 +43,7 @@ its HDR brought back to normal colours.
    one render, not a new cut).
 
 An audit of their account (`audit-*/AUDIT.md` in the current folder, or
-one they give, written by the `insta-audit` skill): read its "For the edit"
+one they give, written by the `audit` skill): read its "For the edit"
 block ("Pour le montage") first, to offer a title shaped like `hook_style` /
 `hook_example` (unless `title_on_screen` says no) and to give the edited
 length next to `target_duration_s`. Nothing else changes.
@@ -62,12 +62,12 @@ prints every setting, where it comes from (command line, then
 `~/.config/video-editing/config.json`, then the default) and what is
 installed. A tool missing (ffmpeg, libass, whisper-cli, the ElevenLabs key
 with `stt` elevenlabs) or no config file yet (`(none: defaults)`): follow
-this line, the one the `setup` skill of this plugin waits for (it diagnoses,
+this line, the one the `setup` skill (installed next to this one) waits for (it diagnoses,
 shows the commands before installing anything, writes the settings):
 
-> Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`
-> de ce plugin (`../setup/SKILL.md`, son diagnostic : `python3 ../setup/scripts/setup.py --json`),
-> puis reprends le montage là où il s'est arrêté.
+> Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`,
+> installée à côté de celle-ci (`../setup/SKILL.md`, son diagnostic :
+> `python3 ../setup/scripts/setup.py --json`), puis reprends le montage là où il s'est arrêté.
 
 What setup installs, for reference:
 

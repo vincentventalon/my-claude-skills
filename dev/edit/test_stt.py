@@ -2,8 +2,8 @@
 """test_stt.py — the ElevenLabs Scribe path, tested without paying and without
 the network (for the maintainer, not part of the skill).
 
-    python video-editing/dev/test_stt.py                       # the tests, ~2 s
-    python video-editing/dev/test_stt.py --replay answer.json  # serve a recorded answer
+    python dev/edit/test_stt.py                       # the tests, ~2 s
+    python dev/edit/test_stt.py --replay answer.json  # serve a recorded answer
 
 The tests start a local server that plays the ElevenLabs speech-to-text
 endpoint: it checks the request the skill sends (POST multipart, the
@@ -22,14 +22,14 @@ zero-length word). They check that:
 --replay serves any recorded answer the same way (until Ctrl-C), for an
 end-to-end run of edit_video.py --stt elevenlabs on a real clip:
     VIDEO_EDITING_SCRIBE_URL=http://127.0.0.1:PORT/v1/speech-to-text \\
-    ELEVENLABS_API_KEY=test python video-editing/skills/video-editing/scripts/edit_video.py clip.mp4 --stt elevenlabs
+    ELEVENLABS_API_KEY=test python skills/edit/scripts/edit_video.py clip.mp4 --stt elevenlabs
 (a cached answer is never asked again: delete ~/.cache/video-editing/elevenlabs/
 to replay a new one for the same clip).
 """
 import argparse, http.server, json, math, os, struct, sys, tempfile, threading, wave
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SCRIPTS = os.path.join(os.path.dirname(HERE), 'skills', 'video-editing', 'scripts')
+SCRIPTS = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'skills', 'edit', 'scripts')
 FIXTURE = os.path.join(HERE, 'fixtures', 'scribe-answer.json')
 KEY = 'test-key-not-a-real-one'
 

@@ -1,0 +1,10 @@
+{
+  "name": "vincent-skills",
+  "description": "Les skills Claude Code de Vincent Ventalon, une par tâche : video (dis ce que tu veux, elle aiguille et reprend la vidéo en cours), setup, edit (le montage face caméra : coupes, sous-titres, titre, split ou plein cadre, cartons), audit (ton compte TikTok ou Instagram), outliers, script, publish (avec Nadia, ou un kit prêt à poster) et search-console.",
+  "version": "2.0.0",
+  "author": { "name": "Vincent Ventalon" },
+  "homepage": "https://github.com/vincentventalon/my-claude-skills",
+  "repository": "https://github.com/vincentventalon/my-claude-skills",
+  "license": "MIT",
+  "keywords": ["video", "editing", "tiktok", "instagram", "reels", "shorts", "subtitles", "whisper", "seo", "search-console"]
+}

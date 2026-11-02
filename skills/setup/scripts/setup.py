@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""setup.py — l'installation du plugin video-editing : diagnostic, configuration, installations.
+"""setup.py — l'installation du montage vidéo (la skill edit) : diagnostic, configuration, installations.
 
     python3 setup.py                     # le diagnostic : une ligne par point, n'écrit rien
     python3 setup.py --json              # le même, pour Claude
@@ -52,7 +52,7 @@ for _s in (sys.stdout, sys.stderr):          # les accents sur la console Window
         _s.reconfigure(errors="replace")
 
 ICI = Path(__file__).resolve().parent
-MONTAGE = ICI.parent.parent / "video-editing"          # skills/video-editing, à côté de skills/setup
+MONTAGE = ICI.parent.parent / "edit"                   # skills/edit, à côté de skills/setup
 
 CONFIG_DIR = "~/.config/video-editing"
 CONFIG = CONFIG_DIR + "/config.json"
@@ -708,8 +708,9 @@ def verifie_montage(s: Sonde, c: Contexte) -> Constat | None:
     if s.montage_present():
         return None
     return Constat("montage", "Skill de montage", "manque",
-                   f"le dossier skills/video-editing n'est pas à côté de skills/setup ({montre(s, MONTAGE)})",
-                   ["# installe le plugin entier : /plugin install video-editing@my-claude-skills"], bloque=True)
+                   f"la skill edit n'est pas à côté de setup ({montre(s, MONTAGE)})",
+                   ["# installe toutes les skills du dépôt : npx skills add vincentventalon/my-claude-skills -a claude-code"],
+                   bloque=True)
 
 
 def verifie_homebrew(c: Contexte, constats: list) -> Constat | None:
@@ -760,7 +761,7 @@ LIBELLE = {"ok": "ok", "manque": "MANQUE", "a_faire": "à faire", "option": "opt
 
 
 def texte(d: Diagnostic) -> str:
-    L = ["video-editing — diagnostic d'installation", ""]
+    L = ["montage vidéo — diagnostic d'installation", ""]
     for k in d.constats:
         L.append(f"  {LIBELLE[k.etat]:<10} {k.titre:<18} {k.detail}")
         if k.etat != "ok":
@@ -1002,7 +1003,7 @@ def installe(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
 def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> int:
     ap = argparse.ArgumentParser(
         prog="setup.py",
-        description="Installation du plugin video-editing : diagnostic (par défaut), configuration, installations.")
+        description="Installation du montage vidéo : diagnostic (par défaut), configuration, installations.")
     ap.add_argument("--diagnostic", action="store_true", help="le diagnostic (l'action par défaut)")
     ap.add_argument("--json", action="store_true", help="la sortie pour Claude")
     ap.add_argument("--ecris", action="store_true", help="écrit config.json avec les choix ci-dessous et crée le dossier de sortie")

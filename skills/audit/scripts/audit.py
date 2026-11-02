@@ -25,7 +25,7 @@ Run it again: the listing and the hooks already read are reused, nothing is
 fetched twice (--refresh reads the listing again).
 
 Python 3.10+, standard library only. yt-dlp, ffmpeg and whisper-cli (the
-same binary and model as the video-editing skill) are called as commands.
+same binary and model as the edit skill) are called as commands.
 """
 import argparse
 import csv
@@ -51,7 +51,7 @@ for _s in (sys.stdout, sys.stderr):
         _s.reconfigure(errors='replace')
 
 CONFIG = Path.home() / '.config' / 'video-editing' / 'config.json'
-MODEL_DIRS = [Path.home() / '.cache' / 'whisper-cpp',      # the same as the video-editing skill
+MODEL_DIRS = [Path.home() / '.cache' / 'whisper-cpp',      # the same as the edit skill
               Path.home() / '.local' / 'share' / 'whisper-cpp' / 'models']
 MODELS_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/'
 MAX_N = 50        # an audit reads your last videos, not your whole account
@@ -386,7 +386,7 @@ def model_path(name):
     dest = MODEL_DIRS[0] / fn
     if not dest.exists():
         MODEL_DIRS[0].mkdir(parents=True, exist_ok=True)
-        say(f'downloading the whisper model {fn} (once, shared with the video-editing skill; '
+        say(f'downloading the whisper model {fn} (once, shared with the edit skill; '
             '1.6 GB for large-v3-turbo, 0.5 GB for small)...')
         tmp = str(dest) + '.part'
         urllib.request.urlretrieve(MODELS_URL + fn, tmp, lambda n, b, tot: say(
@@ -458,10 +458,10 @@ def get_hooks(videos):
     whisper = shutil.which('whisper-cli') or shutil.which('whisper-cpp')
     if not shutil.which(FF) and not Path(FF).exists():
         say(f'ffmpeg not found ({FF}): no hooks, the captions stand in. Install it as the '
-            'video-editing skill says, then run again: only the hooks are fetched.')
+            'setup skill says, then run again: only the hooks are fetched.')
         return cache
     if not whisper:
-        say('whisper-cli not found: no hooks, the captions stand in. Install it as the video-editing '
+        say('whisper-cli not found: no hooks, the captions stand in. Install it as the setup '
             'skill says (macOS: brew install whisper-cpp), then run again: only the hooks are fetched.')
         return cache
     try:
@@ -470,7 +470,7 @@ def get_hooks(videos):
         say(f'whisper model unavailable ({e}): no hooks this time.')
         return cache
     IMG.mkdir(exist_ok=True)
-    tmp = Path(tempfile.mkdtemp(prefix='insta-audit-'))
+    tmp = Path(tempfile.mkdtemp(prefix='audit-'))
     wavs, fails, net, stopped = {}, 0, 0, False
     try:
         for i, v in enumerate(todo, 1):

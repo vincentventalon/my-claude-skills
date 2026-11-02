@@ -1,11 +1,11 @@
 ---
 name: setup
-description: Installe et configure le plugin video-editing (le montage de vidéos face caméra) - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, dossier de sortie), questionnaire (whisper ou ElevenLabs, langue, dossier de sortie, sous-titres, Remotion), installation de ce qui manque, puis ~/.config/video-editing/config.json. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "il manque ffmpeg", "les sous-titres ne s'incrustent pas", or when the video-editing skill stops on a missing tool, model, key or setting.
+description: Installe et configure le montage vidéo de la skill edit (vidéos face caméra) - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, dossier de sortie), questionnaire (whisper ou ElevenLabs, langue, dossier de sortie, sous-titres, Remotion), installation de ce qui manque, puis ~/.config/video-editing/config.json. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "il manque ffmpeg", "les sous-titres ne s'incrustent pas", or when the edit skill stops on a missing tool, model, key or setting.
 ---
 
 # Installer le montage vidéo
 
-Cette skill prépare l'ordinateur pour la skill de montage du même plugin (`video-editing`) :
+Cette skill prépare l'ordinateur pour la skill de montage, `edit`, installée à côté d'elle :
 elle regarde ce qui est installé, pose cinq questions, installe ce qui manque et écrit
 `~/.config/video-editing/config.json`. Une fois au premier usage ; ensuite, seulement quand un
 réglage change ou que le montage s'arrête sur un manque.
@@ -183,9 +183,9 @@ Sinon, ce qui bloque encore, et retour à la section 4.
 
 La skill de montage peut citer cette phrase :
 
-> Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`
-> de ce plugin (`../setup/SKILL.md`, son diagnostic : `python3 ../setup/scripts/setup.py --json`),
-> puis reprends le montage là où il s'est arrêté.
+> Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`,
+> installée à côté de celle-ci (`../setup/SKILL.md`, son diagnostic :
+> `python3 ../setup/scripts/setup.py --json`), puis reprends le montage là où il s'est arrêté.
 
 Dans ce cas, pas de questionnaire complet :
 
@@ -216,7 +216,7 @@ La clé ElevenLabs : seulement dans la variable d'environnement `ELEVENLABS_API_
 config.json. La variable d'environnement passe avant le fichier.
 
 Ce que le montage en lit vraiment, et d'où vient chaque valeur :
-`python3 <setup>/../video-editing/scripts/edit_video.py --config`.
+`python3 <setup>/../edit/scripts/edit_video.py --config`.
 
 ## Pannes fréquentes
 

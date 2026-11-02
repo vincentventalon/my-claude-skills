@@ -15,11 +15,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Each skill (front matter, name = folder)
+        run: python3 dev/check_skills.py
       - run: npm install -g @anthropic-ai/claude-code
-      - name: Marketplace manifest
+      - name: Marketplace and the plugin at the root
         run: claude plugin validate . --strict
       - name: Each plugin the marketplace lists
         run: |
           for d in $(jq -r '.plugins[].source' .claude-plugin/marketplace.json); do
             claude plugin validate "$d" --strict
+          done
+      - name: What npx skills finds
+        run: |
+          npx -y skills add . --list < /dev/null 2>&1 | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g' > skills-list.txt || true
+          cat skills-list.txt
+          for d in skills/*/; do
+            n=$(basename "$d")
+            grep -Eq "^│ +$n\$" skills-list.txt || { echo "npx skills does not see $n"; exit 1; }
           done

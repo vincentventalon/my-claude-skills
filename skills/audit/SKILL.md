@@ -1,5 +1,5 @@
 ---
-name: insta-audit
+name: audit
 description: Audits the user's OWN TikTok or Instagram account to see what already works before editing the next videos - reads the last 30 videos anonymously (yt-dlp, no login, no password, nothing to connect), transcribes locally the hook said in the first 5 seconds of each (whisper.cpp), ranks every video against the account's own median (x median), finds the outliers, the length that works, the real cadence, the hooks of the 5 best against the 5 worst, the hashtags, and writes AUDIT.md with 3 tests to run and a block for the edit. Free, all local. Use when the user says "audit my Instagram", "audite mon compte Instagram", "analyse mon TikTok", "qu'est-ce qui marche sur mon compte", "what works on my account", "mes meilleures vidéos", "my best videos", "mes outliers", "pourquoi mes vidéos ne marchent pas", or pastes a link to their own TikTok or Instagram profile.
 ---
 
@@ -50,12 +50,12 @@ spoken language of their videos usually too (`--lang fr`, `en`... or `auto`).
 |---|---|---|---|---|
 | yt-dlp | `yt-dlp --version` | `brew install yt-dlp` | `winget install yt-dlp` | `pipx install yt-dlp` |
 | ffmpeg | `ffmpeg -version` | `brew install ffmpeg` | `winget install Gyan.FFmpeg` | `sudo apt install ffmpeg` |
-| whisper-cli | `whisper-cli --help` | `brew install whisper-cpp` | see the video-editing skill | see the video-editing skill |
+| whisper-cli | `whisper-cli --help` | `brew install whisper-cpp` | see the `setup` skill | see the `setup` skill |
 
 Reopen the terminal after a Windows install. The settings are those of the
-video-editing skill, `~/.config/video-editing/config.json` when it exists:
+`edit` skill, `~/.config/video-editing/config.json` when it exists:
 `whisper_model` (else `large-v3-turbo`, found in `~/.cache/whisper-cpp/` or
-`~/.local/share/whisper-cpp/models/`, downloaded once, 1.6 GB, if the editing
+`~/.local/share/whisper-cpp/models/`, downloaded once, 1.6 GB, if the `edit`
 skill has not done it yet), `ffmpeg`, `lang`. On a modest computer pass
 `--model small` (0.49 GB). Without
 whisper or ffmpeg the audit still runs: the captions stand in for the hooks,

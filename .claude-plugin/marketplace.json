@@ -7,24 +7,14 @@
   },
   "plugins": [
     {
-      "name": "search-console",
-      "description": "Compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment, ce qui n'est que du hasard, si une baisse vient de la demande ou de ton classement, et un tableau de bord qui se rafraîchit d'une phrase.",
+      "name": "vincent-skills",
+      "description": "Une skill par tâche : video (l'entrée), setup, edit, audit, outliers, script, publish, search-console. Monter une vidéo face caméra, auditer ton compte, écrire, publier, lire ta Search Console.",
       "author": {
         "name": "Vincent Ventalon"
       },
-      "source": "./search-console",
-      "category": "seo",
-      "homepage": "https://github.com/vincentventalon/my-claude-skills/tree/main/search-console"
-    },
-    {
-      "name": "video-editing",
-      "description": "Monte tes vidéos face caméra avec Claude Code : silences, faux départs et reprises coupés (la dernière prise gardée), transcription par whisper (sur ton ordinateur, gratuit) ou ElevenLabs Scribe, sous-titres incrustés, titre et carton de fin, en 9:16 ou 16:9. Avec l'installation guidée (diagnostic et questionnaire) et l'audit de ton compte TikTok ou Instagram. macOS, Windows, Linux.",
-      "author": {
-        "name": "Vincent Ventalon"
-      },
-      "source": "./video-editing",
+      "source": "./",
       "category": "video",
-      "homepage": "https://github.com/vincentventalon/my-claude-skills/tree/main/video-editing"
+      "homepage": "https://github.com/vincentventalon/my-claude-skills"
     }
   ]
 }

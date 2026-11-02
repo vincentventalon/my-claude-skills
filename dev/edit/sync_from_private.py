@@ -9,12 +9,12 @@ never written here: pass it in the PRIVATE_SKILL environment variable (or
 
     export PRIVATE_SKILL=/path/to/private/skills/tiktok-edit
 
-    python video-editing/dev/sync_from_private.py status       # 1. what changed in the private code that travels
+    python dev/edit/sync_from_private.py status       # 1. what changed in the private code that travels
     #  -> hand the printed diff file to Claude: "port what is worth it into
-    #     video-editing/skills/video-editing/scripts/ (rules below)"
-    python video-editing/dev/sync_from_private.py test RUSH.MP4 --lang fr    # 2. real test, old vs new
-    python video-editing/dev/test_stt.py                         #    the Scribe path, no network
-    python video-editing/dev/sync_from_private.py mark          # 3. once ported: remember where we are
+    #     skills/edit/scripts/ (rules below)"
+    python dev/edit/sync_from_private.py test RUSH.MP4 --lang fr    # 2. real test, old vs new
+    python dev/edit/test_stt.py                         #    the Scribe path, no network
+    python dev/edit/sync_from_private.py mark          # 3. once ported: remember where we are
 
 Porting rules (the reason this is not a copy):
   - WHAT TRAVELS: everything that turns raw clips into a finished video —
@@ -49,8 +49,8 @@ line prints the commands to do it by hand.
 import argparse, os, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(HERE)                             # the plugin folder, video-editing/
-SKILL = os.path.join(REPO, 'skills', 'video-editing')
+REPO = os.path.dirname(os.path.dirname(HERE))           # the repo root (this file: dev/edit/)
+SKILL = os.path.join(REPO, 'skills', 'edit')
 STATE = os.path.join(HERE, 'private-sync.txt')          # last private commit carried over
 WATCHED = ['scripts/salves.py', 'scripts/jump_cuts.py', 'scripts/align.py',
            'scripts/postflight.py', 'references/coupes.md',          # the cut
@@ -80,8 +80,10 @@ def git(*a, cwd=REPO, check=True):
 
 def leak_check():
     bad = []
-    for f in git('ls-files').split() + git('ls-files', '--others', '--exclude-standard').split():
-        if f.startswith('dev/private-sync') or f == 'dev/sync_from_private.py':
+    scope = ['skills/edit', 'dev/edit']                    # what a sync touches (the other skills have their own rules)
+    for f in (git('ls-files', '--', *scope).split()
+              + git('ls-files', '--others', '--exclude-standard', '--', *scope).split()):
+        if f.startswith('dev/edit/private-sync') or f == 'dev/edit/sync_from_private.py':
             continue
         p = os.path.join(REPO, f)
         try:
@@ -127,9 +129,9 @@ if args.cmd == 'status':
         os.write(fd, diff.encode())
         os.close(fd)
         print(f'full diff: {path}')
-        print('next: ask Claude in this repo — "read that diff and port into video-editing/skills/video-editing/scripts/ '
+        print('next: ask Claude in this repo — "read that diff and port into skills/edit/scripts/ '
               'what travels (the cut, the two engines, the subtitles), following the rules at the top of '
-              'video-editing/dev/sync_from_private.py", then run `test` and dev/test_stt.py.')
+              'dev/edit/sync_from_private.py", then run `test` and dev/edit/test_stt.py.')
     leak_check()
 
 elif args.cmd == 'test':
@@ -138,10 +140,17 @@ elif args.cmd == 'test':
     out = os.path.abspath(args.out) if args.out else tempfile.mkdtemp(prefix='sync-test-')
     os.makedirs(out, exist_ok=True)
     old = os.path.join(out, 'edit_video_old.py')
-    try:
-        src = git('show', f'{args.against}:./skills/video-editing/scripts/edit_video.py')
-    except subprocess.CalledProcessError:  # a ref from before the move into video-editing/
-        src = git('show', f'{args.against}:scripts/edit_video.py')
+    # where edit_video.py lived at that ref: today, then inside the old video-editing plugin
+    # (until 2.0.0), then at the root (before the collection)
+    for where in ('skills/edit/scripts/edit_video.py', 'video-editing/skills/video-editing/scripts/edit_video.py',
+                  'scripts/edit_video.py'):
+        try:
+            src = git('show', f'{args.against}:{where}')
+            break
+        except subprocess.CalledProcessError:
+            continue
+    else:
+        sys.exit(f'test: no edit_video.py at {args.against}')
     open(old, 'w', encoding='utf-8').write(src)
     new = os.path.join(SKILL, 'scripts', 'edit_video.py')
     model = args.model if os.path.exists(args.model) else os.path.join(
@@ -168,11 +177,11 @@ elif args.cmd == 'test':
     print(f'renders in {out} — watch old.mp4 and new.mp4 before deciding.')
     leak_check()
     print('\nnothing was committed or pushed. If it is good:\n'
-          f'  git -C {REPO} add skills/video-editing dev && git -C {REPO} commit -m "..." -- skills/video-editing dev && '
+          f'  git -C {REPO} add skills/edit dev/edit && git -C {REPO} commit -m "..." -- skills/edit dev/edit && '
           f'git -C {REPO} push -u origin $(git -C {REPO} branch --show-current)')
 
 elif args.cmd == 'mark':
     priv = need_private()
     head = git('rev-parse', 'HEAD', cwd=priv).strip()
     open(STATE, 'w').write(head + '\n')
-    print(f'carried over up to private commit {head[:10]} (video-editing/dev/private-sync.txt, commit it with the port)')
+    print(f'carried over up to private commit {head[:10]} (dev/edit/private-sync.txt, commit it with the port)')
