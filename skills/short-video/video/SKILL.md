@@ -1,6 +1,6 @@
 ---
 name: video
-description: The entry point for every video job - say what you want, it picks the right skill (setup, edit, audit, outliers, script, publish) and picks up the video in progress instead of starting over, from the state the edit leaves next to the video (<name>.state.json - which clips, the last command, the steps done). Use when the user says /video, "monte ma vidéo", "reprends ma vidéo", "où j'en suis", "la suite", "audite mon compte", "écris-moi un script", "publie-la", "edit my video", "pick up my video", "what's next", "publish it", or is not sure which video skill to use.
+description: The entry point for every video job - say what you want, it picks the right skill (setup, edit, clips, audit, outliers, script, publish) and picks up the video in progress instead of starting over, from the state the edit leaves next to the video (<name>.state.json - which clips, the last command, the steps done). Use when the user says /video, "monte ma vidéo", "reprends ma vidéo", "où j'en suis", "la suite", "audite mon compte", "écris-moi un script", "publie-la", "edit my video", "pick up my video", "what's next", "publish it", or is not sure which video skill to use.
 argument-hint: "[what you want] [clip | video | path]"
 ---
 
@@ -73,6 +73,7 @@ For a video found in step 1, when the user asks for "the next step" or
 |---|---|
 | first time, "installe", tools, whisper or ElevenLabs, a missing ffmpeg or yt-dlp, "les sous-titres ne s'incrustent pas", a setting (language, output folder) | `setup` |
 | clips to edit, "monte", "coupe", subtitles, title, boards, "plein cadre", "split", a change on a video already edited ("garde la pause", "c'est cloud pas clown") | `edit` (an edit asked before any setup: `setup` first) |
+| a long video to cut into shorts, a YouTube link, a podcast, "découpe ma vidéo en shorts", "repurpose", "clips from my video" | `clips` (it edits each clip with `edit`) |
 | their own TikTok or Instagram, "what works on my account", their profile link | `audit` |
 | other accounts, "what blew up in my niche", "ideas to remake", an @account to dig | `outliers` |
 | a script, a hook, "écris-moi un script", a topic or an anecdote to turn into a video | `script` |

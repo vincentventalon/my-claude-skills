@@ -1,7 +1,7 @@
 # my-claude-skills
 
 Des skills Claude Code gratuites pour écrire, monter et publier tes vidéos face caméra (TikTok,
-Reels, Shorts), auditer ton compte, et faire le SEO de ton site (l'audit, les concurrents, les
+Reels, Shorts), découper une longue en shorts, auditer ton compte, et faire le SEO de ton site (l'audit, les concurrents, les
 mots-clés, le maillage, Search Console) : une skill par tâche.
 
 Pas d'application, pas de serveur, pas d'abonnement. Les skills disent à Claude comment
@@ -53,8 +53,8 @@ Exemples réels de ce que produit une vidéo : [skills/short-video/edit/examples
 
 ## Les skills
 
-Deux dossiers dans le dépôt, un par catégorie : [`skills/short-video/`](skills/short-video/) (les sept
-skills vidéo : `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `publish`) et
+Deux dossiers dans le dépôt, un par catégorie : [`skills/short-video/`](skills/short-video/) (les huit
+skills vidéo : `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `clips`, `publish`) et
 [`skills/seo/`](skills/seo/) (les cinq skills SEO : `seo-audit`, `competitors`, `keywords`,
 `internal-links`, `search-console`). Une skill = un dossier, avec son `SKILL.md`, ses scripts et
 ses références ; elle s'installe sous son nom, sans le dossier de catégorie.
@@ -67,6 +67,7 @@ ses références ; elle s'installe sous son nom, sans le dossier de catégorie.
 | [`/outliers`](skills/short-video/outliers/SKILL.md) | Ce qui a explosé chez les comptes TikTok que tu suis : les 30 dernières vidéos de chaque compte lues sans connexion, chacune contre la médiane de son propre compte (×3 ou plus), les vidéos trop récentes et sponsorisées à part, les succès qui se répètent, le hook des 5 premières secondes transcrit sur ton ordinateur, une liste de comptes qui grandit avec toi, et 5 idées à refaire avec ta voix dans `OUTLIERS.md`, comme des tests. Gratuit ; Instagram à la main. |
 | [`/script`](skills/short-video/script/SKILL.md) | Le script de ta prochaine vidéo courte : 3 hooks tirés de 22 formules nommées (un hook se récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script en beats « mais / donc » avec double payoff et appels à l'action aux coutures, les notes pour le montage, une passe anti-slop et le timing à ton débit, dans `script.md`. Part de ton audit et de tes outliers s'ils sont dans le dossier. |
 | [`/edit`](skills/short-video/edit/SKILL.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16 (16:9 pour YouTube), plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
+| [`/clips`](skills/short-video/clips/SKILL.md) | Une longue (un lien YouTube, un podcast, un live, un fichier) en shorts finis : le transcript lu dans les sous-titres YouTube avec yt-dlp (ou transcrit sur ton ordinateur par `edit`), les moments qui tiennent seuls (une idée, 20 à 60 s) trouvés et notés sur 10, le plan dans `clips/<source>.md`, puis chaque clip que tu choisis coupé en rush et monté par `edit` (coupes, titre, cartons, sous-titres, 9:16). Les idées trop étalées pour être coupées deviennent des scripts à tourner, écrits par `script`. |
 | [`/publish`](skills/short-video/publish/SKILL.md) | La vidéo finie en ligne : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de Nadia : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
 | [`/seo-audit`](skills/seo/seo-audit/SKILL.md) | L'audit technique de ton site : est-ce que Google arrive à lire tes pages. Le script lit robots.txt, le sitemap et chaque page (redirections, titles, descriptions, H1, canonical, noindex, images, dates), compte les liens dans le texte à part des liens de menu, demande à Google l'état de chaque adresse (inspection d'URL) et passe Lighthouse si tu as Node. Un rapport classé par priorité, avec la preuve de chaque constat. Il ne modifie rien. |
 | [`/competitors`](skills/seo/competitors/SKILL.md) | Qui tient la première page sur ta requête : Claude la cherche, le script mesure chaque page contre la tienne (mots, sections, tableaux, FAQ, dates, liens), puis lit le sitemap d'un concurrent et dit ce qu'il couvre que tu ne couvres pas. |
@@ -85,6 +86,7 @@ Tu n'es pas obligé de taper le nom d'une skill : dis à Claude ce que tu veux, 
 /script           le script de la prochaine vidéo           → script.md
                   tu tournes
 /edit             ton rush → la vidéo à publier             → ~/Videos/edited/<nom>.mp4
+/clips            une longue → des shorts finis, par edit    → clips/<source>.md, ~/Videos/edited/<slug>.mp4
 /publish          TikTok, Instagram (YouTube si tu veux)    → Nadia, ou post.md
 ```
 
@@ -119,7 +121,7 @@ sans passer par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour 
 
 ### Avec le plugin Claude Code
 
-Trois plugins dans le même dépôt : `video` (les sept skills vidéo), `seo` (les cinq skills SEO),
+Trois plugins dans le même dépôt : `video` (les huit skills vidéo), `seo` (les cinq skills SEO),
 `vincent-skills` (tout). Dans Claude Code, pour la vidéo :
 
 ```
@@ -196,7 +198,7 @@ puis relance Claude Code.
 ### Ce qu'il faut sur ta machine
 
 `/setup` vérifie tout et donne la commande de ton système. Le détail (Python, ffmpeg avec libass,
-whisper.cpp et son modèle, Node pour Remotion, yt-dlp pour `audit` et `outliers`, par système et avec leur taille), le choix entre
+whisper.cpp et son modèle, Node pour Remotion, yt-dlp pour `audit`, `outliers` et `clips`, par système et avec leur taille), le choix entre
 whisper et ElevenLabs, et les pannes courantes avec le message que tu verras :
 [le guide de `edit`](skills/short-video/edit/README.md). Pour le SEO : Python 3 et rien d'autre ; brancher
 ton accès Google une fois : [le guide de `search-console`](skills/seo/search-console/README.md)
@@ -237,10 +239,10 @@ claude plugin validate . --strict
 ## In English
 
 Free Claude Code skills to script, edit and publish talking-head videos (TikTok, Reels, Shorts),
-audit your own account and do your site's SEO (audit, competitors, keywords, internal links,
+cut a long video into shorts, audit your own account and do your site's SEO (audit, competitors, keywords, internal links,
 Search Console), one skill per job. Install with
 `npx skills add vincentventalon/my-claude-skills -a claude-code`, run `/setup`, then `/edit`.
-`video`, `edit`, `audit`, `outliers` and `publish` work in English as well as in French (their
+`video`, `edit`, `clips`, `audit`, `outliers` and `publish` work in English as well as in French (their
 guides are in French); `setup`, `script` and the five SEO skills are written in French.
 
 ## Licence
