@@ -43,7 +43,7 @@ npx skills add vincentventalon/my-claude-skills -a claude-code
 
 (`--skill search-console` pour ne prendre qu'elle, `-g` pour tous tes projets), ou le plugin Claude
 Code : [le README du dépôt](../../README.md#installer). Ou à la main : copie le dossier
-`skills/search-console` de ce dépôt dans `~/.claude/skills/` (pour tous tes projets) ou dans
+`skills/seo/search-console` de ce dépôt dans `~/.claude/skills/` (pour tous tes projets) ou dans
 `.claude/skills/` d'un projet.
 
 Il faut Python 3 (rien d'autre à installer côté Python).

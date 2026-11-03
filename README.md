@@ -49,24 +49,30 @@ hook, un carton chiffré, une liste.*
 
 Le style (police, couleurs, taille des sous-titres, couleur du haut) se change dans
 `~/.config/video-editing/style.json` : « mets mes sous-titres en jaune », « un haut gris clair ».
-Exemples réels de ce que produit une vidéo : [skills/edit/examples/](skills/edit/examples/).
+Exemples réels de ce que produit une vidéo : [skills/short-video/edit/examples/](skills/short-video/edit/examples/).
 
 ## Les skills
 
+Deux dossiers dans le dépôt, un par catégorie : [`skills/short-video/`](skills/short-video/) (les sept
+skills vidéo : `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `publish`) et
+[`skills/seo/`](skills/seo/) (les cinq skills SEO : `seo-audit`, `competitors`, `keywords`,
+`internal-links`, `search-console`). Une skill = un dossier, avec son `SKILL.md`, ses scripts et
+ses références ; elle s'installe sous son nom, sans le dossier de catégorie.
+
 | Skill | Ce qu'elle fait |
 |---|---|
-| [`/video`](skills/video/SKILL.md) | L'entrée. Dis ce que tu veux (« monte ma vidéo », « audite mon compte », « écris-moi un script », « publie-la ») : elle choisit la bonne skill et reprend la vidéo en cours (l'état est noté à côté de chaque vidéo : ses rushs, la dernière commande, les étapes faites) au lieu de repartir de zéro. |
-| [`/setup`](skills/setup/SKILL.md) | À lancer en premier. Regarde ce qui est installé (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, Node), te fait choisir le moteur de transcription (whisper, gratuit et sur ton ordinateur, ou ElevenLabs Scribe, payant à l'usage, la clé jamais collée dans la conversation), pose tes réglages et installe ce qui manque une fois que tu as vu les commandes. macOS, Windows, Linux. |
-| [`/audit`](skills/audit/SKILL.md) | Ton propre compte TikTok ou Instagram : tes 30 dernières vidéos lues sans connexion, chacune comparée à la médiane de ton compte, ce que tu dis dans les 5 premières secondes transcrit sur ton ordinateur, et `AUDIT.md` : ce qui marche déjà chez toi, chiffres à l'appui, 3 tests à faire et un bloc que `edit` relit pour ton titre et ta durée. Gratuit. Instagram refuse presque toujours la lecture sans connexion : tu donnes alors tes chiffres. |
-| [`/outliers`](skills/outliers/SKILL.md) | Ce qui a explosé chez les comptes TikTok que tu suis : les 30 dernières vidéos de chaque compte lues sans connexion, chacune contre la médiane de son propre compte (×3 ou plus), les vidéos trop récentes et sponsorisées à part, les succès qui se répètent, le hook des 5 premières secondes transcrit sur ton ordinateur, une liste de comptes qui grandit avec toi, et 5 idées à refaire avec ta voix dans `OUTLIERS.md`, comme des tests. Gratuit ; Instagram à la main. |
-| [`/script`](skills/script/SKILL.md) | Le script de ta prochaine vidéo courte : 3 hooks tirés de 22 formules nommées (un hook se récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script en beats « mais / donc » avec double payoff et appels à l'action aux coutures, les notes pour le montage, une passe anti-slop et le timing à ton débit, dans `script.md`. Part de ton audit et de tes outliers s'ils sont dans le dossier. |
-| [`/edit`](skills/edit/SKILL.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16 (16:9 pour YouTube), plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
-| [`/publish`](skills/publish/SKILL.md) | La vidéo finie en ligne : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de Nadia : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
-| [`/seo-audit`](skills/seo-audit/SKILL.md) | L'audit technique de ton site : est-ce que Google arrive à lire tes pages. Le script lit robots.txt, le sitemap et chaque page (redirections, titles, descriptions, H1, canonical, noindex, images, dates), compte les liens dans le texte à part des liens de menu, demande à Google l'état de chaque adresse (inspection d'URL) et passe Lighthouse si tu as Node. Un rapport classé par priorité, avec la preuve de chaque constat. Il ne modifie rien. |
-| [`/competitors`](skills/competitors/SKILL.md) | Qui tient la première page sur ta requête : Claude la cherche, le script mesure chaque page contre la tienne (mots, sections, tableaux, FAQ, dates, liens), puis lit le sitemap d'un concurrent et dit ce qu'il couvre que tu ne couvres pas. |
-| [`/keywords`](skills/keywords/SKILL.md) | Quoi écrire ensuite, d'après ta propre Search Console : les requêtes où tu sors déjà sans page dédiée, celles en page 2 à renforcer, les gros gisements lointains, deux pages qui se battent sur la même requête, les requêtes neuves, les questions, et les suggestions Google. Un verdict par candidat ; sous 10 impressions, pas de page. |
-| [`/internal-links`](skills/internal-links/SKILL.md) | Le maillage dans le texte : les liens entre tes pages que le menu et le footer ne font pas, les pages orphelines, les ancres vides, et des propositions phrase par phrase (quelle page, quelle phrase, quelle ancre, vers quelle page) que Claude pose dans ton code quand tu dis oui. |
-| [`/search-console`](skills/search-console/README.md) | Un compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment et ce qui n'est que du hasard (les seuils calculés par script, jamais à l'œil), si une baisse vient de la demande ou de ton classement, l'effet de chaque changement mis en ligne (les autres skills SEO les notent dans le même journal), et un tableau de bord qui se rafraîchit d'une phrase. |
+| [`/video`](skills/short-video/video/SKILL.md) | L'entrée. Dis ce que tu veux (« monte ma vidéo », « audite mon compte », « écris-moi un script », « publie-la ») : elle choisit la bonne skill et reprend la vidéo en cours (l'état est noté à côté de chaque vidéo : ses rushs, la dernière commande, les étapes faites) au lieu de repartir de zéro. |
+| [`/setup`](skills/short-video/setup/SKILL.md) | À lancer en premier. Regarde ce qui est installé (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, Node), te fait choisir le moteur de transcription (whisper, gratuit et sur ton ordinateur, ou ElevenLabs Scribe, payant à l'usage, la clé jamais collée dans la conversation), pose tes réglages et installe ce qui manque une fois que tu as vu les commandes. macOS, Windows, Linux. |
+| [`/audit`](skills/short-video/audit/SKILL.md) | Ton propre compte TikTok ou Instagram : tes 30 dernières vidéos lues sans connexion, chacune comparée à la médiane de ton compte, ce que tu dis dans les 5 premières secondes transcrit sur ton ordinateur, et `AUDIT.md` : ce qui marche déjà chez toi, chiffres à l'appui, 3 tests à faire et un bloc que `edit` relit pour ton titre et ta durée. Gratuit. Instagram refuse presque toujours la lecture sans connexion : tu donnes alors tes chiffres. |
+| [`/outliers`](skills/short-video/outliers/SKILL.md) | Ce qui a explosé chez les comptes TikTok que tu suis : les 30 dernières vidéos de chaque compte lues sans connexion, chacune contre la médiane de son propre compte (×3 ou plus), les vidéos trop récentes et sponsorisées à part, les succès qui se répètent, le hook des 5 premières secondes transcrit sur ton ordinateur, une liste de comptes qui grandit avec toi, et 5 idées à refaire avec ta voix dans `OUTLIERS.md`, comme des tests. Gratuit ; Instagram à la main. |
+| [`/script`](skills/short-video/script/SKILL.md) | Le script de ta prochaine vidéo courte : 3 hooks tirés de 22 formules nommées (un hook se récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script en beats « mais / donc » avec double payoff et appels à l'action aux coutures, les notes pour le montage, une passe anti-slop et le timing à ton débit, dans `script.md`. Part de ton audit et de tes outliers s'ils sont dans le dossier. |
+| [`/edit`](skills/short-video/edit/SKILL.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16 (16:9 pour YouTube), plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
+| [`/publish`](skills/short-video/publish/SKILL.md) | La vidéo finie en ligne : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de Nadia : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
+| [`/seo-audit`](skills/seo/seo-audit/SKILL.md) | L'audit technique de ton site : est-ce que Google arrive à lire tes pages. Le script lit robots.txt, le sitemap et chaque page (redirections, titles, descriptions, H1, canonical, noindex, images, dates), compte les liens dans le texte à part des liens de menu, demande à Google l'état de chaque adresse (inspection d'URL) et passe Lighthouse si tu as Node. Un rapport classé par priorité, avec la preuve de chaque constat. Il ne modifie rien. |
+| [`/competitors`](skills/seo/competitors/SKILL.md) | Qui tient la première page sur ta requête : Claude la cherche, le script mesure chaque page contre la tienne (mots, sections, tableaux, FAQ, dates, liens), puis lit le sitemap d'un concurrent et dit ce qu'il couvre que tu ne couvres pas. |
+| [`/keywords`](skills/seo/keywords/SKILL.md) | Quoi écrire ensuite, d'après ta propre Search Console : les requêtes où tu sors déjà sans page dédiée, celles en page 2 à renforcer, les gros gisements lointains, deux pages qui se battent sur la même requête, les requêtes neuves, les questions, et les suggestions Google. Un verdict par candidat ; sous 10 impressions, pas de page. |
+| [`/internal-links`](skills/seo/internal-links/SKILL.md) | Le maillage dans le texte : les liens entre tes pages que le menu et le footer ne font pas, les pages orphelines, les ancres vides, et des propositions phrase par phrase (quelle page, quelle phrase, quelle ancre, vers quelle page) que Claude pose dans ton code quand tu dis oui. |
+| [`/search-console`](skills/seo/search-console/README.md) | Un compte rendu SEO de ton site depuis Google Search Console : ce qui bouge vraiment et ce qui n'est que du hasard (les seuils calculés par script, jamais à l'œil), si une baisse vient de la demande ou de ton classement, l'effet de chaque changement mis en ligne (les autres skills SEO les notent dans le même journal), et un tableau de bord qui se rafraîchit d'une phrase. |
 
 Tu n'es pas obligé de taper le nom d'une skill : dis à Claude ce que tu veux, il reconnaît la tâche.
 
@@ -145,7 +151,8 @@ claude plugin install video@my-claude-skills
 (ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). Installé le plugin
 `search-console` ? Il reste installable, mais `seo` le contient avec quatre skills de plus :
 `claude plugin uninstall search-console@my-claude-skills` puis
-`claude plugin install seo@my-claude-skills` (les deux à la fois donneraient la skill en double).
+`claude plugin install seo@my-claude-skills` (les deux à la fois donneraient la skill en double ;
+pour la garder seule quand même : `/plugin install search-console --marketplace vincentventalon/my-claude-skills`).
 Tes données dans `./seo/` ne bougent pas. Installé `vincent-skills` début novembre ?
 `claude plugin update vincent-skills@my-claude-skills` ajoute les skills SEO. Copiées à la main ?
 Supprime `~/.claude/skills/video-editing` et `~/.claude/skills/insta-audit`, puis installe avec
@@ -158,7 +165,7 @@ macOS et Linux :
 ```sh
 git clone https://github.com/vincentventalon/my-claude-skills.git
 mkdir -p .claude/skills
-cp -R my-claude-skills/skills/* .claude/skills/
+cp -R my-claude-skills/skills/*/* .claude/skills/
 ```
 
 Windows (PowerShell) :
@@ -166,7 +173,7 @@ Windows (PowerShell) :
 ```powershell
 git clone https://github.com/vincentventalon/my-claude-skills.git
 New-Item -ItemType Directory -Force .claude\skills | Out-Null
-Copy-Item -Recurse -Force my-claude-skills\skills\* .claude\skills\
+Copy-Item -Recurse -Force my-claude-skills\skills\*\* .claude\skills\
 ```
 
 `~/.claude/skills/` au lieu de `.claude/skills/` pour tous tes projets. Garde les skills côte à côte :
@@ -191,8 +198,8 @@ puis relance Claude Code.
 `/setup` vérifie tout et donne la commande de ton système. Le détail (Python, ffmpeg avec libass,
 whisper.cpp et son modèle, Node pour Remotion, par système et avec leur taille), le choix entre
 whisper et ElevenLabs, et les pannes courantes avec le message que tu verras :
-[le guide de `edit`](skills/edit/README.md). Pour le SEO : Python 3 et rien d'autre ; brancher
-ton accès Google une fois : [le guide de `search-console`](skills/search-console/README.md)
+[le guide de `edit`](skills/short-video/edit/README.md). Pour le SEO : Python 3 et rien d'autre ; brancher
+ton accès Google une fois : [le guide de `search-console`](skills/seo/search-console/README.md)
 (les quatre autres skills SEO l'utilisent, et marchent sans en disant ce qu'elles n'ont pas pu
 lire).
 

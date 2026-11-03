@@ -29,7 +29,7 @@ and OUTLIERS.md, every number filled in, the reading left to Claude at each
 refusal is not retried.
 
 The reading, hook and number helpers are copied from the audit skill of the
-same repository (skills/audit/scripts/audit.py): that script parses its
+same repository (skills/short-video/audit/scripts/audit.py): that script parses its
 arguments as soon as it is imported, and a skill can be installed alone, so
 an import between the two would break. A fix in one belongs in the other.
 

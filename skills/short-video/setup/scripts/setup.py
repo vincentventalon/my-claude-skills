@@ -59,7 +59,7 @@ for _s in (sys.stdout, sys.stderr):          # Windows écrit en cp1252 dans un 
         _s.reconfigure(encoding="utf-8", errors="replace")
 
 ICI = Path(__file__).resolve().parent
-MONTAGE = ICI.parent.parent / "edit"                   # skills/edit, à côté de skills/setup
+MONTAGE = ICI.parent.parent / "edit"                   # short-video/edit, à côté de short-video/setup
 
 CONFIG_DIR = "~/.config/video-editing"
 CONFIG = CONFIG_DIR + "/config.json"

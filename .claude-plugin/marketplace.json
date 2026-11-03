@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "my-claude-skills",
-  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment sur ses vidéos et ses sites. Trois plugins : video (la vidéo seule), seo (le SEO seul, cinq skills), vincent-skills (tout).",
+  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment sur ses vidéos et ses sites, rangées par catégorie : skills/short-video/ (sept skills) et skills/seo/ (cinq skills). Trois plugins : video (la vidéo seule), seo (le SEO seul), vincent-skills (tout).",
   "owner": {
     "name": "Vincent Ventalon"
   },
@@ -9,7 +9,7 @@
     {
       "name": "video",
       "description": "La vidéo seule, une skill par tâche : video (l'entrée), setup, edit, audit, outliers, script, publish. Monter une vidéo face caméra, auditer ton compte, écrire, publier.",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -28,19 +28,13 @@
         "whisper"
       ],
       "skills": [
-        "./skills/video",
-        "./skills/setup",
-        "./skills/edit",
-        "./skills/audit",
-        "./skills/outliers",
-        "./skills/script",
-        "./skills/publish"
+        "./skills/short-video/"
       ]
     },
     {
       "name": "search-console",
       "description": "La lecture seule de Search Console. Contenue dans le plugin seo (cinq skills SEO) : installe seo plutôt que celui-ci.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -53,13 +47,13 @@
         "search-console"
       ],
       "skills": [
-        "./skills/search-console"
+        "./skills/seo/search-console"
       ]
     },
     {
       "name": "seo",
       "description": "Le SEO seul, une skill par tâche : seo-audit (Google lit-il tes pages), competitors (qui tient la page 1), keywords (quoi écrire ensuite, d'après ta Search Console), internal-links (le maillage dans le texte), search-console (ce qui a vraiment bougé).",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -76,17 +70,13 @@
         "competitors"
       ],
       "skills": [
-        "./skills/seo-audit",
-        "./skills/competitors",
-        "./skills/keywords",
-        "./skills/internal-links",
-        "./skills/search-console"
+        "./skills/seo/"
       ]
     },
     {
       "name": "vincent-skills",
       "description": "Tout : les sept skills vidéo (video, setup, edit, audit, outliers, script, publish) et les cinq skills SEO (seo-audit, competitors, keywords, internal-links, search-console).",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -111,7 +101,8 @@
         "competitors"
       ],
       "skills": [
-        "./skills/"
+        "./skills/short-video/",
+        "./skills/seo/"
       ]
     }
   ]

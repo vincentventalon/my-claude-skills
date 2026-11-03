@@ -219,7 +219,7 @@ touche pas. Après une mise à jour, « vérifie l'installation du montage » re
 jointures, redites restées). `dev/edit/sync_from_private.py` reporte ici les améliorations de
 coupe de ma chaîne privée et les teste sur un vrai rush ; lis son en-tête, il ne commite ni ne
 pousse rien. `dev/edit/test_stt.py` teste le chemin ElevenLabs sans réseau. Le banc de
-l'installation : `python3 skills/setup/banc/test_setup.py` (des machines simulées, rien n'est
+l'installation : `python3 skills/short-video/setup/banc/test_setup.py` (des machines simulées, rien n'est
 installé).
 
 ## Licence

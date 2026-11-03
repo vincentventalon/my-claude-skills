@@ -4,7 +4,7 @@
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
-# Every skills/<name>/SKILL.md: a front matter whose name is its folder (npx skills installs it under that name).
+# Every skills/<category>/<name>/SKILL.md: a front matter whose name is its folder (npx skills installs it under that name).
 python3 dev/check_skills.py
 
 if ! command -v claude >/dev/null 2>&1; then
