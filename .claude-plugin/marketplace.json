@@ -9,7 +9,7 @@
     {
       "name": "video",
       "description": "La vidéo seule, une skill par tâche : video (l'entrée), setup, edit, audit, outliers, script, publish. Monter une vidéo face caméra, auditer ton compte, écrire, publier.",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -76,7 +76,7 @@
     {
       "name": "vincent-skills",
       "description": "Tout : les sept skills vidéo (video, setup, edit, audit, outliers, script, publish) et les cinq skills SEO (seo-audit, competitors, keywords, internal-links, search-console).",
-      "version": "2.2.1",
+      "version": "2.3.0",
       "author": {
         "name": "Vincent Ventalon"
       },

@@ -139,19 +139,26 @@ elif args.cmd == 'test':
         sys.exit('test: give the rush(es) to cut')
     out = os.path.abspath(args.out) if args.out else tempfile.mkdtemp(prefix='sync-test-')
     os.makedirs(out, exist_ok=True)
-    old = os.path.join(out, 'edit_video_old.py')
     # where edit_video.py lived at that ref: today, then inside the old video-editing plugin
     # (until 2.0.0), then at the root (before the collection)
     for where in ('skills/short-video/edit/scripts/edit_video.py', 'video-editing/skills/video-editing/scripts/edit_video.py',
                   'scripts/edit_video.py'):
-        try:
-            src = git('show', f'{args.against}:{where}')
+        if subprocess.run(['git', 'cat-file', '-e', f'{args.against}:{where}'], cwd=REPO).returncode == 0:
             break
-        except subprocess.CalledProcessError:
-            continue
     else:
         sys.exit(f'test: no edit_video.py at {args.against}')
-    open(old, 'w', encoding='utf-8').write(src)
+    # the whole skill at that ref (its modules, style.json, fonts, remotion), not the script alone
+    import io, tarfile
+    tree = os.path.join(out, 'old-tree')
+    skill_dir = os.path.dirname(os.path.dirname(where)) or '.'
+    tar = subprocess.run(['git', 'archive', args.against, skill_dir if skill_dir != '.' else 'scripts'],
+                         cwd=REPO, capture_output=True, check=True).stdout
+    with tarfile.open(fileobj=io.BytesIO(tar)) as t:
+        t.extractall(tree, **({'filter': 'data'} if hasattr(tarfile, 'data_filter') else {}))
+    nm, nm_old = os.path.join(SKILL, 'remotion', 'node_modules'), os.path.join(tree, skill_dir, 'remotion', 'node_modules')
+    if os.path.isdir(nm) and os.path.isdir(os.path.dirname(nm_old)) and not os.path.exists(nm_old):
+        os.symlink(nm, nm_old)                    # Remotion's packages are installed, never in git
+    old = os.path.join(tree, where)
     new = os.path.join(SKILL, 'scripts', 'edit_video.py')
     model = args.model if os.path.exists(args.model) else os.path.join(
         os.path.expanduser('~'), '.cache', 'whisper-cpp', f'ggml-{args.model}.bin')

@@ -4,7 +4,8 @@ description: >
   Écrit le script d'une vidéo face caméra courte (TikTok, Reels, Shorts) avec une méthode mesurée
   sur 100 vidéos publiées et 60 comptes étudiés : 3 hooks tirés de 22 formules nommées (un hook se
   récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script oral en beats « mais /
-  donc » avec lock-in, double payoff, relances et CTA aux coutures, les notes visuelles pour le
+  donc » avec lock-in, double payoff, relances, CTA aux coutures et deux fins (« commente MOT » pour
+  Instagram, un lien court dit à l'oral pour TikTok), les notes visuelles pour le
   montage, une passe anti-slop (test du comptoir) et le timing au débit, dans script.md. Part de
   l'audit du compte et des outliers de la niche s'ils sont dans le dossier. À utiliser quand on dit
   « écris-moi un script », « le script de ma prochaine vidéo », « un hook pour… », « trouve-moi un
@@ -39,8 +40,10 @@ donne, ne se redemande pas) :
    y en a.
 2. **Pour qui** : le spectateur visé, en une ligne.
 3. **La durée visée** : 60 à 75 s par défaut.
-4. **Une ressource à offrir ?** L'objet (un modèle, un script, une liste) et le mot à commenter
-   (« commente RELANCE »). Pas d'objet : pas de CTA commentaire.
+4. **Une ressource à offrir ?** L'objet (un modèle, un script, une liste), le mot (RELANCE), et
+   comment il arrive : une automation commentaire → DM sur Instagram (« commente RELANCE »), un
+   lien court à elle pour TikTok (son raccourcisseur, n'importe lequel : `<son domaine court>/relance`).
+   Pas d'objet : aucune fin à ressource.
 
 Le script s'écrit dans la langue où la personne tourne (par défaut, celle dans laquelle elle te
 parle). Son débit, si elle le connaît.
@@ -119,9 +122,24 @@ Dans l'ordre, détail dans `references/structure.md` :
 4. **PAYOFF** : le résultat vrai, gardé pour juste avant la fin, qui referme la boucle du hook avec
    ses mots (double payoff).
 5. **CTA aux coutures, jamais dans un bloc de contenu** : le save dans la lock-in zone si la vidéo
-   laisse un objet ; « commente MOT » en phrase autonome juste avant l'abonnement ; l'abonnement à
-   la fin, adouci, qui vend la suite.
-6. **FIN** : on coupe sur le dernier CTA. Pas de chute faussement profonde, pas de résumé.
+   laisse un objet ; les deux fins juste avant l'abonnement (point 6) ; l'abonnement à la fin,
+   adouci, qui vend la suite.
+6. **DEUX FINS, s'il y a un objet à envoyer** : `### FIN INSTAGRAM` puis `### FIN TIKTOK`, juste
+   avant l'abonnement. Chacune est **une phrase autonome, tournée comme une prise à part, avec un
+   silence avant et après** (une seconde : c'est là que le montage tranche) ; elle ne s'appuie pas
+   sur le payoff, et l'abonnement ne s'appuie pas sur elle. Chaque vidéo garde la sienne et perd
+   l'autre (`edit --endings`) :
+   - **Instagram** : « Commente « MOT » et je t'envoie <l'objet>. », **seulement si une automation
+     commentaire → DM répond** ; sinon pas de fin Instagram ;
+   - **TikTok** : « Va sur <son lien court>/mot pour récupérer <l'objet>. » Rien ne répond à un
+     commentaire sur TikTok : le lien se dit à l'oral, le domaine court et le mot.
+   Le **même mot** dans les deux, **sans accent, en minuscules dans le lien** (un raccourcisseur
+   ignore souvent la casse, rarement les accents), un mot qui s'écrit comme il se dit. Leurs mots
+   sont ce à quoi `edit` les reconnaît (« commente », le domaine du lien) : une retouche du
+   script ne les reformule pas. Une seule fin si l'autre n'est pas possible (pas d'automation, ou
+   pas de lien court prêt à la publication), et dis-le en tête du livrable ; aucune s'il n'y a
+   pas d'objet. Les deux blocs ont le même créneau : une seule joue par vidéo.
+7. **FIN** : on coupe sur le dernier CTA. Pas de chute faussement profonde, pas de résumé.
 
 Et partout : jamais « moi c'est… » (l'autorité se dit par un fait) ; trois à cinq mots appuyés
 (**gras**) par 30 s, pas plus ; ni leçon ni menace, le spectateur est un pair ; le concept à
@@ -132,7 +150,8 @@ l'oral, la commande à l'écran.
 Sous chaque bloc, une ligne `Écran :` : plein cadre, une slide, un chiffre seul, l'objet réel, une
 courbe, et les un à trois mots à montrer en grand (`references/structure.md` § 10). Puis le bloc
 « Pour le montage », écrit pour la skill `edit` : le titre (le hook texte retenu), le carton de
-fin, la durée visée, la phrase à couper selon la plateforme.
+fin, la durée visée, les deux fins (`--endings <lien court>/mot`, ou `--endings comment` pour la
+fin Instagram seule).
 
 ## 8. Les passes, avant de livrer
 
@@ -173,7 +192,8 @@ fichier.
 | Thèse | … |
 | Pour qui | … |
 | Durée visée | 60-75 s |
-| Ressource | commente « MOT » → <l'objet> (ou : aucune) |
+| Ressource | <l'objet> (ou : aucune) |
+| Fins | Instagram : commente « MOT » · TikTok : <lien court>/mot (ou : une seule, et pourquoi ; ou : aucune) |
 | D'où part le hook | AUDIT.md / OUTLIERS.md / formule n° … |
 
 ## Faits
@@ -208,14 +228,20 @@ fichier.
 Écran : …
 
 ### PAYOFF
-### CTA
+### FIN INSTAGRAM
+> Commente « MOT » et je t'envoie <l'objet>.
+
+### FIN TIKTOK
+> Va sur <lien court>/mot pour récupérer <l'objet>.
+
 ### FIN
+> L'abonnement.
 
 ## Pour le montage
 titre : …
 carton de fin : …
 durée visée : …
-à couper selon la plateforme : « … »
+deux fins : --endings <lien court>/mot
 
 ## Passes
 anti-slop (avant → après), coutures, promesse

@@ -12,8 +12,8 @@ sort.
 | **LOCK-IN** | jusqu'à ~15 s | au moins trois gestes : pourquoi te croire, ce qui vient, ce qu'il emporte |
 | **CORPS** | 2 à 4 beats | chaque couture porte un « mais » ou un « donc » ; le payoff 1 vers le tiers |
 | **PAYOFF** | juste avant la fin | le résultat vrai, gardé pour la fin, qui referme la boucle du hook |
-| **CTA** | aux coutures | la ressource à commenter, puis l'abonnement |
-| **FIN** | dernière phrase | on coupe sur le CTA, sans chute ni résumé |
+| **FIN INSTAGRAM** · **FIN TIKTOK** | juste avant l'abonnement, même créneau | la ressource : « commente MOT » pour Instagram, le lien court dit à l'oral pour TikTok ; une seule joue par vidéo |
+| **FIN** | dernière phrase | l'abonnement ; on coupe sur le CTA, sans chute ni résumé |
 
 Les repères de temps sont ceux de la vidéo montée. `scripts/timing.py` les estime au débit de
 parole ; les blancs coupés au montage font gagner quelques secondes.
@@ -127,7 +127,7 @@ coutures, et un seul renvoi à soi à la fois.
 | CTA | quand | comment |
 |---|---|---|
 | **save** | dans la lock-in zone, **seulement si la vidéo laisse un objet** (liste, étapes numérotées, modèle, chiffres) | formulé comme un service, l'objet nommé : « enregistre la vidéo, tu vas recopier les trois règles ». Si la phrase ne peut pas nommer ce qu'on garde, la vidéo n'a pas d'objet : pas de save. Jamais sur une vidéo d'avis. |
-| **commentaire** (ressource) | à la couture d'avant la fin, juste avant l'abonnement | « Commente RELANCE et je t'envoie le script. » Une phrase autonome, pour pouvoir la couper au montage sur une plateforme où personne n'enverra le lien. Le mot en majuscules, le même à l'oral, à l'écran et dans la description. |
+| **les deux fins** (ressource) | à la couture d'avant la fin, juste avant l'abonnement, l'une après l'autre | **Instagram** : « Commente RELANCE et je t'envoie le script. », seulement si une automation commentaire → DM répond. **TikTok** : « Va sur <ton lien court>/relance pour récupérer le script. » : rien n'y répond à un commentaire, le lien se dit. Deux phrases autonomes, chacune tournée comme une prise à part, un silence avant et après : le montage garde la sienne dans chaque vidéo et coupe l'autre (détail ci-dessous). |
 | **abonnement** | la fin, au spectateur qui est resté | adouci (« hésite pas à t'abonner »), jamais un « abonne-toi » sec ; il vend la suite (« j'en partage d'autres comme ça »), pas la vidéo finie. |
 | **like** | la fin, s'il reste une demi-seconde | coût nul, effet non prouvé : jamais au prix d'une seconde de contenu. |
 
@@ -135,9 +135,47 @@ Au-delà d'une minute trente, une autre structure se défend : l'abonnement à l
 lock-in zone (adouci, avec la raison avant la demande) et le save à la fin. Sous une minute
 quinze, garde la première : chaque seconde de la lock-in zone compte.
 
+### Les deux fins, en détail
+
+```markdown
+### PAYOFF
+> Résultat : en trois mois, j'ai pas écrit une seule relance.
+
+### FIN INSTAGRAM
+> Commente **RELANCE** et je t'envoie le script.
+
+### FIN TIKTOK
+> Va sur ex.so/relance pour récupérer le script.
+
+### FIN
+> Et hésite pas à t'abonner, j'en partage d'autres comme ça.
+```
+
+- **Deux prises à part, une couture propre entre elles.** La personne dit la fin Instagram, se
+  tait une seconde, dit la fin TikTok, se tait, puis l'abonnement. Chaque fin tient seule : pas de
+  « et » ni de « donc » qui la rattache au payoff, rien dans l'abonnement qui la reprend.
+- **Leurs mots sont un contrat avec le montage** : `edit` reconnaît la fin Instagram à
+  « commente » et la fin TikTok au domaine du lien, jamais à leur place. L'objet (« le script »,
+  « la liste ») se dit librement, le même dans les deux ; une retouche ne reformule pas ces deux
+  phrases.
+- **Le même mot dans les deux.** Le lien est `<domaine court>/<mot>`, le mot en minuscules,
+  sans accent ni espace (RELANCE → `/relance`) : un raccourcisseur ignore souvent la casse,
+  rarement les accents. Un mot qui s'écrit comme il se dit : s'il faut l'épeler, il se tapera mal.
+  Le lien existe avant le tournage (n'importe quel raccourcisseur, celui de la personne). Il peut
+  passer par une page d'opt-in avant la ressource (« tu veux mon mail de la semaine ? »), si son
+  raccourcisseur le permet.
+- **Quand on n'en écrit qu'une** : pas d'automation sur Instagram → la fin TikTok seule (un lien
+  dit marche aussi sur Instagram) ; pas de lien court prêt à la publication → la fin Instagram
+  seule, et le TikTok sort sans fin à ressource. Pas d'objet → aucune des deux, payoff puis
+  abonnement : on n'invente jamais un objet pour avoir une fin.
+- **Le timing** : les deux blocs ont le même créneau, une seule joue par vidéo ; `timing.py` ne
+  compte que la plus longue.
+- **Structure à l'abonnement dans la lock-in zone** (au-delà d'une minute trente) : les deux fins
+  viennent juste avant le dernier CTA.
+
 ## 7. La fin qui tient
 
-Le payoff 2 referme la boucle du hook, puis les CTA, puis on coupe. Pas de chute faussement
+Le payoff 2 referme la boucle du hook, puis les CTA (les deux fins, l'abonnement), puis on coupe. Pas de chute faussement
 profonde (« les outils changent, la compétence reste »), pas de résumé, pas de « voilà, c'est
 tout ». La dernière phrase est concrète.
 
@@ -192,7 +230,9 @@ Les règles :
 
 En fin de script, le bloc **« Pour le montage »** est écrit pour la skill `edit` du même dépôt :
 le titre du haut (le hook texte retenu, `*mot*` coloré, ` | ` retour à la ligne), le carton de fin,
-la durée visée, la phrase à couper selon la plateforme. Ses valeurs se passent telles quelles
-(`--title`, `--cta`) ou se disent (« monte ma vidéo, titre … »). `edit` incruste le titre, les
+la durée visée, les deux fins (`--endings <lien court>/mot` : `edit` rend la vidéo TikTok sans la
+fin Instagram et l'Instagram sans la fin TikTok ; `--endings comment` pour la fin Instagram seule).
+Ses valeurs se passent telles quelles (`--title`, `--cta`, `--endings`) ou se disent (« monte ma
+vidéo, titre …, j'ai tourné les deux fins »). `edit` incruste le titre, les
 sous-titres et le carton de fin ; les slides, chiffres et captures sont pour qui termine le
 montage.

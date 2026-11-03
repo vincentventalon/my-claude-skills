@@ -41,6 +41,15 @@ THE FINISH (finish.py).
      the boards too) and the state (<name>.state.json: the clips and the
      options of this run, the steps done, for picking the video up later).
 
+THE TWO ENDINGS (--endings LINK). Filmed one after the other just before the
+follow, each a take of its own: "comment WORD and I'll send you..." for
+Instagram (an automation answers the comment there) and "go to LINK to get..."
+for TikTok (nothing answers a comment there). Each is recognised by its words,
+never by where it falls; the last take of each is never dropped as a retake of
+the other; then two videos: <name>.tiktok.mp4 without the comment ending,
+<name>.instagram.mp4 without the link one (`--endings comment`: only the comment
+ending was filmed, the TikTok goes without it).
+
 Running again with the same -o re-transcribes nothing (<name>.stt.json; the
 ElevenLabs answer is cached too) and does not render the cut again when it
 did not change: a new title costs one render.
@@ -68,6 +77,12 @@ ap.add_argument('--lang', help='spoken language: en, fr, es, de... (config: lang
 ap.add_argument('--title', default='', help='title on top for the first seconds; *word* = highlighted, " | " = new line')
 ap.add_argument('--cta', help='end card text (default: end_card.text of the style, else "Follow for more" in the language)')
 ap.add_argument('--no-cta', action='store_true', help='no end card')
+ap.add_argument('--endings', metavar='LINK',
+                help='two alternative endings filmed one after the other just before the follow: "comment '
+                     'WORD..." for Instagram (an automation answers there) and the one that says LINK, your '
+                     'short link (ex.so/word), for TikTok (nothing answers a comment there). One video per '
+                     'platform: <name>.tiktok.mp4 without the comment ending, <name>.instagram.mp4 without the '
+                     'link one. "--endings comment": only the comment ending was filmed, the TikTok goes without it')
 ap.add_argument('--youtube', action='store_true', help='also a 16:9 version for YouTube, when the clips are horizontal')
 ap.add_argument('--scene', choices=['auto', 'split', 'full'], default='auto',
                 help='9:16 views: auto = full frame for the hook, then full frame and split take turns between '
@@ -99,7 +114,8 @@ ap.add_argument('--pad', type=float, default=0.05,
 ap.add_argument('--protect', nargs='*', default=[], metavar='A:B',
                 help='A:B windows (s, joined footage) never to cut: a deliberate pause')
 ap.add_argument('--cut', nargs='*', default=[], metavar='A:B',
-                help='A:B windows (s, joined footage) to remove on top of the automatic cuts')
+                help='A:B windows (s, joined footage) to remove on top of the automatic cuts; '
+                     'tiktok:A:B or instagram:A:B from that video only (--endings)')
 ap.add_argument('--keep-retakes', action='store_true', help='keep every take')
 ap.add_argument('--keep-fillers', action='store_true', help='keep the islands that are only "um"')
 ap.add_argument('--no-transcript', action='store_true', help='no transcription: silences only, no subtitles')
@@ -174,7 +190,6 @@ out = os.path.abspath(args.out) if args.out else os.path.join(
     cfg['output_dir'], os.path.splitext(os.path.basename(args.rushes[0]))[0] + '.mp4')
 os.makedirs(os.path.dirname(out), exist_ok=True)
 base = os.path.splitext(out)[0]
-CUT = out if args.rough else f'{base}.cut.mp4'
 
 # 1. lossless join ---------------------------------------------------------------
 clean = []
@@ -278,6 +293,40 @@ def toks(text):
 
 def key(s):
     return (round(s[0], 3), round(s[1], 3))
+
+
+def fixed(words, fixes):
+    """--fix "HEARD=MEANT": a misheard word (or words) replaced wherever it is said,
+    its time shared out between the new words."""
+    for spec in fixes:
+        if '=' not in spec:
+            sys.exit(f'--fix wants HEARD=MEANT, not "{spec}"')
+        heard, meant = spec.split('=', 1)
+        h, m = [norm(x) for x in heard.split() if norm(x)], meant.split()
+        if not h or not m:
+            continue
+        res, i = [], 0
+        while i < len(words):
+            if [norm(w[2]) for w in words[i:i + len(h)]] == h:
+                s, e = words[i][0], words[i + len(h) - 1][1]
+                end = re.search(r'[.,;:!?…]+$', words[i + len(h) - 1][2])
+                tail = end.group(0) if end and not re.search(r'[.,;:!?…]$', meant) else ''
+                total, cur = sum(len(x) for x in m), s
+                for j, x in enumerate(m):
+                    d = (e - s) * len(x) / total
+                    res.append((cur, cur + d, x + (tail if j == len(m) - 1 else '')))
+                    cur += d
+                i += len(h)
+            else:
+                res.append(words[i])
+                i += 1
+        words = res
+    return words
+
+
+def fix_text(text):
+    """--fix applied to a text (what an ending is recognised in)."""
+    return ' '.join(w for _s, _e, w in fixed([(0.0, 0.0, w) for w in text.split()], args.fix))
 
 
 STT_CACHE = f'{base}.stt.json'
@@ -415,6 +464,66 @@ def sentence_done(text):
     return text.rstrip(' "»)').endswith(('.', '!', '?', '…', ':', ','))
 
 
+def ends_sentence(text):
+    return text.rstrip(' "»”)\'’').endswith(('.', '!', '?', '…'))
+
+
+# The two endings (--endings). Each is recognised by its words, never by where it falls: the
+# Instagram one by "comment" in the language (French: commente, never "comment" alone, which is
+# "how", unless the word of the link follows it: "commente RELANCE" heard "comment te relance"),
+# the TikTok one by the domain of the link as a transcription writes it ("ex.so", "ex point so",
+# "ex dot so", "e x so", "3 0 1"), or by "slash <word>".
+COMMENT_VERB = {'fr': r'comment(?:e|es|ez)', 'en': r'comment', 'es': r'comenta(?:d|me)?',
+                'pt': r'comenta', 'it': r'commenta(?:te)?', 'de': r'kommentier(?:e|t|en)?'}
+COMMENT_STEM = {'fr': 'comment', 'en': 'comment', 'es': 'coment', 'pt': 'coment', 'it': 'comment',
+                'de': 'kommentier'}
+
+
+def flat(s):
+    """Lower case, no accents: the text an ending is looked for in."""
+    s = unicodedata.normalize('NFD', s.lower())
+    return ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+
+
+def link_pattern(host):
+    def alt(part):
+        spelled = r'[\s.-]*'.join(map(re.escape, part))           # "e x", "3 0 1", "mon site"
+        return f'(?:{re.escape(part)}|{spelled})' if len(part) > 1 else re.escape(part)
+    sep = r'\s*(?:\.|point|dot|punto|ponto|punkt)?\s*'
+    return sep.join(alt(p) for p in flat(host).split('.') if p)
+
+
+ENDINGS, ENDING_LINK = {}, None          # 'instagram' | 'tiktok' -> what recognises it
+if args.endings:
+    word = ''
+    if args.endings.strip().lower() != 'comment':
+        ENDING_LINK = re.sub(r'^[a-z]+://', '', args.endings.strip(), flags=re.I).rstrip('/')
+        host, _, word = ENDING_LINK.partition('/')
+        if '.' not in host:
+            sys.exit(f'--endings wants the short link your TikTok ending says (ex.so/word), or "comment" '
+                     f'(only the comment ending was filmed), not "{args.endings}"')
+        word = flat(word)
+        ENDINGS['tiktok'] = re.compile(r'(?<![a-z0-9])(?:' + link_pattern(host) + r')(?![a-z0-9])' + (
+            rf'|(?:/|slash|barre)\s*{re.escape(word)}(?![a-z0-9])' if word else ''))
+    if args.lang in COMMENT_VERB:
+        rx = rf'(?<![a-z]){COMMENT_VERB[args.lang]}(?![a-z])'
+        if word:
+            rx += rf"|(?<![a-z]){COMMENT_STEM[args.lang]}[a-z]*\W+(?:[a-z0-9']+\W+)?{re.escape(word)}(?![a-z0-9])"
+        ENDINGS['instagram'] = re.compile(rx)
+    elif not ENDING_LINK:
+        sys.exit(f'--endings comment: the comment ending is recognised in {", ".join(COMMENT_VERB)}, '
+                 f'not in "{args.lang}"')
+    else:
+        say(f'--endings: the comment ending is recognised in {", ".join(COMMENT_VERB)}, not in '
+            f'"{args.lang}": one video')
+
+
+def mentions(text):
+    """The endings a text says: {'instagram'}, {'tiktok'}, both or none."""
+    t = flat(fix_text(text))
+    return {p for p, rx in ENDINGS.items() if rx.search(t)}
+
+
 def false_starts(items, gap=10.0, span=6):
     """items = [(a, b, text)] in order. The indexes to drop: for each i, the
     shortest run i..j-1 whose text is the beginning of what follows. The LAST
@@ -435,6 +544,18 @@ def false_starts(items, gap=10.0, span=6):
             i += 1
             continue
         j = found
+        if len(ENDINGS) == 2:
+            # Two endings: they talk about the same thing ("If you want the prompt, comment PROMPT."
+            # then "If you want the prompt, go to ex.so/prompt."), so the first looks like a false start
+            # of the second. A run that says an ending its restart does not say is not a retake: the
+            # last take of each ending stays. A same ending said twice stays an ordinary retake.
+            said = mentions(' '.join(items[k][2] for k in range(i, j)))
+            again = mentions(' '.join(items[k][2] for k in range(j, min(len(items), 2 * j - i))))
+            if said - again:
+                warnings.append((items[i][0], f'"{items[i][2][:50]}" looked like a retake of "{items[j][2][:40]}", '
+                                 f'kept: the {" and ".join(sorted(said - again))} ending (one per platform)'))
+                i += 1
+                continue
         ab = ''.join(t for k in range(i, j) for t in T[k])
         glued = i > 0 and items[i][0] - items[i - 1][1] < 0.6 and not sentence_done(items[i - 1][2])
         if len(ab) <= 4 and glued:   # one short word after an unfinished sentence: not enough
@@ -471,7 +592,15 @@ def tail_restarted(ti, nexts):
     return False
 
 
-protect, extra_cuts = windows(args.protect), windows(args.cut)
+protect, extra_cuts, CUT_ONLY = windows(args.protect), [], {'tiktok': [], 'instagram': []}
+for spec in args.cut:                       # A:B from every video, tiktok:A:B from that one only
+    head, _, rest = spec.partition(':')
+    if head in CUT_ONLY:
+        CUT_ONLY[head] += windows([rest])
+    else:
+        extra_cuts += windows([spec])
+if any(CUT_ONLY.values()) and not args.endings:
+    sys.exit('--cut tiktok:A:B / instagram:A:B cut from one of the two videos: they come with --endings')
 
 
 def protected(a, b):
@@ -568,6 +697,124 @@ for (a, b), (st, t) in sorted(log.items()):
     if st == 'retake':
         say(f'  cut {a:7.2f} -> {b:7.2f}  {st}  "{text_of((a, b))[:70]}"')
 
+# 4b. the two endings (--endings): which words each one is, one video per platform -------------
+def keep_window(items, k):
+    """Where kept island k (items sorted) is kept, padding included: never into its neighbour."""
+    a, b = items[k][:2]
+    lo = (items[k - 1][1] + a) / 2 if k else 0.0
+    hi = (b + items[k + 1][0]) / 2 if k + 1 < len(items) else dur
+    return max(lo, a - args.pad), min(hi, b + args.pad + 0.02)
+
+
+def find_ending(items, p):
+    """The SENTENCE of the last mention of ending p in the kept islands (sorted), or None:
+    {'a', 'b'} what to carve out (joined footage), 'text', 'n0' / 'n1' the islands it starts and
+    ends in, 'whole' (it starts and ends on a silence), 'others' (where else it is said). A sentence
+    ends on . ! ? … or a pause of a second; it never runs into an island that says another ending,
+    and what lies between the other ending and this one is this one's ("If you want the prompt, |
+    go to ex.so/prompt")."""
+    rows = [(s, e, w, n) for n, (a, b, _t) in enumerate(items)
+            for s, e, w in fixed(list(WORDS.get(key((a, b)), [])), args.fix)]
+    said = [mentions(t) for _a, _b, t in items]
+    txt, pos = '', []
+    for _s, _e, w, _n in rows:
+        f = flat(w)
+        pos.append((len(txt), len(txt) + len(f)))
+        txt += f + ' '
+    occ = []
+    for m in ENDINGS[p].finditer(txt):
+        ks = [k for k, (c0, c1) in enumerate(pos) if c0 < m.end() and m.start() < c1]
+        if ks:
+            occ.append((ks[0], ks[-1]))
+    if not occ:
+        return None
+    k0, k1 = occ[-1]
+
+    def other(n):
+        return bool(said[n] - {p})
+
+    stop = [ends_sentence(w) for _s, _e, w, _n in rows]
+    for k in range(k0, k1):
+        stop[k] = False                       # "ex. so": a dot inside the link
+    first = rows[k0][3]
+    while k0 > 0:
+        prev, cur = rows[k0 - 1], rows[k0]
+        if prev[3] != cur[3]:
+            between = any(other(n) for n in range(max(0, prev[3] - 2), prev[3]))
+            if (other(prev[3]) or first - prev[3] > 2 or cur[0] - prev[1] >= 1.5
+                    or not between and (stop[k0 - 1] or cur[0] - prev[1] >= 1.0)):
+                break
+        elif stop[k0 - 1]:
+            break
+        k0 -= 1
+    last = rows[k1][3]
+    while k1 + 1 < len(rows):
+        cur, nxt = rows[k1], rows[k1 + 1]
+        if stop[k1] or nxt[3] != cur[3] and (said[nxt[3]] or nxt[3] - last > 3 or nxt[0] - cur[1] >= 1.0):
+            break
+        k1 += 1
+    n0, n1 = rows[k0][3], rows[k1][3]
+    starts = k0 == 0 or rows[k0 - 1][3] != n0
+    ends = k1 + 1 == len(rows) or rows[k1 + 1][3] != n1
+    return {'a': keep_window(items, n0)[0] if starts else (rows[k0 - 1][1] + rows[k0][0]) / 2,
+            'b': keep_window(items, n1)[1] if ends else (rows[k1][1] + rows[k1 + 1][0]) / 2,
+            'text': ' '.join(r[2] for r in rows[k0:k1 + 1]), 'n0': n0, 'n1': n1, 'whole': starts and ends,
+            'others': [rows[o[0]][0] for o in occ if o[1] < k0]}          # said before, not in this sentence
+
+
+def carve_of(items, f, p):
+    """What the video without ending p loses: the ending, and an island left just before it that is
+    the start of what comes after it ("If you want the prompt," of the Instagram ending, before "If
+    you want the prompt, go to..." in the TikTok video). [(a, b, status)]"""
+    out = [(f['a'], f['b'], 'ending')]
+    if not f['whole']:
+        warnings.append((f['a'], f'the {p} ending shares its take with other words: cut between two words '
+                         f'there (no silence), listen to it'))
+        return out
+    before = list(range(max(0, f['n0'] - 2), f['n0']))
+    after = list(range(f['n1'] + 1, min(len(items), f['n1'] + 4)))
+    drop, _why = false_starts([items[k] for k in before + after])
+    gone = []
+    for k in reversed(before):                # only what touches the ending, from its side
+        if before.index(k) not in drop:
+            break
+        gone.append(k)
+    for k in gone:
+        out.append(keep_window(items, k) + ('retake',))
+    return out
+
+
+live.sort()
+VARIANTS, ENDS = [(None, [])], {}         # (platform, what that video loses); None = one for every platform
+if args.endings and not use_stt:
+    say('--endings: the endings are found in the words, and there is no transcript: one video, as filmed')
+elif ENDINGS:
+    ENDS = {p: find_ending(live, p) for p in ENDINGS}
+    other_platform = {'instagram': 'tiktok', 'tiktok': 'instagram'}
+    for p, f in ENDS.items():
+        if f:
+            say(f'endings: {p:9s} {f["a"]:7.2f} -> {f["b"]:7.2f}  "{f["text"][:80]}"  (not in the '
+                f'{other_platform[p]} video)')
+            for t in f['others']:
+                warnings.append((t, f'the {p} ending is also said here: it stays in the {other_platform[p]} '
+                                 'video (a retake left? --cut it)'))
+    ig, tt = ENDS.get('instagram'), ENDS.get('tiktok')
+    if ig:
+        VARIANTS = [('tiktok', carve_of(live, ig, 'instagram') + [(a, b, 'cut') for a, b in CUT_ONLY['tiktok']]),
+                    ('instagram', (carve_of(live, tt, 'tiktok') if tt else [])
+                     + [(a, b, 'cut') for a, b in CUT_ONLY['instagram']])]
+    if not ig and 'instagram' in ENDINGS:
+        say('--endings: no "comment ..." ending in the words: one video, as filmed (misheard? read '
+            '<name>.takes.tsv, then --fix "heard=meant")' + (', the link ending in it (it works on both '
+                                                              'platforms)' if tt else ''))
+    if ENDING_LINK and not tt:
+        say(f'--endings: the link ending ({ENDING_LINK}) is not in the words' + (
+            f': the Instagram video may still say it. Read <name>.takes.tsv, then --fix "heard={ENDING_LINK}" '
+            f'(the subtitles get it right too) or --cut instagram:A:B' if ig else ''))
+    if any(CUT_ONLY.values()) and len(VARIANTS) == 1:
+        say('--cut tiktok:/instagram:A:B ignored: one video, not two')
+
+
 # 5. kept segments ---------------------------------------------------------------
 def snap_in(a, b):
     """Snap the bounds to the frame grid, inwards.
@@ -593,42 +840,8 @@ def merge(spans):
     return outl
 
 
-live.sort()
-keep = []
-for k, (a, b, _t) in enumerate(live):
-    lo = (live[k - 1][1] + a) / 2 if k else 0.0            # never reach into the neighbour
-    hi = (b + live[k + 1][0]) / 2 if k + 1 < len(live) else dur
-    keep.append((max(lo, a - args.pad), min(hi, b + args.pad + 0.02)))
-keep = merge(keep + [(max(0, a), min(dur, b)) for a, b in protect])
-for ca, cb in extra_cuts:                                   # --cut: carve out
-    nk = []
-    for a, b in keep:
-        if cb <= a or ca >= b:
-            nk.append((a, b))
-            continue
-        if ca > a:
-            nk.append((a, ca))
-        if cb < b:
-            nk.append((cb, b))
-    keep = nk
-segs = [snap_in(a, b) for a, b in keep if b - a >= 2 * FRAME]
-for a, b, t in live:                                        # an island cut by hand leaves the transcript
-    if any(ca <= (a + b) / 2 <= cb for ca, cb in extra_cuts):
-        log[(a, b)] = ('cut', t)
-live = [x for x in live if log.get(x[:2], ('kept',))[0] != 'cut']
-if os.environ.get('EDIT_VIDEO_SEGMENTS'):                 # for dev/check_edit.py
-    open(os.environ['EDIT_VIDEO_SEGMENTS'], 'w', encoding='utf-8').writelines(f'{a:.6f}\t{b:.6f}\n' for a, b in segs)
-if not segs:
-    sys.exit('nothing kept: is there any speech in the clips? (a quiet recording: try --noise 40)')
-kept_dur = sum(b - a for a, b in segs)
-n_ret = sum(1 for s, _t in log.values() if s == 'retake')
-n_emp = sum(1 for s, _t in log.values() if s in ('no-speech', 'filler'))
-say(f'kept {len(segs)} segments: {dur:.1f}s -> {kept_dur:.1f}s '
-    f'({n_ret} retakes and {n_emp} islands without speech dropped)')
-
-
 def to_out(t):
-    """A time on the joined footage -> the same instant in the edited video."""
+    """A time on the joined footage -> the same instant in the edited video (the one being made)."""
     cum = 0.0
     for a, b in segs:
         if t < a:
@@ -639,166 +852,6 @@ def to_out(t):
     return cum
 
 
-# 6. the cut ---------------------------------------------------------------------
-TIMELINE = f'{base}.timeline.json'
-signature = hashlib.sha1(json.dumps(
-    [[os.path.abspath(r), os.path.getsize(r), int(os.path.getmtime(r))] for r in args.rushes]
-    + [[round(a, 6), round(b, 6)] for a, b in segs] + [TONEMAP, 2]).encode()).hexdigest()
-try:
-    before = json.load(open(TIMELINE, encoding='utf-8')).get('cut_signature')
-except (OSError, ValueError, AttributeError):
-    before = None
-if before == signature and os.path.exists(CUT) and not args.rough:
-    say(f'the cut did not change: {os.path.basename(CUT)} kept as it is')
-else:
-    F = 0.01                                                # 10 ms fade: no click at the joins
-    v = ''.join(f'[0:v]trim={a:.6f}:{b:.6f},setpts=PTS-STARTPTS[v{i}];' for i, (a, b) in enumerate(segs))
-    a_ = ''.join(f'[0:a]atrim={a:.6f}:{b:.6f},asetpts=PTS-STARTPTS,afade=t=in:d={F},'
-                 f'afade=t=out:st={max(0, b - a - F):.6f}:d={F}[a{i}];' for i, (a, b) in enumerate(segs))
-    pairs = ''.join(f'[v{i}][a{i}]' for i in range(len(segs)))
-    fg = f'{work}/fg.txt'
-    open(fg, 'w', encoding='utf-8').write(
-        v + a_ + f'{pairs}concat=n={len(segs)}:v=1:a=1[vc][a];[vc]null{TONEMAP}[v]')
-    say(f'rendering the cut ({kept_dur:.0f}s)...')
-    run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map', '[a]',
-         '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
-         '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', CUT])
-say(f'-> {CUT}')
-width, height = map(int, probe(CUT, 'stream=width,height', 'v:0').split(',')[:2])
-
-
-# 7. the words of the edited video -----------------------------------------------
-def fixed(words, fixes):
-    """--fix "HEARD=MEANT": a misheard word (or words) replaced wherever it is said,
-    its time shared out between the new words."""
-    for spec in fixes:
-        if '=' not in spec:
-            sys.exit(f'--fix wants HEARD=MEANT, not "{spec}"')
-        heard, meant = spec.split('=', 1)
-        h, m = [norm(x) for x in heard.split() if norm(x)], meant.split()
-        if not h or not m:
-            continue
-        res, i = [], 0
-        while i < len(words):
-            if [norm(w[2]) for w in words[i:i + len(h)]] == h:
-                s, e = words[i][0], words[i + len(h) - 1][1]
-                end = re.search(r'[.,;:!?…]+$', words[i + len(h) - 1][2])
-                tail = end.group(0) if end and not re.search(r'[.,;:!?…]$', meant) else ''
-                total, cur = sum(len(x) for x in m), s
-                for j, x in enumerate(m):
-                    d = (e - s) * len(x) / total
-                    res.append((cur, cur + d, x + (tail if j == len(m) - 1 else '')))
-                    cur += d
-                i += len(h)
-            else:
-                res.append(words[i])
-                i += 1
-        words = res
-    return words
-
-
-if use_stt and ENGINE == 'whisper' and stt.dtw_preset(args.model):
-    kept = sorted(x[:2] for x in live)
-    todo = [k for k, s in enumerate(kept) if key(s) not in TIMED and WORDS.get(key(s))]
-    if todo:
-        say(f'word timing: the {len(todo)} kept islands heard again (DTW)...')
-        got = stt.whisper_spans(WAV, kept, todo, dur, MODEL or stt.model_path(args.model), args.lang,
-                                WHISPER, FF, dtw=True)
-        for k, ws in zip(todo, got):
-            TIMED[key(kept[k])] = stt.retime(WORDS[key(kept[k])], ws)
-
-out_words = []                       # [(start, end, word)], time of the edited video
-for a, b, _t in sorted(live):
-    for s, e, w in TIMED.get(key((a, b))) or WORDS.get(key((a, b)), []):
-        mid = (s + e) / 2
-        if any(sa <= mid <= sb for sa, sb in segs):
-            os_ = to_out(s)
-            out_words.append((round(os_, 3), round(max(os_, to_out(e)), 3), w))
-out_words = fixed(sorted(out_words), args.fix)
-
-# 8. the finish: 9:16 (and 16:9) with subtitles, title, boards, end card ----------
-finals, views_out, boards = [], [], []
-if not args.rough:
-    style = finish.load_style(settings.USER_STYLE, args.style)
-    cta = '' if args.no_cta else (args.cta if args.cta is not None else
-                                  (style['end_card'].get('text') or finish.CTA.get(args.lang, finish.CTA['en'])))
-    if args.boards:
-        try:
-            raw_boards = json.load(open(args.boards, encoding='utf-8-sig'))
-        except (OSError, ValueError) as e:
-            sys.exit(f'--boards {args.boards}: {e}')
-        boards = finish.resolve_boards(raw_boards if isinstance(raw_boards, list) else raw_boards.get('boards', []),
-                                       out_words, kept_dur)
-    burn = settings.has_filter(FF, 'ass')
-    rcli, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta or boards) else (None, None)
-    if not burn:
-        say(f'this ffmpeg ({FF}) has no libass: no subtitles burned in (the .srt is written all the same)'
-            + ('' if rcli or not (args.title or cta or boards)
-               else ', and no title, board nor end card (no Node for Remotion either)')
-            + f'. Install {settings.INSTALL_LIBASS}')
-    elif (args.title or cta or boards) and not rcli:
-        say(f'title, boards and end card drawn by ffmpeg ({why})')
-    if not cfg['subtitles']:
-        say('subtitles off (config or --no-subtitles): the .srt is written all the same')
-    formats = [(out, False)]
-    if args.youtube:
-        if width > height:
-            formats.append((f'{base}.youtube.mp4', True))
-        else:
-            say('--youtube: the clips are vertical, no 16:9 version (the 9:16 goes on YouTube as a Short)')
-    audio = finish.loudness_filter(FF, CUT, style.get('loudness'))
-    fps = round(1 / FRAME, 3)
-    title_sec = min(style['title']['duration'], kept_dur) if args.title else 0.0
-    cta_start = max(kept_dur - style['end_card']['duration'], title_sec)
-    if cta and kept_dur - cta_start < 1.0:                  # a very short video: the title says it all
-        say(f'no end card: the video ({kept_dur:.1f}s) is too short for a title and an end card')
-        cta = ''
-    if not cta:
-        cta_start = kept_dur
-    cut_dur = float(probe(CUT, 'stream=duration', 'v:0'))
-    for path, wide in formats:
-        L = finish.layout(width, height, wide, args.fit, style)
-        L['fps'] = fps
-        joins = [sum(y - x for x, y in segs[:n + 1]) for n in range(len(segs) - 1)]     # where pauses were cut
-        views = (finish.plan_views(out_words, kept_dur, args.scene, boards, bool(args.title), cta_start, joins)
-                 if not wide else [(0.0, kept_dur, 'full')])
-        if not wide:
-            views_out = views
-            if args.scene == 'auto' and len(views) == 1:
-                say('scene: full frame only (nothing for the top of a split: give a --title or --boards)')
-            elif args.scene == 'auto':
-                n_split = sum(1 for v in views if v[2] == 'split')
-                say(f'scene: {len(views)} turns, {n_split} split (' + ', '.join(
-                    f'{v[2]} {v[0]:.1f}-{v[1]:.1f}s' for v in views[:6]) + (', ...' if len(views) > 6 else '') + ')')
-        items = finish.overlay_items(L, style, views, args.title, title_sec, cta, cta_start, kept_dur,
-                                     [] if wide else boards)
-        cards, left = [], items
-        if rcli and items:
-            clip = finish.remotion_overlay(rcli, work, f'overlay{int(wide)}', items, L, style, cut_dur, fps)
-            if clip:
-                cards.append((clip, 0.0))
-                left = []
-        ass = None
-        if burn:
-            ass = f'{base}.youtube.ass' if wide else f'{base}.ass'
-            n = finish.build_ass(ass, L, out_words if cfg['subtitles'] else [], left, style, views)
-            if n:                                       # a plain name: nothing to escape in the filtergraph
-                shutil.copy(ass, os.path.join(work, f'subs{int(wide)}.ass'))
-            else:
-                ass = None
-        kinds = sorted({it['kind'] for it in items})
-        drawn = ', '.join(x for x in [
-            'subtitles' if ass and out_words and cfg['subtitles'] else '',
-            (', '.join(kinds) + (' (Remotion)' if not left else ' (ffmpeg)')) if items and (cards or ass) else ''] if x)
-        say(f'rendering {L["W"]}x{L["H"]} ({L["fit"]}{", " + drawn if drawn else ""})...')
-        finish.render(FF, CUT, path, L, work, views, style,
-                      os.path.join(work, f'subs{int(wide)}.ass') if ass else None,
-                      cards, audio, style.get('font_file'), cut_dur)
-        finals.append(path)
-        say(f'-> {path}')
-
-
-# 9. the timeline, the transcript, the list of takes ------------------------------
 def peaks(rate=50):
     """Loudness of the EDITED sound, `rate` values a second, 0-100."""
     with wave.open(WAV) as w:
@@ -816,25 +869,224 @@ def peaks(rate=50):
     return [round(100 * v / top) for v in vals]
 
 
-with open(TIMELINE, 'w', encoding='utf-8') as f:
-    json.dump({
-        'video': os.path.basename(out), 'cut': os.path.basename(CUT),
-        'finals': [os.path.basename(p) for p in finals], 'cut_signature': signature,
-        'width': width, 'height': height, 'fps': round(1 / FRAME, 3), 'lang': args.lang,
-        'stt': ENGINE if use_stt else None,
-        'source_duration': round(dur, 3), 'duration': round(kept_dur, 3),
-        'segments': [[round(a, 3), round(b, 3)] for a, b in segs],
-        'islands': [{'a': round(a, 3), 'b': round(b, 3), 'start': round(to_out(a), 3),
-                     'end': round(to_out(b), 3), 'text': t} for a, b, t in sorted(live)],
-        'words': [{'start': s, 'end': e, 'text': w} for s, e, w in out_words],
-        'removed': [{'at': round(to_out(a), 3), 'a': a, 'b': b, 'why': st, 'text': text_of((a, b)) or t}
-                    for (a, b), (st, t) in sorted(log.items()) if st != 'kept'],
-        'warnings': [{'at': round(to_out(t), 3), 'text': m} for t, m in sorted(warnings)],
-        'scene': args.scene, 'views': [[round(a, 3), round(b, 3), v] for a, b, v in views_out],
-        'boards': boards,
-        'peaks_per_second': 50, 'peaks': peaks(),
-    }, f, ensure_ascii=False)
-say(f'-> {TIMELINE}')
+def ts(t):
+    ms = int(round(t * 1000))
+    return f'{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}'
+
+
+# Each video starts from the same takes: one video for every platform, or (--endings) the TikTok
+# without the Instagram ending and the Instagram without the TikTok one. Steps 5 to 9, once per video.
+LIVE, LOG, OUT, BASE = live, log, out, base
+FINALS, YOUTUBE, GONE, FIRST_SEGS, kept_dur0 = {}, None, {}, None, None
+for vn, (platform, carve) in enumerate(VARIANTS):
+    live, log = list(LIVE), dict(LOG)
+    out, base = (OUT, BASE) if platform is None else (f'{BASE}.{platform}.mp4', f'{BASE}.{platform}')
+    CUT = out if args.rough else f'{base}.cut.mp4'
+    who = f'{platform}: ' if platform else ''
+    windows_out = [(a, b, 'cut') for a, b in extra_cuts] + carve      # --cut, the other platform's ending
+    keep = merge([keep_window(live, k) for k in range(len(live))]
+                 + [(max(0, a), min(dur, b)) for a, b in protect])
+    for ca, cb, _st in windows_out:                             # carve out
+        nk = []
+        for a, b in keep:
+            if cb <= a or ca >= b:
+                nk.append((a, b))
+                continue
+            if ca > a:
+                nk.append((a, ca))
+            if cb < b:
+                nk.append((cb, b))
+        keep = nk
+    segs = [snap_in(a, b) for a, b in keep if b - a >= 2 * FRAME]
+    for a, b, t in live:                                        # an island carved out leaves the transcript
+        for ca, cb, st in windows_out:
+            if ca <= (a + b) / 2 <= cb:
+                log[(a, b)] = (st, t)
+                GONE.setdefault((a, b), {})[platform] = st
+                break
+    live = [x for x in live if log.get(x[:2], ('kept',))[0] == 'kept']
+    if os.environ.get('EDIT_VIDEO_SEGMENTS') and vn == 0:     # for dev/check_edit.py
+        open(os.environ['EDIT_VIDEO_SEGMENTS'], 'w', encoding='utf-8').writelines(
+            f'{a:.6f}\t{b:.6f}\n' for a, b in segs)
+    if not segs:
+        sys.exit('nothing kept: is there any speech in the clips? (a quiet recording: try --noise 40)')
+    kept_dur = sum(b - a for a, b in segs)
+    if vn == 0:
+        FIRST_SEGS, kept_dur0 = segs, kept_dur
+    n_ret = sum(1 for s, _t in log.values() if s == 'retake')
+    n_emp = sum(1 for s, _t in log.values() if s in ('no-speech', 'filler'))
+    say(f'{who}kept {len(segs)} segments: {dur:.1f}s -> {kept_dur:.1f}s '
+        f'({n_ret} retakes and {n_emp} islands without speech dropped)')
+
+    # 6. the cut -----------------------------------------------------------------
+    TIMELINE = f'{base}.timeline.json'
+    signature = hashlib.sha1(json.dumps(
+        [[os.path.abspath(r), os.path.getsize(r), int(os.path.getmtime(r))] for r in args.rushes]
+        + [[round(a, 6), round(b, 6)] for a, b in segs] + [TONEMAP, 2]).encode()).hexdigest()
+    try:
+        before = json.load(open(TIMELINE, encoding='utf-8')).get('cut_signature')
+    except (OSError, ValueError, AttributeError):
+        before = None
+    if before == signature and os.path.exists(CUT) and not args.rough:
+        say(f'the cut did not change: {os.path.basename(CUT)} kept as it is')
+    else:
+        F = 0.01                                            # 10 ms fade: no click at the joins
+        v = ''.join(f'[0:v]trim={a:.6f}:{b:.6f},setpts=PTS-STARTPTS[v{i}];' for i, (a, b) in enumerate(segs))
+        a_ = ''.join(f'[0:a]atrim={a:.6f}:{b:.6f},asetpts=PTS-STARTPTS,afade=t=in:d={F},'
+                     f'afade=t=out:st={max(0, b - a - F):.6f}:d={F}[a{i}];' for i, (a, b) in enumerate(segs))
+        pairs = ''.join(f'[v{i}][a{i}]' for i in range(len(segs)))
+        fg = f'{work}/fg.txt'
+        open(fg, 'w', encoding='utf-8').write(
+            v + a_ + f'{pairs}concat=n={len(segs)}:v=1:a=1[vc][a];[vc]null{TONEMAP}[v]')
+        say(f'{who}rendering the cut ({kept_dur:.0f}s)...')
+        run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map', '[a]',
+             '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
+             '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', CUT])
+    say(f'-> {CUT}')
+    width, height = map(int, probe(CUT, 'stream=width,height', 'v:0').split(',')[:2])
+
+    # 7. the words of the edited video -------------------------------------------
+    if use_stt and ENGINE == 'whisper' and stt.dtw_preset(args.model):
+        kept = sorted(x[:2] for x in live)
+        todo = [k for k, s in enumerate(kept) if key(s) not in TIMED and WORDS.get(key(s))]
+        if todo:
+            say(f'word timing: the {len(todo)} kept islands heard again (DTW)...')
+            got = stt.whisper_spans(WAV, kept, todo, dur, MODEL or stt.model_path(args.model), args.lang,
+                                    WHISPER, FF, dtw=True)
+            for k, ws in zip(todo, got):
+                TIMED[key(kept[k])] = stt.retime(WORDS[key(kept[k])], ws)
+
+    out_words = []                   # [(start, end, word)], time of the edited video
+    for a, b, _t in sorted(live):
+        for s, e, w in TIMED.get(key((a, b))) or WORDS.get(key((a, b)), []):
+            mid = (s + e) / 2
+            if any(sa <= mid <= sb for sa, sb in segs):
+                os_ = to_out(s)
+                out_words.append((round(os_, 3), round(max(os_, to_out(e)), 3), w))
+    out_words = fixed(sorted(out_words), args.fix)
+
+    # 8. the finish: 9:16 (and 16:9) with subtitles, title, boards, end card ------
+    finals, views_out, boards = [], [], []
+    if not args.rough:
+        style = finish.load_style(settings.USER_STYLE, args.style)
+        cta = '' if args.no_cta else (args.cta if args.cta is not None else
+                                      (style['end_card'].get('text') or finish.CTA.get(args.lang, finish.CTA['en'])))
+        if args.boards:
+            try:
+                raw_boards = json.load(open(args.boards, encoding='utf-8-sig'))
+            except (OSError, ValueError) as e:
+                sys.exit(f'--boards {args.boards}: {e}')
+            boards = finish.resolve_boards(raw_boards if isinstance(raw_boards, list) else raw_boards.get('boards', []),
+                                           out_words, kept_dur)
+        burn = settings.has_filter(FF, 'ass')
+        rcli, why = finish.remotion_cli(cfg['remotion']) if (args.title or cta or boards) else (None, None)
+        if vn == 0 and not burn:
+            say(f'this ffmpeg ({FF}) has no libass: no subtitles burned in (the .srt is written all the same)'
+                + ('' if rcli or not (args.title or cta or boards)
+                   else ', and no title, board nor end card (no Node for Remotion either)')
+                + f'. Install {settings.INSTALL_LIBASS}')
+        elif vn == 0 and (args.title or cta or boards) and not rcli:
+            say(f'title, boards and end card drawn by ffmpeg ({why})')
+        if vn == 0 and not cfg['subtitles']:
+            say('subtitles off (config or --no-subtitles): the .srt is written all the same')
+        formats = [(out, False)]
+        if args.youtube and vn == 0:          # a link said aloud works on YouTube: the TikTok take of the endings
+            if width > height:
+                formats.append((f'{BASE}.youtube.mp4', True))
+            else:
+                say('--youtube: the clips are vertical, no 16:9 version (the 9:16 goes on YouTube as a Short)')
+        audio = finish.loudness_filter(FF, CUT, style.get('loudness'))
+        fps = round(1 / FRAME, 3)
+        title_sec = min(style['title']['duration'], kept_dur) if args.title else 0.0
+        cta_start = max(kept_dur - style['end_card']['duration'], title_sec)
+        if cta and kept_dur - cta_start < 1.0:              # a very short video: the title says it all
+            say(f'no end card: the video ({kept_dur:.1f}s) is too short for a title and an end card')
+            cta = ''
+        if not cta:
+            cta_start = kept_dur
+        cut_dur = float(probe(CUT, 'stream=duration', 'v:0'))
+        for path, wide in formats:
+            L = finish.layout(width, height, wide, args.fit, style)
+            L['fps'] = fps
+            joins = [sum(y - x for x, y in segs[:n + 1]) for n in range(len(segs) - 1)]     # where pauses were cut
+            views = (finish.plan_views(out_words, kept_dur, args.scene, boards, bool(args.title), cta_start, joins)
+                     if not wide else [(0.0, kept_dur, 'full')])
+            if not wide:
+                views_out = views
+                if args.scene == 'auto' and len(views) == 1:
+                    say('scene: full frame only (nothing for the top of a split: give a --title or --boards)')
+                elif args.scene == 'auto':
+                    n_split = sum(1 for v in views if v[2] == 'split')
+                    say(f'scene: {len(views)} turns, {n_split} split (' + ', '.join(
+                        f'{v[2]} {v[0]:.1f}-{v[1]:.1f}s' for v in views[:6]) + (', ...' if len(views) > 6 else '') + ')')
+            items = finish.overlay_items(L, style, views, args.title, title_sec, cta, cta_start, kept_dur,
+                                         [] if wide else boards)
+            cards, left = [], items
+            if rcli and items:
+                clip = finish.remotion_overlay(rcli, work, f'overlay{int(wide)}', items, L, style, cut_dur, fps)
+                if clip:
+                    cards.append((clip, 0.0))
+                    left = []
+            ass = None
+            if burn:
+                ass = f'{base}.youtube.ass' if wide else f'{base}.ass'
+                n = finish.build_ass(ass, L, out_words if cfg['subtitles'] else [], left, style, views)
+                if n:                                   # a plain name: nothing to escape in the filtergraph
+                    shutil.copy(ass, os.path.join(work, f'subs{int(wide)}.ass'))
+                else:
+                    ass = None
+            kinds = sorted({it['kind'] for it in items})
+            drawn = ', '.join(x for x in [
+                'subtitles' if ass and out_words and cfg['subtitles'] else '',
+                (', '.join(kinds) + (' (Remotion)' if not left else ' (ffmpeg)')) if items and (cards or ass) else ''] if x)
+            say(f'{who}rendering {L["W"]}x{L["H"]} ({L["fit"]}{", " + drawn if drawn else ""})...')
+            finish.render(FF, CUT, path, L, work, views, style,
+                          os.path.join(work, f'subs{int(wide)}.ass') if ass else None,
+                          cards, audio, style.get('font_file'), cut_dur)
+            finals.append(path)
+            if wide:
+                YOUTUBE = os.path.basename(path)
+            say(f'-> {path}')
+    FINALS[platform] = os.path.basename(out)
+
+    # 9. the timeline and the transcript of this video -------------------------------
+    with open(TIMELINE, 'w', encoding='utf-8') as f:
+        json.dump({
+            'video': os.path.basename(out), 'cut': os.path.basename(CUT), 'platform': platform,
+            'finals': [os.path.basename(p) for p in finals], 'cut_signature': signature,
+            'width': width, 'height': height, 'fps': round(1 / FRAME, 3), 'lang': args.lang,
+            'stt': ENGINE if use_stt else None,
+            'source_duration': round(dur, 3), 'duration': round(kept_dur, 3),
+            'segments': [[round(a, 3), round(b, 3)] for a, b in segs],
+            'islands': [{'a': round(a, 3), 'b': round(b, 3), 'start': round(to_out(a), 3),
+                         'end': round(to_out(b), 3), 'text': t} for a, b, t in sorted(live)],
+            'words': [{'start': s, 'end': e, 'text': w} for s, e, w in out_words],
+            'removed': [{'at': round(to_out(a), 3), 'a': a, 'b': b, 'why': st, 'text': text_of((a, b)) or t}
+                        for (a, b), (st, t) in sorted(log.items()) if st != 'kept'],
+            'warnings': [{'at': round(to_out(t), 3), 'text': m} for t, m in sorted(set(warnings))],
+            'scene': args.scene, 'views': [[round(a, 3), round(b, 3), v] for a, b, v in views_out],
+            'boards': boards,
+            'peaks_per_second': 50, 'peaks': peaks(),
+        }, f, ensure_ascii=False)
+    say(f'-> {TIMELINE}')
+
+    if use_stt:
+        cues, cur = [], []                                  # <= 7 words, a new cue after each sentence
+        for n, w in enumerate(out_words):
+            cur.append(w)
+            nxt = out_words[n + 1] if n + 1 < len(out_words) else None
+            if (len(cur) >= 7 or not nxt or nxt[0] - w[1] > 0.6
+                    or w[2].rstrip('"»”)').endswith(('.', '!', '?', '…'))):
+                end = w[1] + 0.2 if not nxt else min(w[1] + 0.2, nxt[0])
+                cues.append((cur[0][0], max(end, cur[0][0] + 0.3), ' '.join(x[2] for x in cur)))
+                cur = []
+        with open(f'{base}.srt', 'w', encoding='utf-8') as f:
+            for n, (a, b, t) in enumerate(cues, 1):
+                f.write(f'{n}\n{ts(a)} --> {ts(b)}\n{t}\n\n')
+        with open(f'{base}.txt', 'w', encoding='utf-8') as f:
+            f.write(' '.join(w for _s, _e, w in out_words).strip() + '\n')
+        say(f'-> {base}.txt + {base}.srt')
+out, base, segs = OUT, BASE, FIRST_SEGS
 
 # the state of this video, for picking it up later (the `video` skill reads it): which clips, the
 # options of this run (run again = the same ones plus the new), what is done. Other skills add
@@ -856,12 +1108,17 @@ for a in sys.argv[1:]:
         options.append(a.split('=', 1)[0] + '=' + os.path.abspath(a.split('=', 1)[1]))
     elif os.path.abspath(a) not in {os.path.abspath(r) for r in args.rushes}:
         options.append(a)
+two = VARIANTS[0][0] is not None
 state.update({
     'video': os.path.basename(base), 'clips': [os.path.abspath(r) for r in args.rushes],
     'command': [os.path.abspath(__file__), *[os.path.abspath(r) for r in args.rushes], *options],
-    'final': os.path.basename(out) if not args.rough else None,
-    'youtube': os.path.basename(f'{base}.youtube.mp4') if len(finals) > 1 else None,
-    'duration': round(kept_dur, 3), 'lang': args.lang, 'title': args.title,
+    'final': None if args.rough or two else os.path.basename(out),
+    # --endings: one video per platform, each with its own ending (`final` is then null)
+    'finals': {p: f for p, f in FINALS.items()} if two and not args.rough else None,
+    'endings': ({'link': ENDING_LINK, **{p: (f or {}).get('text') for p, f in ENDS.items()}}
+                if args.endings else None),
+    'youtube': YOUTUBE,
+    'duration': round(kept_dur0, 3), 'lang': args.lang, 'title': args.title,
     'boards': os.path.abspath(args.boards) if args.boards else None,
 })
 steps = state.setdefault('steps', {})
@@ -871,35 +1128,24 @@ with open(STATE, 'w', encoding='utf-8') as f:
     json.dump(state, f, ensure_ascii=False, indent=1)
 
 if use_stt:
-    def ts(t):
-        ms = int(round(t * 1000))
-        return f'{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}'
-
-    cues, cur = [], []                                      # <= 7 words, a new cue after each sentence
-    for n, w in enumerate(out_words):
-        cur.append(w)
-        nxt = out_words[n + 1] if n + 1 < len(out_words) else None
-        if (len(cur) >= 7 or not nxt or nxt[0] - w[1] > 0.6
-                or w[2].rstrip('"»”)').endswith(('.', '!', '?', '…'))):
-            end = w[1] + 0.2 if not nxt else min(w[1] + 0.2, nxt[0])
-            cues.append((cur[0][0], max(end, cur[0][0] + 0.3), ' '.join(x[2] for x in cur)))
-            cur = []
-    with open(f'{base}.srt', 'w', encoding='utf-8') as f:
-        for n, (a, b, t) in enumerate(cues, 1):
-            f.write(f'{n}\n{ts(a)} --> {ts(b)}\n{t}\n\n')
-    with open(f'{base}.txt', 'w', encoding='utf-8') as f:
-        f.write(' '.join(w for _s, _e, w in out_words).strip() + '\n')
+    TAKES = dict(LOG)                     # what each island became: cut from every video, or kept in one only
+    for sp, where in GONE.items():
+        if len(where) == len(VARIANTS):
+            TAKES[sp] = (next(iter(where.values())), LOG[sp][1])
+        else:
+            kept_in = [p for p, _v in VARIANTS if p not in where]
+            TAKES[sp] = (f'{kept_in[0]}-only' if kept_in else 'cut', LOG[sp][1])
     with open(f'{base}.takes.tsv', 'w', encoding='utf-8') as f:
         f.write(f'# stt={ENGINE} lang={args.lang}\n'
                 '# start\tend\tstatus\ttext   (times on the joined footage, before cuts)\n')
-        for (a, b), (st, t) in sorted(log.items()):
+        for (a, b), (st, t) in sorted(TAKES.items()):
             f.write(f'{a:.3f}\t{b:.3f}\t{st}\t{text_of((a, b)) or t}\n')
     if ENGINE == 'whisper':
         with open(STT_CACHE, 'w', encoding='utf-8') as f:
             json.dump({'tag': TAG, 'spans': {f'{a:.3f}:{b:.3f}': ws for (a, b), ws in WORDS.items()},
                        'timed': {f'{a:.3f}:{b:.3f}': ws for (a, b), ws in TIMED.items()}}, f, ensure_ascii=False)
-    say(f'-> {base}.txt + {base}.srt + {base}.takes.tsv')
-    for t, msg in sorted(warnings):
-        say(f'  to check at {to_out(t):.1f}s in the video: {msg}')
+    say(f'-> {base}.takes.tsv')
+    for t, msg in sorted(set(warnings)):
+        say(f'  to check at {to_out(t):.1f}s in the {"TikTok video (" + format(t, ".1f") + "s of the footage)" if two else "video"}: {msg}')
 
 shutil.rmtree(work, ignore_errors=True)

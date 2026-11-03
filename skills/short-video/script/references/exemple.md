@@ -16,12 +16,13 @@ donne ce qui marche sur ton compte, `outliers` dans ta niche.) Quatre questions 
 1. Raconte-moi ce qui s'est passé, avec les vrais chiffres.
 2. Pour qui, cette vidéo ?
 3. Quelle durée ? (60 à 75 s par défaut)
-4. Tu donnes le script ? Si oui, quel mot à commenter ?
+4. Tu donnes le script ? Si oui, quel mot, et comment il arrive : une automation commentaire → DM
+   sur Instagram, un lien court à toi pour TikTok ?
 
 ## Ce que la personne répond
 
 > Pour les freelances et les indépendants qui facturent eux-mêmes. 60-75 s, oui. Je donne le
-> script, mot RELANCE. Une facture de 1 200 € m'a été payée avec deux mois de retard : le client
+> script, mot RELANCE : j'ai une automation sur Instagram, et mon lien court, c'est ex.so. Une facture de 1 200 € m'a été payée avec deux mois de retard : le client
 > avait juste oublié, et moi j'osais pas relancer. J'ai écrit un script Python d'une quarantaine
 > de lignes qui tourne chaque matin : il lit mon tableau de factures, envoie un mail sympa à J+3,
 > un plus ferme à J+10, et à J+20 il me prévient pour que j'appelle. Au début il a relancé un
@@ -38,7 +39,8 @@ donne ce qui marche sur ton compte, `outliers` dans ta niche.) Quatre questions 
 | Thèse | Une relance, c'est une règle : écrite une fois, un script la tient à ta place, sans oublier et sans gêne. |
 | Pour qui | les freelances et les indépendants qui facturent eux-mêmes |
 | Durée visée | 60-75 s |
-| Ressource | commente « RELANCE » → le script Python |
+| Ressource | le script Python |
+| Fins | Instagram : commente « RELANCE » · TikTok : ex.so/relance |
 | D'où part le hook | les formules (ni audit ni outliers dans le dossier) |
 
 ## Faits
@@ -120,10 +122,15 @@ Gestes : contraste (« lui, il oublie jamais »), preuve (la facture), plan et o
 
 Écran : le chiffre seul : **3 MOIS · 0 RELANCE ÉCRITE**. Payoff 2, gardé pour la fin.
 
-### CTA
+### FIN INSTAGRAM
 > Le script, commente **RELANCE** et je te l'envoie.
 
 Écran : le mot **RELANCE**, en grand.
+
+### FIN TIKTOK
+> Le script, va sur ex.so/relance pour le récupérer.
+
+Écran : **ex.so/relance**, en grand.
 
 ### FIN
 > Et hésite pas à t'abonner, j'en partage d'autres comme ça.
@@ -136,11 +143,11 @@ Gestes : contraste (« lui, il oublie jamais »), preuve (la facture), plan et o
 titre : TU RELANCES ENCORE | À LA *MAIN* ?
 carton de fin : Abonne-toi pour d'autres scripts
 durée visée : 60-75 s
-à couper selon la plateforme : « Le script, commente RELANCE et je te l'envoie. »
-  (là où personne n'enverra le lien en message)
+deux fins : --endings ex.so/relance
+  (la vidéo TikTok sans « commente RELANCE », l'Instagram sans « va sur ex.so/relance »)
 ```
 
-Pour `edit` : `--title "TU RELANCES ENCORE | À LA *MAIN* ?" --cta "Abonne-toi pour d'autres scripts"`
+Pour `edit` : `--title "TU RELANCES ENCORE | À LA *MAIN* ?" --cta "Abonne-toi pour d'autres scripts" --endings ex.so/relance`
 
 ## Passes
 
@@ -174,10 +181,10 @@ Promesse :
 | « arrête » (de relancer à la main) | « Donc c'est le script qui relance. » |
 | « quarante lignes… il oublie jamais » | « Chaque matin, il ouvre mon tableau de factures » ; « j'ai pas écrit une seule relance » |
 | « ses trois règles » | J+3, J+10, J+20 |
-| « le script, je te le donne à la fin » | « Le script, commente RELANCE et je te l'envoie. » |
+| « le script, je te le donne à la fin » | « Le script, commente RELANCE et je te l'envoie. » (Instagram) ; « Le script, va sur ex.so/relance pour le récupérer. » (TikTok) |
 
-CTA : pas de save dans la lock-in. Elle a déjà ses trois gestes, et l'objet part par le
-commentaire : un seul renvoi à soi à la fois. À tester sur une prochaine vidéo : « enregistre-la,
+CTA : pas de save dans la lock-in. Elle a déjà ses trois gestes, et l'objet part par les deux
+fins : un seul renvoi à soi à la fois. À tester sur une prochaine vidéo : « enregistre-la,
 les trois règles tu vas les recopier » (+7 mots).
 
 ## Timing
@@ -191,7 +198,8 @@ LOCK-IN                 41   14-16 s  0:17-0:20
 2 · Les trois règles    51   17-20 s  0:40-0:48
 3 · Le piège            28    9-11 s  0:49-0:59
 PAYOFF                  17     6-7 s  0:55-1:06
-CTA                      8       3 s  0:58-1:09
+FIN INSTAGRAM            8       3 s  0:58-1:09
+FIN TIKTOK               8       3 s  0:58-1:09  (une seule des deux fins joue)
 FIN                     10     3-4 s  1:01-1:13
 TOTAL                  183   61-73 s
 dans la cible (60-75 s)
@@ -207,7 +215,10 @@ vidéo tient sans lui mais perd sa relance. Jamais la fin.
 
 - Rien à remplir : chaque chiffre vient de ce que tu as dit.
 - À toi : le hook (1, 2 ou 3), le hook texte, le save dans la lock-in.
-- Le script envoyé à ceux qui commentent RELANCE doit exister avant le tournage.
+- Le script envoyé à ceux qui commentent RELANCE doit exister avant le tournage, et
+  ex.so/relance mener à lui : si le lien ne sera pas prêt à la publication, tourne la fin
+  Instagram seule.
+- Au tournage : la fin Instagram, une seconde de silence, la fin TikTok, une seconde, l'abonnement.
 ````
 
 ## Ce qui revient dans le chat

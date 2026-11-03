@@ -1,6 +1,6 @@
 ---
 name: edit
-description: Edits a talking-head video from the raw clips to the video you post, in one command - joins the clips, cuts the silences, the false starts and the retakes (the last take wins, never inside a word), transcribes word by word (whisper.cpp on the computer, or ElevenLabs Scribe with the user's key), burns in subtitles word by word, renders 9:16 for TikTok, Instagram Reels and Shorts in two views that take turns between sentences (full frame for the hook, then a split - a flat top zone over the camera in a rounded card - with the title and the boards on top and the subtitles on the seam), a title, boards on the words that say them (a figure, a list, a sentence), an end card, 16:9 for YouTube on request. macOS first, Windows, Linux. Use when the user says "edit my video", "cut the silences", "remove my retakes", "add subtitles", "add captions", "make it a TikTok / a Reel / a Short", "add boards", "split screen", "monte ma vidéo", "coupe les blancs", "enlève mes reprises", "ajoute des sous-titres", "mets un titre sur ma vidéo", "mets des cartons", "fais-en un TikTok / un Reel", or drops raw clips to edit.
+description: Edits a talking-head video from the raw clips to the video you post, in one command - joins the clips, cuts the silences, false starts and retakes (the last take wins, never inside a word), transcribes word by word (whisper.cpp locally, or ElevenLabs Scribe with the user's key), burns in subtitles, renders 9:16 for TikTok, Reels and Shorts in two views that take turns between sentences (full frame, and a split with the title and boards on top), a title, boards on the words that say them, an end card, 16:9 for YouTube on request; two endings filmed (comment for Instagram, a short link for TikTok) give one video per platform. macOS, Windows, Linux. Use when the user says "edit my video", "cut the silences", "remove my retakes", "add subtitles", "add captions", "make it a TikTok / a Reel / a Short", "add boards", "split screen", "monte ma vidéo", "coupe les blancs", "enlève mes reprises", "ajoute des sous-titres", "mets des cartons", "fais-en un TikTok", "j'ai tourné les deux fins", or drops raw clips to edit.
 ---
 
 # Edit a video
@@ -30,6 +30,7 @@ Windows):
 | `<name>.takes.tsv` | every island of sound, kept or cut and why, with its words |
 | `<name>.timeline.json` | the kept passages and the words, with their times in the edited video; the views (`views`) and the boards placed (`boards`) |
 | `<name>.state.json` | this video's state: the clips, the exact command of the last run (`command`), the steps done (`steps.edit`, then `steps.publish` written by the `publish` skill). The `video` skill reads it to pick the video up where it was left |
+| `<name>.tiktok.mp4`, `<name>.instagram.mp4` | with `--endings` (two endings filmed, section below), in place of `<name>.mp4`: one video per platform, each with its own ending, and its own `.cut.mp4`, `.txt`, `.srt`, `.ass`, `.timeline.json` |
 
 `*word*` in the title = highlighted, `" | "` = a new line. An iPhone clip
 comes out upright, its HDR brought back to normal colours.
@@ -115,6 +116,43 @@ the kind, the text):
 Write the file next to the video (`<name>.boards.json`), run again with
 `--boards`: it costs one render, not a new cut. The run lists the boards it
 could not place (words not found).
+
+## Two endings, one per platform
+
+When the user filmed **two alternative endings**, one after the other just before the follow,
+each a take of its own: "comment WORD and I'll send you..." for Instagram (an automation sends it
+by DM) and "go to <their short link>/word to get..." for TikTok (nothing answers a comment there).
+They say it ("j'ai tourné les deux fins, le lien c'est ex.so/relance"), or the `script.md` of the
+`script` skill does (`deux fins : --endings ...` in its "Pour le montage" block). Pass the link
+as they say it:
+
+```sh
+python scripts/edit_video.py CLIP.MOV --lang fr --title "..." --endings ex.so/relance
+```
+
+Only the comment ending was filmed (no short link): `--endings comment`, and the TikTok goes
+without it. Only the link ending: nothing to pass, a link said aloud works on both.
+
+- **Each ending is recognised by its words, never by where it falls**: "comment" in the
+  language for Instagram (French "commente"; "comment" alone only when the word of the link
+  follows it; fr, en, es, pt, it, de), the domain of the link ("ex.so", "ex point so", "ex dot so",
+  spelled) or "slash <word>" for TikTok. The sentence around it goes with it, and a lead-in said
+  just before ("If you want the script, | go to ...").
+- **The last take of each ending is never dropped as a retake of the other.** Both talk about
+  the same thing, so "If you want the script, comment SCRIPT" looks like a false start of "If you
+  want the script, go to ..."; the cut keeps both, and says so in a `to check` line. The same
+  ending said twice stays an ordinary retake: the last one stays.
+- **Two videos**: `<name>.tiktok.mp4` without the comment ending, `<name>.instagram.mp4` without
+  the link one. Never both endings in one, never none. `<name>.takes.tsv` marks them
+  `instagram-only` / `tiktok-only`; `<name>.state.json` gives `finals` (one per platform) and
+  `endings` (the link, what each ending says). With `--youtube`, the 16:9 has the link ending.
+- **Read the `endings:` lines the run prints** (each ending, its times, its words) before
+  handing back. One not found: the line says it, and what happens (no comment ending found: one
+  video, as filmed; no link ending found: the Instagram video may still say it). The link heard
+  wrong ("x.so" for "ex.so"): `--fix "x.so=ex.so"`, which fixes the subtitles too. The boundary
+  of an ending wrong: `--cut instagram:A:B` (or `tiktok:A:B`) cuts from that video only, times
+  from `<name>.takes.tsv`.
+- Without `--endings`: one video, as filmed, its ending posted everywhere.
 
 ## Ask the user — these three things, nothing else
 
@@ -236,16 +274,17 @@ subtitles do not know which one spoke.
    (`views` in `<name>.timeline.json`: the hook, a split, the last second),
    then read them: the title, a board, a subtitle on the seam, the end card,
    nothing over the face.
-6. Hand back the path of the video, what you cut and why, the `to check`
-   times if any, the views (how many turns), and the next step: boards if
-   there are none yet ("mets des cartons"), then publishing with the
-   `publish` skill (with Nadia, or a ready-to-post kit).
+6. Hand back the path of the video (with `--endings`, the two: which ending each
+   one says), what you cut and why, the `to check` times if any, the views (how
+   many turns), and the next step: boards if there are none yet ("mets des
+   cartons"), then publishing with the `publish` skill (with Nadia, or a
+   ready-to-post kit).
 
 ## What the user asks next
 
 Run `edit_video.py` again with the **same clips and the same `-o`**, and
 every option of the previous runs (`--cut`, `--protect`, `--fix`,
-`--title`, `--cta`, `--noise`, `--boards`, `--scene`...: each run starts from
+`--title`, `--cta`, `--endings`, `--noise`, `--boards`, `--scene`...: each run starts from
 the clips). The last command is in `<name>.state.json` (`command`): start
 from it, add the new option. It
 re-transcribes nothing, and the cut is not rendered again when it did not
@@ -259,6 +298,9 @@ change.
 | "in the subtitles it's cloud, not clown" | `--fix "clown=cloud"` |
 | "another title", "no title" | `--title "..."`, `--title ""` |
 | "another end card", "no end card" | `--cta "..."`, `--no-cta` |
+| "I filmed two endings", "j'ai tourné les deux fins" | `--endings <their short link>/word` (section Two endings) |
+| "only the comment ending", "pas de lien pour TikTok" | `--endings comment` |
+| "cut that from the TikTok only" | `--cut tiktok:A:B` (or `instagram:A:B`), with `--endings` |
 | "add boards", "mets des cartons", "show the figures" | `--boards <name>.boards.json` (section Boards) |
 | "full frame only", "no split", "only the split" | `--scene full`, `--scene split` |
 | "a YouTube version" | `--youtube` (horizontal clips only; a vertical video goes on YouTube as a Short) |

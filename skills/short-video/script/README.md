@@ -13,7 +13,9 @@ Tu donnes un sujet ou une anecdote, Claude te rend le script d'une vidéo face c
 - **3 hooks texte** pour l'écran, ce qu'on lit sans le son, déjà au format du titre de la skill
   `edit`.
 - **Le script**, bloc par bloc : le hook, la lock-in zone (trois gestes avant 15 s), le corps en
-  « mais / donc » (jamais « et puis »), le double payoff, les relances, les CTA aux coutures.
+  « mais / donc » (jamais « et puis »), le double payoff, les relances, les CTA aux coutures, et
+  deux fins quand tu envoies une ressource : « commente MOT » pour Instagram, ton lien court dit à
+  l'oral pour TikTok, chacune tournée à part.
 - **Les notes visuelles** de chaque bloc : plein cadre, slide, chiffre, objet réel.
 - **Une passe anti-slop** : les mots d'IA en français et en anglais, les tournures écrites qui ne
   se disent pas, et le test du comptoir (« tu le dirais à un pote au comptoir ? »).
@@ -44,7 +46,9 @@ Le script complet de cet exemple : [references/exemple.md](references/exemple.md
 - **`audit`** (ton compte) : s'il y a un `audit-*/AUDIT.md` dans le dossier, le script part de tes
   meilleurs hooks et de la durée qui marche chez toi.
 - **`outliers`** (ta niche) : s'il y a un `outliers-*/OUTLIERS.md`, il part des « 5 à refaire ».
-- **`edit`** : le bloc « Pour le montage » du script lui donne le titre du haut et le carton de fin.
+- **`edit`** : le bloc « Pour le montage » du script lui donne le titre du haut, le carton de fin
+  et les deux fins (`--endings`) : une vidéo TikTok sans la fin Instagram, une Instagram sans la
+  fin TikTok.
 
 Pour chercher parmi des milliers de vrais hooks qui ont marché, branche le connecteur Nadia
 (usenadia.com) : avec un compte, Claude cherche les hooks par sujet et par forme (outils

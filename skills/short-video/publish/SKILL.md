@@ -1,6 +1,6 @@
 ---
 name: publish
-description: Gets a finished video out on TikTok and Instagram (YouTube on request) - picks the video (the one in progress, from <name>.state.json), writes the description of each platform from what the video says (the search query as the first line, one sentence per line, the comment keyword of a lead magnet on Instagram only, the follow line, 4 to 6 hashtags last), shows the plan, then after the user's yes schedules it through Nadia (usenadia.com, its Claude connector) - never "now", one post per video and per platform, TikTok and Instagram at the same time - or, without Nadia, writes a ready-to-post kit (post.md, cover.jpg, where to tap). Nothing goes out before the user's yes. Use when the user says "publie-la", "programme-la", "poste-la", "mets-la en ligne", "publish it", "schedule it", "post it on TikTok / Instagram", "écris la description", "les hashtags de ma vidéo".
+description: Gets a finished video out on TikTok and Instagram (YouTube on request) - picks the video (the one in progress, from <name>.state.json), writes the description of each platform from what the video says (the search query as the first line, one sentence per line, the comment keyword of a lead magnet on Instagram only, the short link on TikTok when the video says it, the follow line, 4 to 6 hashtags last), shows the plan, then after the user's yes schedules it through Nadia (usenadia.com, its Claude connector) - never "now", one post per video and per platform, TikTok and Instagram at the same time - or, without Nadia, writes a ready-to-post kit (post.md, cover.jpg, where to tap). Nothing goes out before the user's yes. Use when the user says "publie-la", "programme-la", "poste-la", "mets-la en ligne", "publish it", "schedule it", "post it on TikTok / Instagram", "écris la description", "les hashtags de ma vidéo".
 argument-hint: "[video | path] [when] [tiktok instagram youtube]"
 ---
 
@@ -23,9 +23,13 @@ First match wins:
 2. The video finished in this conversation.
 3. The newest `<name>.state.json` in the output folder (`output_dir` of
    `~/.config/video-editing/config.json`, else `~/Videos/edited`), then in
-   the current folder: its `final`. Name it in the plan.
+   the current folder: its `final`, or its `finals`. Name it in the plan.
 
-`<video>` below = that file, `<base>` = its path without `.mp4`. Never the
+`<video>` below = that file, `<base>` = its path without `.mp4`. **Two
+endings** (`finals` in the state, `edit --endings`): each platform has its
+own video, `finals.tiktok` and `finals.instagram` (`<name>.tiktok.mp4`,
+`<name>.instagram.mp4`), each saying its own ending; `<video>` and `<base>`
+are then per platform, and one platform's video never goes on the other. Never the
 `.cut.mp4` (no subtitles, as filmed). Its `steps.publish` already says
 `scheduled` or `posted` for a platform: say so and stop, unless they want it
 out again.
@@ -89,12 +93,17 @@ bottom:
    the tools (a numbered list is welcome, one item per line). Their words,
    from `<base>.txt`; nothing they did not say, no figure added. A spoken
    tone, no wall of keywords, no selling.
-3. **Instagram only, and only when there is something to send**:
-   `Commente « MOT » et je t'envoie le lien.` (`Comment "WORD" and I'll send
-   you the link.`), at the bottom of the body, never at the top. One word in
-   capitals, the word of the thing they send (GUIDE, LISTE, PROMPT), never
-   the word of the topic (everyone writing about the topic would get a DM).
-   Never on TikTok: nothing answers there.
+3. **The resource line, only when there is something to send**, at the
+   bottom of the body, never at the top, one per platform:
+   - **Instagram**: `Commente « MOT » et je t'envoie le lien.` (`Comment
+     "WORD" and I'll send you the link.`), never the link. One word in
+     capitals, the word of the thing they send (GUIDE, LISTE, PROMPT), never
+     the word of the topic (everyone writing about the topic would get a DM).
+   - **TikTok**: never "Commente": nothing answers there. When the TikTok
+     video says a short link (`endings.tiktok` in `<name>.state.json`, or its
+     `.txt`): `Le lien : ex.so/mot` (`The link: ex.so/word`), the link of
+     `endings.link` (the transcript may spell it wrong), the last line before
+     the follow. No link said: no resource line on TikTok.
 4. **The follow line**: `Abonne-toi pour <what the account promises>` (their
    handle in it if they gave it), specific to the account: "to learn X with
    someone who does it for a living", "to follow the challenge". Never "for
@@ -114,7 +123,9 @@ Also, for the kit and for them to paste:
 
 - **The first comment**: a question in their words that matches the video
   (no emoji alone), to post as soon as it is live; answering the first
-  comments in the first half hour helps.
+  comments in the first half hour helps. **On TikTok, when the video says
+  the link**, the first comment carries it (`Le lien : ex.so/mot`, then the
+  question): that is where people look for it under the video.
 - **YouTube** (only if they want it there): ask in one question the title
   (under 60 characters for a Short), the description, the visibility
   (public, unlisted, private) and the time. Invent nothing.
@@ -129,6 +140,21 @@ MOT? (a link)" in one question. No resource: say it is a problem (people
 will comment and get nothing), drop the line from the description, and
 schedule nothing that promises it. With Nadia and a resource: the
 Instagram post carries the comment-to-DM automation (step 6a).
+
+**The link, before anything is scheduled.** The TikTok video says a short
+link: open it as a browser does, redirects followed, with an explicit
+User-Agent (some CDNs refuse a script's default one with a 403):
+
+```sh
+curl -sSL -o /dev/null -w '%{http_code} %{url_effective}\n' -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' https://ex.so/mot
+```
+
+A 2xx on the resource (or on its opt-in page): good. Anything else, or a
+page that is not the resource: say it in bold at the top of the plan (people
+would type it and land nowhere); it only has to answer at the time of the
+post, in their shortener. In front of the resource, their shortener may show
+an opt-in page ("tu veux mon mail de la semaine ? Oui → ton e-mail, Non → la
+ressource"), an option of the shortener, nothing to do here.
 
 ## 5. The plan (mandatory)
 
@@ -146,9 +172,9 @@ Instagram post carries the comment-to-DM automation (step 6a).
 Show it, with the descriptions in full, and wait for a clear yes:
 
 ```text
-PLAN · IMG_4127.mp4 · 0:58 · 1080x1920 · 41 MB
-TikTok     · Nadia · Tue 4 Nov 18:30 (their time) · direct post, public
-Instagram  · Nadia · Tue 4 Nov 18:30 · Reel · comment GUIDE → DM with the link
+PLAN · IMG_4127 · two endings · 1080x1920
+TikTok     · IMG_4127.tiktok.mp4 · 0:58 · Nadia · Tue 4 Nov 18:30 (their time) · direct post, public · says ex.so/guide (200)
+Instagram  · IMG_4127.instagram.mp4 · 0:57 · Nadia · Tue 4 Nov 18:30 · Reel · comment GUIDE → DM with the link
 YouTube    · not this time
 Descriptions: [TikTok] … [Instagram] …
 Reply yes to schedule, or tell me what to change.
@@ -158,7 +184,8 @@ A change: apply it, show the plan again.
 
 ## 6a. Through Nadia
 
-1. **Upload once**, the file is on this computer: `createUploadUrl` (the
+1. **Upload once per file** (two endings: the TikTok video and the
+   Instagram one, two uploads), the file is on this computer: `createUploadUrl` (the
    file's path, `video/mp4`, its exact size in bytes), run the `curl` it
    returns unchanged, then `confirmUpload`. Compare the duration and the size
    it returns with the local file: different = not the right file, stop.
@@ -174,8 +201,8 @@ A change: apply it, show the plan again.
      (its tool description says so, or the call is refused for it): set
      `UPLOAD`. The video then lands as a draft in their TikTok inbox, to
      publish from the app with the description pasted (TikTok drops the
-     caption in that mode): tell them in one sentence, and give them the
-     description to paste.
+     caption in that mode, the link line with it): tell them in one
+     sentence, and give them the description and the first comment to paste.
    - **Instagram**: `post_type` `post` (a Reel), `collaborators` []. Only if
      they ask: `share_to_feed` false keeps the Reel out of their profile
      grid. **The comment-to-DM automation** (a lead magnet): `automationList`
@@ -188,7 +215,7 @@ A change: apply it, show the plan again.
    platform: `integrationId`, `type` `schedule`, `date` (their time, written
    without offset: Nadia reads it in the workspace's time zone, and says
    which), `postsAndComments` `[{content: <the description>, attachments:
-   [<the media path from step 1>]}]`, the settings, `shortLink` false. They
+   [<that platform's media path from step 1>]}]`, the settings, `shortLink` false. They
    keep their ideas on Nadia's board: pass the card as `contentId` (find it
    with `contentListTool`, or make it with `contentCreateTool`, the title
    only), it moves to published by itself. A refusal: read it, fix the
@@ -205,10 +232,10 @@ Write `<base>.post.md` (step 4) and `<base>.cover.jpg` (step 3), open the
 folder (macOS `open`, Windows `explorer`, Linux `xdg-open`), then give the
 steps:
 
-- **TikTok**: the app → + → Upload → `<video>` → paste the TikTok
+- **TikTok**: the app → + → Upload → `<video>` (the TikTok one) → paste the TikTok
   description → Select cover → the frame of `cover.jpg` → Post (or, on
   tiktok.com/upload, Schedule).
-- **Instagram**: the app → + → Reel → `<video>` → paste the Instagram
+- **Instagram**: the app → + → Reel → `<video>` (the Instagram one) → paste the Instagram
   description → Edit cover → Add from camera roll → `cover.jpg` → Share (or
   Schedule, in the advanced settings of a professional account). A
   "commente MOT" line needs something that answers: by hand, or an
