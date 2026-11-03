@@ -18,6 +18,7 @@
       "modele": "a_faire",
       "elevenlabs": "option",
       "node": "attention",
+      "ytdlp": "a_faire",
       "sortie": "a_faire",
       "config": "a_faire"
     },
@@ -25,13 +26,15 @@
       "brew install python",
       "brew install ffmpeg-full",
       "brew install whisper-cpp",
+      "brew install yt-dlp",
       "raw.githubusercontent.com/Homebrew/install",
       "1,6 Go"
     ],
     "brew": [
       "brew install python",
       "brew install ffmpeg-full",
-      "brew install whisper-cpp"
+      "brew install whisper-cpp",
+      "brew install yt-dlp"
     ]
   }
 }

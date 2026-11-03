@@ -1,5 +1,5 @@
 {
-  "nom": "Windows après winget et setup --installe : ffmpeg (winget) et whisper.cpp hors du PATH, le lanceur py",
+  "nom": "Windows après winget et setup --installe : ffmpeg (winget) et whisper.cpp hors du PATH, le lanceur py, yt-dlp (winget) pas encore dans le PATH de ce terminal",
   "systeme": "Windows",
   "machine": "AMD64",
   "version_os": "11",
@@ -14,6 +14,7 @@
   },
   "fichiers": {
     "~/AppData/Local/whisper.cpp/Release/whisper-cli.exe": 1,
+    "~/AppData/Local/Microsoft/WinGet/Links/yt-dlp.exe": 1,
     "~/.cache/whisper-cpp/ggml-large-v3-turbo.bin": 1624555275
   },
   "dossiers": ["~/Videos/edited"],
@@ -28,6 +29,7 @@
   },
   "attendu": {
     "pret": true,
+    "pret_comptes": false,
     "etats": {
       "python": "ok",
       "ffmpeg": "ok",
@@ -35,13 +37,16 @@
       "modele": "ok",
       "elevenlabs": "option",
       "node": "ok",
+      "ytdlp": "attention",
       "sortie": "ok",
       "config": "ok"
     },
     "contient": [
       "Gyan.FFmpeg",
       "hors du PATH",
-      "whisper.cpp/Release/whisper-cli.exe"
+      "whisper.cpp/Release/whisper-cli.exe",
+      "pas encore dans le PATH de ce terminal",
+      "rouvre le terminal et Claude Code"
     ],
     "jamais": [
       "brew ",

@@ -8,7 +8,8 @@
   "which": {
     "brew": "/opt/homebrew/bin/brew",
     "ffmpeg": "/opt/homebrew/bin/ffmpeg",
-    "whisper-cli": "/opt/homebrew/bin/whisper-cli"
+    "whisper-cli": "/opt/homebrew/bin/whisper-cli",
+    "yt-dlp": "/opt/homebrew/bin/yt-dlp"
   },
   "ffmpeg": {
     "/opt/homebrew/bin/ffmpeg": {
@@ -33,11 +34,13 @@
   },
   "attendu": {
     "pret": true,
+    "pret_comptes": true,
     "etats": {
       "ffmpeg": "ok",
       "modele": "ok",
       "config": "ok",
-      "node": "attention"
+      "node": "attention",
+      "ytdlp": "ok"
     },
     "contient": [
       "hors du PATH : le montage le trouve tout seul",

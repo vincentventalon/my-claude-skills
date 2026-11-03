@@ -1,5 +1,5 @@
 {
-  "nom": "Ubuntu : ffmpeg de la distribution (avec libass), pas de whisper, une clé mal protégée",
+  "nom": "Ubuntu : ffmpeg de la distribution (avec libass), pas de whisper ni de yt-dlp, une clé mal protégée",
   "systeme": "Linux", "machine": "x86_64", "version_os": "6.8.0", "python": "3.10.12",
   "home": "/home/toi",
   "which": {"ffmpeg": "/usr/bin/ffmpeg", "python3": "/usr/bin/python3"},
@@ -10,9 +10,9 @@
   "attendu": {
     "pret": false,
     "etats": {"python": "ok", "ffmpeg": "ok", "whisper": "manque", "modele": "a_faire", "elevenlabs": "attention",
-              "node": "option", "sortie": "a_faire", "config": "ok"},
-    "contient": ["sudo apt install build-essential cmake git", "-DBUILD_SHARED_LIBS=OFF", "chmod 600"],
-    "jamais": ["brew ", "sk_simulee", "Homebrew"],
+              "node": "option", "ytdlp": "a_faire", "sortie": "a_faire", "config": "ok"},
+    "contient": ["sudo apt install build-essential cmake git", "-DBUILD_SHARED_LIBS=OFF", "chmod 600", "pipx install yt-dlp"],
+    "jamais": ["brew ", "sk_simulee", "Homebrew", "winget"],
     "brew": []
   }
 }

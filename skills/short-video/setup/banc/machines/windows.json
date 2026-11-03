@@ -1,5 +1,5 @@
 {
-  "nom": "Windows : rien d'installé, ElevenLabs choisi sans clé, Remotion voulu sans Node",
+  "nom": "Windows : rien d'installé, ElevenLabs choisi sans clé, Remotion voulu sans Node, pas de yt-dlp",
   "systeme": "Windows",
   "machine": "AMD64",
   "version_os": "11",
@@ -23,6 +23,7 @@
       "modele": "option",
       "elevenlabs": "manque",
       "node": "attention",
+      "ytdlp": "a_faire",
       "config": "ok"
     },
     "contient": [
@@ -30,7 +31,8 @@
       "choco install ffmpeg-full",
       "Get-Clipboard | python ",
       "winget install OpenJS.NodeJS.LTS",
-      "--accept-source-agreements"
+      "--accept-source-agreements",
+      "winget install yt-dlp.yt-dlp -e --accept-package-agreements --accept-source-agreements"
     ],
     "jamais": [
       "brew ",

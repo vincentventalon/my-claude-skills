@@ -3,7 +3,8 @@
   "systeme": "Darwin", "machine": "arm64", "version_os": "15.5", "python": "3.12.4",
   "home": "/Users/toi",
   "which": {"brew": "/opt/homebrew/bin/brew", "ffmpeg": "/opt/homebrew/bin/ffmpeg",
-            "whisper-cli": "/opt/homebrew/bin/whisper-cli", "python3": "/opt/homebrew/bin/python3"},
+            "whisper-cli": "/opt/homebrew/bin/whisper-cli", "python3": "/opt/homebrew/bin/python3",
+            "yt-dlp": "/opt/homebrew/bin/yt-dlp"},
   "ffmpeg": {"/opt/homebrew/bin/ffmpeg": {"version": "8.1.2", "libass": false}},
   "fichiers": {"~/.cache/whisper-cpp/ggml-large-v3-turbo.bin": 1624555275},
   "dossiers": ["~/Videos/edited"],
@@ -11,7 +12,7 @@
   "attendu": {
     "pret": false,
     "etats": {"homebrew": "ok", "python": "ok", "ffmpeg": "manque", "whisper": "ok", "modele": "ok",
-              "elevenlabs": "option", "node": "option", "sortie": "ok", "config": "ok"},
+              "elevenlabs": "option", "node": "option", "ytdlp": "ok", "sortie": "ok", "config": "ok"},
     "contient": ["sans libass", "brew install ffmpeg-full", "ffmpeg-full l'a", "--sous-titres non"],
     "brew": ["brew install ffmpeg-full"]
   }

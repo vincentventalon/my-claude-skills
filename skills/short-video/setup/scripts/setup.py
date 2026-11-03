@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""setup.py — l'installation du montage vidéo (la skill edit) : diagnostic, configuration, installations.
+"""setup.py — l'installation des skills vidéo : le montage (edit), et yt-dlp pour audit et outliers.
+Diagnostic, configuration, installations.
 
     python3 setup.py                     # le diagnostic : une ligne par point, n'écrit rien
     python3 setup.py --json              # le même, pour Claude
@@ -10,16 +11,18 @@
     pbpaste | python3 setup.py --cle-elevenlabs-stdin
                                          # la clé ElevenLabs, lue sur l'entrée standard, écrite dans
                                          # ~/.config/video-editing/env (mode 600), jamais affichée
-    python3 setup.py --installe --a-blanc    # ce qui manque, affiché (macOS : les `brew install` ;
-                                             # Windows : whisper.cpp, que setup télécharge lui-même)
+    python3 setup.py --installe --a-blanc    # ce qui manque, affiché (macOS : les `brew install`, yt-dlp
+                                             # compris ; Windows : whisper.cpp, que setup télécharge
+                                             # lui-même, et les commandes winget)
     python3 setup.py --installe              # ... et lancé
     python3 setup.py --modele            # télécharge le modèle whisper maintenant (sinon : au premier montage)
     python3 setup.py --simule machine.json   # le diagnostic d'une machine simulée (banc/test_setup.py)
 
 Ce qu'il regarde : Python (3.10 ou plus), ffmpeg + ffprobe et libass (les sous-titres incrustés),
-whisper-cli et son modèle, la clé ElevenLabs, Node (pour Remotion), le dossier de sortie,
-config.json. Une ligne par point : ok, MANQUE (le montage ne peut pas tourner), à faire (setup ou
-le premier montage s'en charge), option (pas besoin avec les choix faits), attention.
+whisper-cli et son modèle, la clé ElevenLabs, Node (pour Remotion), yt-dlp (audit et outliers lisent
+les comptes avec, sans connexion ; le montage s'en passe), le dossier de sortie, config.json. Une
+ligne par point : ok, MANQUE (le montage ne peut pas tourner), à faire (setup ou le premier montage
+s'en charge), option (pas besoin avec les choix faits), attention.
 
 Le contrat, partagé avec la skill de montage :
   ~/.config/video-editing/config.json, toutes les clés facultatives :
@@ -84,6 +87,8 @@ WHISPER_RELEASES = "https://github.com/ggml-org/whisper.cpp/releases"
 WHISPER_API = "https://api.github.com/repos/ggml-org/whisper.cpp/releases?per_page=20"
 # Sans ces options, winget attend un « Y » au premier usage : la commande ne rend jamais la main à Claude.
 WINGET = " -e --accept-package-agreements --accept-source-agreements"
+# Les skills qui lisent un compte avec yt-dlp, installées à côté de setup. Sans elles, yt-dlp ne sert à rien.
+LECTEURS = ("audit", "outliers")
 # Un .exe qui ne démarre pas faute de DLL (0xC0000135, 0xC0000139, 0xC000007B), signé ou non selon Python.
 DLL_MANQUANTE = {3221225781, 3221225785, 3221225595, -1073741515, -1073741511, -1073741701}
 
@@ -168,6 +173,9 @@ class Sonde:
     def remotion_installe(self) -> bool:
         return (MONTAGE / "remotion" / "node_modules").is_dir()
 
+    def lecteurs_presents(self) -> list:
+        return [n for n in LECTEURS if (ICI.parent.parent / n / "SKILL.md").exists()]
+
 
 class SondeSimulee(Sonde):
     """Une machine décrite en JSON (banc/machines/*.json). Rien n'y est lancé ni installé.
@@ -232,6 +240,9 @@ class SondeSimulee(Sonde):
         if Path(exe).name.startswith("whisper") and exe in self.fichiers:
             code = int(self.m.get("whisper_code", 0))          # 3221225781 : une DLL manque (Windows)
             return code, "usage: whisper-cli [options] file0 file1 ...\n" if code == 0 else ""
+        if Path(exe).name.startswith("yt-dlp") and exe in self.fichiers:
+            code = int(self.m.get("ytdlp_code", 0))
+            return code, str(self.m.get("ytdlp", "2026.10.22")) + "\n" if code == 0 else "ImportError\n"
         return 127, f"{exe}: introuvable (machine simulée)"
 
     def cherche(self, motif):
@@ -290,6 +301,9 @@ class SondeSimulee(Sonde):
 
     def remotion_installe(self):
         return bool(self.m.get("remotion_installe"))
+
+    def lecteurs_presents(self):                 # par défaut, audit et outliers sont là, comme après npx skills add
+        return list(self.m.get("lecteurs", LECTEURS))
 
 
 # --------------------------------------------------------------------------- un constat
@@ -713,6 +727,55 @@ def verifie_node(s: Sonde, c: Contexte) -> Constat:
                    fix + ["# ou bien : pas de Remotion (--remotion non), et cette ligne se tait"])
 
 
+def installe_ytdlp(c: Contexte) -> list:
+    if c.systeme == "Darwin":
+        return ["brew install yt-dlp"]
+    if c.systeme == "Windows":
+        return [f"winget install yt-dlp.yt-dlp{WINGET}   # puis rouvre le terminal et Claude Code"]
+    return ["pipx install yt-dlp   # sans pipx : sudo apt install pipx ; le paquet apt yt-dlp est souvent trop vieux pour TikTok"]
+
+
+def ytdlp_hors_path(s: Sonde, c: Contexte) -> str | None:
+    """Un yt-dlp posé mais pas encore dans le PATH de ce terminal (winget, pipx, Homebrew sans ses « Next
+    steps ») : audit et outliers le cherchent dans le PATH, il faut rouvrir le terminal."""
+    if c.systeme == "Windows":
+        w = local_appdata(s) / "Microsoft" / "WinGet"
+        vus = (str(w / "Links" / "yt-dlp.exe"),) + tuple(s.cherche(str(w / "Packages" / "yt-dlp.yt-dlp*" / "yt-dlp.exe")))
+    else:
+        vus = ((f"{c.brew}/bin/yt-dlp",) if c.brew else ()) + (str(s.chemin("~/.local/bin/yt-dlp")),)
+    return next((p for p in vus if s.existe(p)), None)
+
+
+def verifie_ytdlp(s: Sonde, c: Contexte) -> Constat:
+    """yt-dlp : audit et outliers lisent les comptes avec, sans connexion. Le montage s'en passe : ce point
+    ne bloque jamais, mais --installe l'installe quand audit ou outliers sont là."""
+    pour = "audit et outliers lisent les comptes avec, sans connexion"
+    besoin = bool(s.lecteurs_presents())
+    sans = "pas besoin : ni audit ni outliers à côté de setup"
+    y = s.which("yt-dlp")
+    if y:
+        code, out = s.lance([y, "--version"])
+        if code == 0:
+            v = (out.strip().splitlines() or ["?"])[0]
+            return Constat("ytdlp", "yt-dlp", "ok", f"{v} — {montre(s, y)} (audit, outliers)")
+        det = f"{montre(s, y)} ne démarre pas (code {code})"
+        if not besoin:
+            return Constat("ytdlp", "yt-dlp", "option", f"{det} ({sans})")
+        fix = {"Darwin": ["brew reinstall yt-dlp"], "Linux": ["pipx reinstall yt-dlp"]}.get(
+            c.systeme, ["# désinstalle-le (winget uninstall yt-dlp.yt-dlp), puis :"] + installe_ytdlp(c))
+        return Constat("ytdlp", "yt-dlp", "a_faire", f"{det} : {pour}", fix)
+    h = ytdlp_hors_path(s, c)
+    if h:
+        fix = ["# ferme et rouvre le terminal et Claude Code : audit et outliers le cherchent dans le PATH"]
+        if Path(h).parent == s.chemin("~/.local/bin"):            # pipx : ~/.local/bin pas encore dans le PATH
+            fix.insert(0, "pipx ensurepath")
+        return Constat("ytdlp", "yt-dlp", "attention" if besoin else "option",
+                       f"installé ({montre(s, h)}) mais pas encore dans le PATH de ce terminal", fix)
+    if not besoin:
+        return Constat("ytdlp", "yt-dlp", "option", f"absent ({sans})")
+    return Constat("ytdlp", "yt-dlp", "a_faire", f"absent : {pour} ; le montage s'en passe", installe_ytdlp(c))
+
+
 def verifie_sortie(s: Sonde, c: Contexte) -> Constat:
     d = c.sortie
     if s.est_dossier(d):
@@ -783,15 +846,24 @@ def verifie_montage(s: Sonde, c: Contexte) -> Constat | None:
                    bloque=True)
 
 
+def a_installer(k: Constat) -> bool:
+    """Ce que --installe traite : ce qui bloque le montage, et yt-dlp pour audit et outliers (qui ne le bloque pas)."""
+    return k.bloque or (k.cle == "ytdlp" and k.etat == "a_faire")
+
+
 def verifie_homebrew(c: Contexte, constats: list) -> Constat | None:
     if c.systeme != "Darwin":
         return None
     if c.brew:
         return Constat("homebrew", "Homebrew", "ok", c.brew)
-    besoin = any(x.startswith("brew ") for k in constats if k.bloque for x in k.corrige)
-    return Constat("homebrew", "Homebrew", "manque" if besoin else "option",
-                   "absent : les commandes brew ci-dessous le demandent d'abord" if besoin else "absent (rien à installer avec)",
-                   [HOMEBREW + "   # à lancer toi-même : il demande ton mot de passe"] if besoin else [], bloque=besoin)
+    brew = lambda garde: any(x.startswith("brew ") for k in constats if garde(k) for x in k.corrige)
+    bloque, besoin = brew(lambda k: k.bloque), brew(a_installer)
+    if not besoin:
+        return Constat("homebrew", "Homebrew", "option", "absent (rien à installer avec)")
+    return Constat("homebrew", "Homebrew", "manque" if bloque else "a_faire",
+                   "absent : les commandes brew ci-dessous le demandent d'abord" if bloque
+                   else "absent : yt-dlp (audit, outliers) s'installe avec",
+                   [HOMEBREW + "   # à lancer toi-même : il demande ton mot de passe"], bloque=bloque)
 
 
 @dataclass
@@ -804,6 +876,10 @@ class Diagnostic:
         return not any(k.bloque for k in self.constats)
 
     @property
+    def pret_comptes(self) -> bool:               # audit et outliers peuvent lire un compte
+        return any(k.cle == "ytdlp" and k.etat == "ok" for k in self.constats)
+
+    @property
     def whisper_a_telecharger(self) -> bool:      # Windows : --installe le télécharge
         return any(k.cle == "whisper" and k.bloque and any(x.split("#")[0].strip().endswith("--installe") for x in k.corrige)
                    for k in self.constats)
@@ -811,7 +887,7 @@ class Diagnostic:
     def plan_brew(self) -> list:
         cmds = []
         for k in self.constats:
-            if k.bloque:
+            if a_installer(k):
                 cmds += [x for x in k.corrige if x.startswith("brew ")]
         return list(dict.fromkeys(cmds))
 
@@ -819,8 +895,8 @@ class Diagnostic:
 def diagnostic(s: Sonde) -> Diagnostic:
     c = contexte(s)
     k = [verifie_systeme(s, c), verifie_python(s, c), verifie_ffmpeg(s, c), verifie_whisper(s, c),
-         verifie_modele(s, c), verifie_elevenlabs(s, c), verifie_node(s, c), verifie_sortie(s, c),
-         verifie_config(s, c)]
+         verifie_modele(s, c), verifie_elevenlabs(s, c), verifie_node(s, c), verifie_ytdlp(s, c),
+         verifie_sortie(s, c), verifie_config(s, c)]
     m = verifie_montage(s, c)
     if m:
         k.append(m)
@@ -849,16 +925,16 @@ def texte(d: Diagnostic) -> str:
         L.append("Prêt pour le montage.")
     else:
         L.append(f"Il manque : {', '.join(bloquants)}. Les commandes ci-dessus réparent.")
-        if c.systeme == "Darwin" and d.plan_brew():
-            L.append(f"Sur macOS, `{c.py} {c.script} --installe` lance les installations Homebrew (il les affiche d'abord).")
-        if c.systeme == "Windows" and d.whisper_a_telecharger:
-            L.append(f"Sur Windows, `{c.py} {c.script} --installe` télécharge whisper.cpp (il le dit d'abord).")
+    if c.systeme == "Darwin" and d.plan_brew():
+        L.append(f"Sur macOS, `{c.py} {c.script} --installe` lance les installations Homebrew (il les affiche d'abord).")
+    if c.systeme == "Windows" and d.whisper_a_telecharger:
+        L.append(f"Sur Windows, `{c.py} {c.script} --installe` télécharge whisper.cpp (il le dit d'abord).")
     return "\n".join(L) + "\n"
 
 
 def en_json(d: Diagnostic, s: Sonde, faits: list) -> str:
     c = d.contexte
-    out = {"pret": d.pret, "systeme": c.systeme, "config_fichier": montre(s, s.chemin(CONFIG)),
+    out = {"pret": d.pret, "pret_comptes": d.pret_comptes, "systeme": c.systeme, "config_fichier": montre(s, s.chemin(CONFIG)),
            "env_fichier": montre(s, s.chemin(ENV)), "config": c.cfg, "config_etat": c.cfg_etat,
            "choix": {"stt": c.stt, "moteur_effectif": c.moteur, "subtitles": c.sous_titres,
                      "remotion": c.remotion, "whisper_model": c.modele, "output_dir": c.sortie},
@@ -1088,13 +1164,13 @@ def telecharge_whisper_windows(s: Sonde) -> int:
 def installe_windows(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
     """Windows : setup télécharge whisper.cpp lui-même ; le reste (winget), c'est Claude qui le lance,
     avec l'accord de l'utilisateur. Rend (code, ce qui a été fait)."""
-    autres = [x for k in d.constats if k.bloque and not (k.cle == "whisper" and d.whisper_a_telecharger)
+    autres = [x for k in d.constats if a_installer(k) and not (k.cle == "whisper" and d.whisper_a_telecharger)
               for x in k.corrige]
     if d.whisper_a_telecharger:
         print(f"Je vais télécharger whisper.cpp (whisper-bin-x64.zip, la dernière build de {WHISPER_RELEASES}) "
               f"dans {montre(s, dossier_whisper_windows(s))}, sans toucher au PATH.")
     if autres:
-        print("À lancer à part (winget : ensuite, rouvre le terminal et Claude Code pour Python et Node) :")
+        print("À lancer à part (winget : ensuite, rouvre le terminal et Claude Code pour Python, Node et yt-dlp) :")
         for x in autres:
             print(f"  {x if x.startswith('#') else '$ ' + x}")
     if not d.whisper_a_telecharger:
@@ -1110,15 +1186,15 @@ def installe_windows(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
 
 
 def installe(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
-    """macOS + Homebrew : lance les `brew install` qui manquent ; Windows : télécharge whisper.cpp.
-    Rend (code, ce qui a été fait)."""
+    """macOS + Homebrew : lance les `brew install` qui manquent (yt-dlp compris) ; Windows : télécharge
+    whisper.cpp. Rend (code, ce qui a été fait)."""
     c = d.contexte
     if c.systeme == "Windows":
         return installe_windows(s, d, a_blanc)
     if c.systeme != "Darwin":
         print("setup : --installe ne lance rien sous Linux. Les commandes de ta machine sont dans le diagnostic :")
         for k in d.constats:
-            if k.bloque:
+            if a_installer(k):
                 for x in k.corrige:
                     print(f"  {x if x.startswith('#') else '$ ' + x}")
         return 2, []
@@ -1154,7 +1230,8 @@ def installe(s: Sonde, d: Diagnostic, a_blanc: bool) -> tuple:
 def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> int:
     ap = argparse.ArgumentParser(
         prog="setup.py",
-        description="Installation du montage vidéo : diagnostic (par défaut), configuration, installations.")
+        description="Installation des skills vidéo (montage, yt-dlp pour audit et outliers) : diagnostic "
+                    "(par défaut), configuration, installations.")
     ap.add_argument("--diagnostic", action="store_true", help="le diagnostic (l'action par défaut)")
     ap.add_argument("--json", action="store_true", help="la sortie pour Claude")
     ap.add_argument("--ecris", action="store_true", help="écrit config.json avec les choix ci-dessous et crée le dossier de sortie")
@@ -1169,7 +1246,7 @@ def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> i
     ap.add_argument("--cle-elevenlabs-stdin", action="store_true",
                     help=f"lit la clé ElevenLabs sur l'entrée standard et l'écrit dans {ENV} (mode 600)")
     ap.add_argument("--installe", action="store_true",
-                    help="macOS : lance les brew install qui manquent ; Windows : télécharge whisper.cpp")
+                    help="macOS : lance les brew install qui manquent (yt-dlp compris) ; Windows : télécharge whisper.cpp")
     ap.add_argument("--a-blanc", action="store_true", help="avec --installe : affiche sans rien lancer")
     ap.add_argument("--simule", metavar="MACHINE.json", help="le diagnostic d'une machine simulée (rien n'est écrit)")
     a = ap.parse_args(argv)

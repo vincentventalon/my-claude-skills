@@ -62,21 +62,25 @@ The spoken language of an account goes after it in the watchlist
 (`@an_account en`); otherwise the `lang` of the config, else `auto`. The
 report language is the user's (`--report fr` or `en`).
 
-## 2. Install what is missing (you, not the user)
+## 2. The tools: the `setup` skill installs them
 
-| tool | check | macOS | Windows | Linux |
-|---|---|---|---|---|
-| yt-dlp | `yt-dlp --version` | `brew install yt-dlp` | `winget install yt-dlp` | `pipx install yt-dlp` |
-| ffmpeg | `ffmpeg -version` | `brew install ffmpeg` | `winget install Gyan.FFmpeg` | `sudo apt install ffmpeg` |
-| whisper-cli | `whisper-cli --help` | `brew install whisper-cpp` | see the setup skill | see the setup skill |
+This skill installs nothing. Run the diagnostic of the `setup` skill,
+installed next to this one (it writes nothing):
 
-Reopen the terminal after a Windows install. The settings are those of the
-edit skill, `~/.config/video-editing/config.json` when it exists:
-`whisper_model` (else `large-v3-turbo`, found in `~/.cache/whisper-cpp/` or
-`~/.local/share/whisper-cpp/models/`, downloaded once, 1.6 GB, if the setup
-skill has not done it yet), `ffmpeg`, `lang`. On a modest computer pass
-`--model small` (0.49 GB). Without whisper or ffmpeg the outliers are still
-found: the captions stand in for the hooks, and the report says so.
+```sh
+python3 <skill>/../setup/scripts/setup.py --json
+```
+
+(`py` instead of `python3` on Windows.) yt-dlp, ffmpeg or whisper-cli missing
+(its `ytdlp`, `ffmpeg` and `whisper` lines; `pret_comptes: false` = no
+yt-dlp): follow the `setup` skill (`../setup/SKILL.md`), then come back here.
+Without whisper or ffmpeg the outliers are still found: the captions stand in
+for the hooks, and the report says so.
+
+The settings are those of the `edit` skill,
+`~/.config/video-editing/config.json` when it exists: `whisper_model` (else
+`large-v3-turbo`, downloaded once, 1.6 GB, if nothing has done it yet),
+`ffmpeg`, `lang`. On a modest computer pass `--model small` (0.49 GB).
 
 ## 3. Run
 
@@ -103,7 +107,7 @@ instagram:a_third      # read by hand: --csv
 |---|---|---|
 | 0 | done (an account refused is listed as "not read" in the report) | step 5 |
 | 3 | no account could be read | step 4 |
-| 4 | yt-dlp missing | install it, run again |
+| 4 | yt-dlp missing | step 2 (the `setup` skill), run again |
 
 ## 4. Instagram, or an account TikTok refused: by hand
 
@@ -213,5 +217,5 @@ as `OUTLIERS-avant-<time>.md` (`OUTLIERS-before-` in English).
 - **`too few to rank`**: under 5 videos old enough to compare. A larger `-n`.
 - **`not read (...)`** on a few clips: one retry is built in, the caption
   stands in. Two refusals in a row: the downloads stop for the day.
-- **`whisper-cli not found`**: the captions stand in; install it, run again:
-  only the hooks are fetched.
+- **`whisper-cli not found`**: the captions stand in; install it (step 2,
+  the `setup` skill), run again: only the hooks are fetched.

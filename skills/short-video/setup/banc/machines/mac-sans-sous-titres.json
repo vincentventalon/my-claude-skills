@@ -8,7 +8,8 @@
   "which": {
     "brew": "/opt/homebrew/bin/brew",
     "ffmpeg": "/opt/homebrew/bin/ffmpeg",
-    "whisper-cli": "/opt/homebrew/bin/whisper-cli"
+    "whisper-cli": "/opt/homebrew/bin/whisper-cli",
+    "yt-dlp": "/opt/homebrew/bin/yt-dlp"
   },
   "ffmpeg": {
     "/opt/homebrew/bin/ffmpeg": {
@@ -35,6 +36,7 @@
       "ffmpeg": "attention",
       "whisper": "ok",
       "modele": "ok",
+      "ytdlp": "ok",
       "config": "ok"
     },
     "contient": [

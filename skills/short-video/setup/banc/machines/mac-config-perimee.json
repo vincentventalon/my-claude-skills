@@ -7,7 +7,8 @@
   "home": "/Users/toi",
   "which": {
     "brew": "/opt/homebrew/bin/brew",
-    "whisper-cli": "/opt/homebrew/bin/whisper-cli"
+    "whisper-cli": "/opt/homebrew/bin/whisper-cli",
+    "yt-dlp": "/opt/homebrew/bin/yt-dlp"
   },
   "ffmpeg": {
     "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg": {
@@ -33,6 +34,7 @@
     "etats": {
       "ffmpeg": "a_faire",
       "modele": "manque",
+      "ytdlp": "ok",
       "config": "ok"
     },
     "contient": [

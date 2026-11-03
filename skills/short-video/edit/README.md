@@ -63,7 +63,7 @@ savoir à l'avance ce qui va arriver sur ta machine.
 | le modèle `large-v3-turbo` *(si whisper)* | ce avec quoi whisper entend | se télécharge tout seul au premier montage | pareil | pareil | 1,6 Go |
 | une clé ElevenLabs *(si ElevenLabs)* | la transcription chez ElevenLabs | — | — | — | — |
 | Node 18 ou plus *(facultatif)* | Remotion anime le titre, les cartons et le carton de fin ; sans Node, ffmpeg les dessine et la vidéo sort quand même | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `sudo apt install nodejs npm` (vérifie `node -v`) | Remotion : ~400 Mo, installé tout seul au premier rendu, plus ~200 Mo pour le navigateur qu'il télécharge pour rendre (mesuré sur un Mac) |
-| yt-dlp *(pour la skill `audit`)* | lire tes vidéos sans connexion ; l'audit l'installe s'il manque | `brew install yt-dlp` | `winget install yt-dlp` | `pipx install yt-dlp` | — |
+| yt-dlp *(pour les skills `audit` et `outliers`)* | lire les comptes sans connexion ; `setup` l'installe avec le reste | `brew install yt-dlp` | `winget install yt-dlp.yt-dlp` | `pipx install yt-dlp` | — |
 
 - **Mac** : la formule `ffmpeg` de Homebrew est compilée sans libass. Avec elle, la vidéo sort sans
   sous-titres incrustés. `ffmpeg-full` s'installe à côté, sans rien remplacer, et le montage le

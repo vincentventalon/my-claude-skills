@@ -154,32 +154,6 @@ shows the commands before installing anything, writes the settings):
 > `python3 ../setup/scripts/setup.py --json`, `py` sur Windows), puis reprends le montage là où il
 > s'est arrêté.
 
-What setup installs, for reference:
-
-| tool | for | macOS | Windows | Linux |
-|---|---|---|---|---|
-| Python 3.10+ | the scripts | `brew install python` | `winget install Python.Python.3.12`, then `py` | already there |
-| ffmpeg **with libass** | everything; libass burns the subtitles in | `brew install ffmpeg-full` (Homebrew's plain `ffmpeg` has no libass; the script finds `ffmpeg-full` by itself) | `winget install Gyan.FFmpeg` (found without reopening the terminal) | `sudo apt install ffmpeg` |
-| whisper-cli (whisper.cpp) | the local transcription | `brew install whisper-cpp` | `py ../setup/scripts/setup.py --installe` downloads the official zip into `%LOCALAPPDATA%\whisper.cpp` (no PATH to touch); it needs the Microsoft Visual C++ Redistributable, which setup checks | `sudo apt install whisper-cpp`, or build it |
-| Node 18+ (optional) | Remotion draws the title, the boards and the end card, animated | `brew install node` | `winget install OpenJS.NodeJS.LTS`, then reopen the terminal and Claude Code | `sudo apt install nodejs npm` |
-
-On Windows, take the `winget` commands from setup's diagnostic: they carry
-`--accept-package-agreements --accept-source-agreements`, without which winget
-waits for an answer on first use and never returns.
-
-The whisper model downloads itself on the first run into
-`~/.cache/whisper-cpp/` (it is also found in
-`~/.local/share/whisper-cpp/models/`; `~` is `C:\Users\<you>` on Windows):
-
-| machine | `--model` | download | note |
-|---|---|---|---|
-| recent Mac (M1+) or PC with a GPU | nothing (`large-v3-turbo`) | 1.6 GB | the best |
-| little disk space or RAM (8 GB) | `large-v3-turbo-q5_0` | 0.57 GB | almost as good |
-| PC without a GPU, or too slow | `small` | 0.49 GB | several times faster on a CPU, catches a few less retakes |
-
-On Windows, the whisper.cpp setup downloads is the CPU build: a graphics card
-is not used.
-
 When one is missing, the script says it and does what it can:
 
 - no ffmpeg: it stops and says what to install;
@@ -263,6 +237,7 @@ change.
 | "full frame only", "no split", "only the split" | `--scene full`, `--scene split` |
 | "a YouTube version" | `--youtube` (horizontal clips only; a vertical video goes on YouTube as a Short) |
 | "no subtitles" | `--no-subtitles` |
+| "it's slow", a PC without a graphics card | `--model small` (or `large-v3-turbo-q5_0`); for every video, the `setup` skill sets `whisper_model` |
 | "just the cut, I finish it myself" | `--rough` (`-o` is then the cut) |
 | "bigger subtitles", "another colour", "higher", "one word at a time", "another font" | the style (below) |
 
@@ -320,7 +295,8 @@ transcription (silences only, no subtitles).
 - A 0 s video or a `concat` error: the clips do not share the same format
   (an iPhone clip and another camera's): edit each clip alone.
 - `nothing kept`: a very quiet recording, `--noise 40` (25 is for background noise).
-- No subtitles on the video: `--config` says `NO libass` (install table above).
+- No subtitles on the video: `--config` says `NO libass`: the `setup` skill
+  installs an ffmpeg with libass.
 - `ElevenLabs refused the key` / `no credits left`: the key or the account;
   `--stt whisper` works meanwhile, free.
 

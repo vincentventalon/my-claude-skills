@@ -5,7 +5,7 @@
 
 Chaque machine dit ce qu'elle attend (`attendu`) : l'état de chaque point, des morceaux de texte qui
 doivent apparaître (`contient`) ou jamais (`jamais` : une commande d'un autre système, la clé), les
-`brew install` que --installe lancerait. Pour voir le diagnostic d'une machine :
+`brew install` que --installe lancerait, et `pret_comptes` (yt-dlp prêt pour audit et outliers). Pour voir le diagnostic d'une machine :
     python3 scripts/setup.py --simule banc/machines/mac-vide.json
 """
 import contextlib
@@ -51,6 +51,9 @@ for f in sorted((ICI / "machines").glob("*.json")):
     js = setup.en_json(d, setup.SondeSimulee(m), [])
     etats = {k.cle: k.etat for k in d.constats}
     verifie(d.pret == att["pret"], f"{f.name} : prêt = {d.pret}, attendu {att['pret']}")
+    if "pret_comptes" in att:
+        verifie(json.loads(js)["pret_comptes"] == att["pret_comptes"],
+                f"{f.name} : pret_comptes = {d.pret_comptes}, attendu {att['pret_comptes']}")
     for cle, etat in att.get("etats", {}).items():
         verifie(etats.get(cle) == etat, f"{f.name} : {cle} = {etats.get(cle)}, attendu {etat}")
     for t in att.get("contient", []):
@@ -103,6 +106,39 @@ verifie(k.etat == "manque" and k.corrige[0].startswith("py ") and k.corrige[0].s
 verifie(d.whisper_a_telecharger and "télécharge whisper.cpp" in setup.texte(d), "Windows : --installe pas proposé")
 code, out, _ = lance(["--installe", "--a-blanc"], setup.SondeSimulee(m))
 verifie(code == 0 and "Je vais télécharger whisper.cpp" in out and "à blanc" in out, f"Windows à blanc : code {code}\n{out}")
+
+print("yt-dlp : audit et outliers en ont besoin, le montage jamais")
+pret = json.loads((ICI / "machines" / "mac-pret-elevenlabs.json").read_text(encoding="utf-8"))
+code, out, _ = lance(["--installe", "--a-blanc"], setup.SondeSimulee(pret))
+verifie(code == 0 and "$ brew install yt-dlp" in out, f"Mac prêt sans yt-dlp, --installe à blanc : code {code}\n{out}")
+m = copy.deepcopy(pret)
+m["lecteurs"] = []                                    # setup et edit seuls, sans audit ni outliers
+d = setup.diagnostic(setup.SondeSimulee(m))
+k = next(k for k in d.constats if k.cle == "ytdlp")
+verifie(k.etat == "option" and not d.plan_brew(), f"sans audit ni outliers : {k.etat} {d.plan_brew()}")
+m = copy.deepcopy(pret)
+del m["which"]["brew"]                                # pas de Homebrew : yt-dlp seul le demande, sans bloquer
+d = setup.diagnostic(setup.SondeSimulee(m))
+k = next(k for k in d.constats if k.cle == "homebrew")
+verifie(k.etat == "a_faire" and not k.bloque and d.pret and k.corrige, f"Homebrew pour yt-dlp seul : {k.etat} {k.bloque}")
+full = json.loads((ICI / "machines" / "mac-ffmpeg-full-a-cote.json").read_text(encoding="utf-8"))
+m = copy.deepcopy(full)
+m["ytdlp_code"] = 1                                   # un yt-dlp cassé (son Python a changé)
+d = setup.diagnostic(setup.SondeSimulee(m))
+k = next(k for k in d.constats if k.cle == "ytdlp")
+verifie(k.etat == "a_faire" and d.pret and not d.pret_comptes and d.plan_brew() == ["brew reinstall yt-dlp"],
+        f"yt-dlp qui ne démarre pas : {k.etat} {d.plan_brew()}")
+m = copy.deepcopy(lin)
+m["fichiers"] = {"~/.local/bin/yt-dlp": 1}            # pipx l'a posé, ~/.local/bin pas encore dans le PATH
+d = setup.diagnostic(setup.SondeSimulee(m))
+k = next(k for k in d.constats if k.cle == "ytdlp")
+verifie(k.etat == "attention" and k.corrige[0] == "pipx ensurepath", f"Linux, pipx hors du PATH : {k.etat} {k.corrige}")
+winv = json.loads((ICI / "machines" / "windows.json").read_text(encoding="utf-8"))
+code, out, _ = lance(["--installe", "--a-blanc"], setup.SondeSimulee(winv))
+verifie(code == 2 and "$ winget install yt-dlp.yt-dlp -e --accept-package-agreements" in out,
+        f"Windows : yt-dlp dans les commandes à lancer à part : code {code}\n{out}")
+code, out, _ = lance(["--installe", "--a-blanc"], setup.SondeSimulee(lin))
+verifie("$ pipx install yt-dlp" in out, f"Linux : yt-dlp dans les commandes : {out}")
 
 
 # --------------------------------------------------------------------------- 2. l'écriture, dans un dossier jetable

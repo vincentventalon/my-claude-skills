@@ -1,5 +1,5 @@
 {
-  "nom": "Mac prêt : ElevenLabs avec sa clé dans le fichier env, Remotion avec Node",
+  "nom": "Mac prêt : ElevenLabs avec sa clé dans le fichier env, Remotion avec Node ; pas de yt-dlp (le montage reste prêt)",
   "systeme": "Darwin", "machine": "arm64", "version_os": "15.5", "python": "3.12.4",
   "home": "/Users/toi",
   "which": {"brew": "/opt/homebrew/bin/brew", "ffmpeg": "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg",
@@ -12,11 +12,13 @@
   "config": {"stt": "elevenlabs", "lang": "fr", "output_dir": "~/Movies/montages", "subtitles": true, "remotion": true},
   "attendu": {
     "pret": true,
+    "pret_comptes": false,
     "etats": {"ffmpeg": "ok", "whisper": "option", "modele": "option", "elevenlabs": "ok", "node": "ok",
-              "sortie": "ok", "config": "ok"},
+              "ytdlp": "a_faire", "sortie": "ok", "config": "ok"},
     "contient": ["Prêt pour le montage", "ElevenLabs · fr · ~/Movies/montages · sous-titres oui · Remotion oui",
-                 "npm install"],
+                 "npm install", "audit et outliers lisent les comptes avec", "brew install yt-dlp",
+                 "lance les installations Homebrew"],
     "jamais": ["sk_simulee"],
-    "brew": []
+    "brew": ["brew install yt-dlp"]
   }
 }

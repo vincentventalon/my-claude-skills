@@ -71,7 +71,7 @@ For a video found in step 1, when the user asks for "the next step" or
 
 | the request | skill |
 |---|---|
-| first time, "installe", tools, whisper or ElevenLabs, a missing ffmpeg, "les sous-titres ne s'incrustent pas", a setting (language, output folder) | `setup` |
+| first time, "installe", tools, whisper or ElevenLabs, a missing ffmpeg or yt-dlp, "les sous-titres ne s'incrustent pas", a setting (language, output folder) | `setup` |
 | clips to edit, "monte", "coupe", subtitles, title, boards, "plein cadre", "split", a change on a video already edited ("garde la pause", "c'est cloud pas clown") | `edit` (an edit asked before any setup: `setup` first) |
 | their own TikTok or Instagram, "what works on my account", their profile link | `audit` |
 | other accounts, "what blew up in my niche", "ideas to remake", an @account to dig | `outliers` |

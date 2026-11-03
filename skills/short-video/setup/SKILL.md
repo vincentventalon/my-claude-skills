@@ -1,14 +1,16 @@
 ---
 name: setup
-description: Installe et configure le montage vidéo de la skill edit (vidéos face caméra) - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, dossier de sortie), questionnaire (whisper ou ElevenLabs, langue, dossier de sortie, sous-titres, Remotion), installation de ce qui manque, puis ~/.config/video-editing/config.json. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "il manque ffmpeg", "les sous-titres ne s'incrustent pas", or when the edit skill stops on a missing tool, model, key or setting.
+description: Installe et configure tout ce dont les skills vidéo ont besoin - le montage de la skill edit (vidéos face caméra), et yt-dlp avec lequel audit et outliers lisent les comptes sans connexion - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, yt-dlp, dossier de sortie), questionnaire (whisper ou ElevenLabs, langue, dossier de sortie, sous-titres, Remotion), installation de ce qui manque, puis ~/.config/video-editing/config.json. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "il manque ffmpeg", "il manque yt-dlp", "les sous-titres ne s'incrustent pas", or when the edit, audit or outliers skill stops on a missing tool, model, key or setting.
 ---
 
-# Installer le montage vidéo
+# Installer les skills vidéo
 
-Cette skill prépare l'ordinateur pour la skill de montage, `edit`, installée à côté d'elle :
-elle regarde ce qui est installé, pose cinq questions, installe ce qui manque et écrit
-`~/.config/video-editing/config.json`. Une fois au premier usage ; ensuite, seulement quand un
-réglage change ou que le montage s'arrête sur un manque.
+Cette skill prépare l'ordinateur pour les skills vidéo installées à côté d'elle : le montage
+(`edit`), et yt-dlp, avec lequel `audit` et `outliers` lisent les comptes sans connexion. Elle
+regarde ce qui est installé, pose cinq questions, installe ce qui manque et écrit
+`~/.config/video-editing/config.json`. C'est la seule à installer : les autres skills renvoient
+ici. Une fois au premier usage ; ensuite, seulement quand un réglage change ou qu'une skill
+s'arrête sur un manque.
 
 - Parle la langue de l'utilisateur. Le script écrit en français : traduis ce que tu en dis.
 - `<setup>` = le dossier de ce fichier. Le script : `<setup>/scripts/setup.py`, bibliothèque
@@ -33,12 +35,15 @@ N'écrit rien. Chaque point de `constats` a un `etat` :
 |---|---|
 | `ok` | là et bon |
 | `manque` | le montage ne peut pas tourner (`bloque: true`) |
-| `a_faire` | setup ou le premier montage s'en charge (le modèle, le dossier de sortie, la config) |
+| `a_faire` | setup ou le premier montage s'en charge (le modèle, le dossier de sortie, la config, yt-dlp) |
 | `option` | pas besoin avec les choix faits (whisper-cli quand on a choisi ElevenLabs) |
 | `attention` | marche, mais à savoir (pas de Node : le titre est dessiné par ffmpeg) |
 
 `corrige` donne les commandes exactes pour ce système ; une ligne `# ...` est une explication,
-pas une commande. `pret` dit si le montage peut tourner tel quel.
+pas une commande. `pret` dit si le montage peut tourner tel quel. `pret_comptes` dit si `audit` et
+`outliers` peuvent lire un compte : la ligne `ytdlp` (yt-dlp) est `ok`. yt-dlp ne bloque jamais le
+montage : absent, il est `a_faire` (setup l'installe avec le reste), ou `option` quand ni `audit`
+ni `outliers` ne sont installés à côté.
 
 Dis à l'utilisateur, en trois à six lignes, ce qui est là et ce qui manque. Pas le JSON, pas
 les chemins sauf s'il les demande.
@@ -97,10 +102,10 @@ sert pas, même sur un PC qui en a une (vitesse pas encore mesurée sur PC).
    le sauvegarde : il est alors sous `~/OneDrive/`.
 4. **Sous-titres incrustés dans la vidéo ?** (quelques mots à la fois, le mot dit qui
    s'allume) Défaut : oui. Il faut un ffmpeg avec libass ; sur Mac, c'est `ffmpeg-full`.
-5. **Titre et carton de fin animés avec Remotion ?** Défaut : oui si Node 18 ou plus est là
-   (le diagnostic le dit), non sinon. Sans Remotion, ffmpeg dessine le titre et le carton,
-   sans les animations, et la vidéo sort quand même. Avec, il faut Node ; le premier rendu
-   installe Remotion tout seul (environ une minute, une fois).
+5. **Titre, cartons et carton de fin animés avec Remotion ?** Défaut : oui si Node 18 ou plus
+   est là (le diagnostic le dit), non sinon. Sans Remotion, ffmpeg dessine le titre, les cartons
+   et le carton de fin, sans les animations, et la vidéo sort quand même. Avec, il faut Node ; le
+   premier rendu installe Remotion tout seul (environ une minute, une fois).
 
 ## 3. La clé ElevenLabs (seulement si ElevenLabs)
 
@@ -147,7 +152,8 @@ python3 <setup>/scripts/setup.py --installe
 ```
 
 `ffmpeg-full` tire beaucoup de dépendances : plusieurs minutes, c'est normal. Il s'installe à
-côté du `ffmpeg` de Homebrew sans le remplacer, et le montage le trouve tout seul.
+côté du `ffmpeg` de Homebrew sans le remplacer, et le montage le trouve tout seul. yt-dlp est dans
+la liste quand il manque, même si le montage est déjà prêt.
 
 Homebrew absent : la commande d'installation est dans le diagnostic. Elle demande le mot de
 passe de l'ordinateur, c'est donc l'utilisateur qui la lance, dans son terminal. À la fin,
@@ -166,11 +172,13 @@ montage le trouve sans toucher au PATH. Le reste, ce sont les commandes `winget`
 lance-les si l'utilisateur est d'accord (elles portent `--accept-package-agreements
 --accept-source-agreements` : sans elles, winget attend une réponse au premier usage et la
 commande ne rend jamais la main). ffmpeg installé par winget est trouvé tout de suite ; après
-Python ou Node, il faut fermer et rouvrir le terminal et Claude Code. whisper-cli « ne démarre
-pas » (une DLL manque) : le diagnostic donne la commande du Visual C++ Redistributable.
+Python, Node ou yt-dlp, il faut fermer et rouvrir le terminal et Claude Code. whisper-cli « ne
+démarre pas » (une DLL manque) : le diagnostic donne la commande du Visual C++ Redistributable.
 
 **Linux** : les commandes `sudo` demandent un mot de passe, l'utilisateur les tape dans son
-terminal. Donne-les telles que le diagnostic les écrit.
+terminal. Donne-les telles que le diagnostic les écrit. whisper.cpp : le diagnostic donne de quoi
+le compiler ; un paquet de la distribution qui pose `whisper-cli` convient aussi. yt-dlp :
+`pipx install yt-dlp`, sans `sudo` (le paquet apt est souvent trop vieux pour TikTok).
 
 **Le modèle whisper** : demande « maintenant (1,6 Go) ou au premier montage ? ». Maintenant :
 
@@ -221,6 +229,20 @@ Dans ce cas, pas de questionnaire complet :
    whisper ? »). Puis `--ecris` avec ces réponses seulement.
 4. Rends la main au montage : relance la commande qui s'était arrêtée.
 
+## Quand c'est audit ou outliers qui t'envoie
+
+Ils lisent les comptes avec yt-dlp, et transcrivent les hooks avec ffmpeg (sans libass, ça leur
+suffit) et whisper-cli ; sans ces deux-là, ils tournent quand même, les légendes remplacent les
+hooks. Pas de questionnaire :
+
+1. Le diagnostic (section 1).
+2. Installe ce qui manque sur les lignes `ytdlp`, `ffmpeg` et `whisper` (section 4) ; sur macOS,
+   `--installe` prend yt-dlp. Avec ElevenLabs choisi, la ligne whisper-cli dit `option` : leurs
+   hooks passent quand même par whisper ; absent, propose `brew install whisper-cpp` (macOS) sans
+   l'imposer.
+3. Rends la main à la skill qui t'a envoyé (`pret_comptes: true` : yt-dlp est prêt) : elle relance
+   sa commande.
+
 ## Le contrat avec la skill de montage
 
 `~/.config/video-editing/config.json`, toutes les clés facultatives ; sans clé, le montage prend
@@ -263,6 +285,8 @@ Ce que le montage en lit vraiment, et d'où vient chaque valeur :
 | Windows : `python3` ou `python` ouvre le Microsoft Store, ou n'existe pas | `py`, le lanceur de python.org |
 | Windows : winget ne rend pas la main | il attend l'accord sur les conditions : les options `--accept-...` du diagnostic |
 | Windows : whisper-cli ne démarre pas (code 3221225781, « MSVCP140.dll introuvable ») | `winget install Microsoft.VCRedist.2015+.x64`, comme le dit le diagnostic |
+| audit ou outliers : `yt-dlp not found` juste après l'installation | fermer et rouvrir le terminal et Claude Code ; installé par pipx : `pipx ensurepath` d'abord |
+| audit ou outliers : TikTok ne rend plus rien, avec un yt-dlp ancien | `brew upgrade yt-dlp`, `winget upgrade yt-dlp.yt-dlp` ou `pipx upgrade yt-dlp`, puis une seule nouvelle lecture |
 
 ## Le banc
 
