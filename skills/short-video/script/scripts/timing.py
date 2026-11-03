@@ -12,14 +12,9 @@ Dans un script.md, seul le texte à dire compte : les lignes qui commencent par
 entre crochets [ ] est une indication de jeu, pas du texte à dire. Un texte
 sans aucune ligne « > » est compté en entier.
 
-Les deux fins (« ### FIN INSTAGRAM » et « ### FIN TIKTOK ») ont le même créneau :
-une seule joue par vidéo, le total ne compte que la plus longue.
-
 Il signale aussi ce qu'il faut relire : un hook de plus de 4 s, une couture sans
-« mais » ni « donc », une présentation par le prénom, trop de mots appuyés, les
-mots de la liste anti-slop (../references/anti-slop.md, blocs ```slop), et les
-deux fins : « commente » et le mot côté Instagram, le lien court côté TikTok,
-le même mot, sans accent dans le lien.
+« mais » ni « donc », une présentation par le prénom, trop de mots appuyés, et
+les mots de la liste anti-slop (../references/anti-slop.md, blocs ```slop).
 Ce sont des points à relire, pas des fautes : le texte reste à toi.
 
 Python 3, bibliothèque standard seule. N'écrit rien.
@@ -44,9 +39,6 @@ COUTURES = (
 )
 ET_PUIS = ("et puis", "ensuite", "apres ca", "and then", "next", "then")
 SANS_COUTURE = re.compile(r"\b(cta|fin|end|outro|hook|lock)", re.I)
-# les deux fins alternatives : une par plateforme, au même créneau
-FIN_ALTERNATIVE = re.compile(r"\b(fin\s+(instagram|tiktok)|(instagram|tiktok)\s+ending)\b", re.I)
-LIEN_COURT = re.compile(r"\b[\w-]+(?:\.[\w-]+)+/([^\s.,;:!?»\"')]+)")
 PRESENTATION = re.compile(
     r"\bmoi,? c'?est [A-ZÀ-Ý]|\bje m'?appelle\b|\bmy name is\b|\bi'?m [A-Z][a-z]+ and\b")
 
@@ -165,24 +157,13 @@ def main():
     largeur = max(12, *(len(n) for n, _ in blocs)) if blocs else 12
     print(f"débit : {lent:g}-{vite:g} mots/s" if lent != vite else f"débit : {lent:g} mots/s")
     print(f"{'bloc':<{largeur}}  {'mots':>4}  {'durée':>8}  fin vers")
-    total, points, fins, mots_fins = 0, [], None, {}
+    total, points = 0, []
     for i, (nom, brut) in enumerate(blocs):
         propre = [nettoie(l) for l in brut]
         n = sum(len(mots(l)) for l in propre)
-        alt = FIN_ALTERNATIVE.search(nom)
-        if alt:                                   # même créneau que l'autre fin : la plus longue compte
-            debut, longue = fins if fins else (total, 0)
-            fins = (debut, max(longue, n))
-            total, bout = debut + fins[1], debut + n
-            plateforme = "instagram" if "instagram" in nom.lower() else "tiktok"
-            mots_fins[plateforme] = " ".join(propre)
-        else:
-            fins = None
-            total += n
-            bout = total
-        fin = chrono(bout / vite) if lent == vite else f"{chrono(bout / vite)}-{chrono(bout / lent)}"
-        print(f"{nom:<{largeur}}  {n:>4}  {plage(n / vite, n / lent):>8}  {fin}"
-              + ("  (une seule des deux fins joue)" if alt and len(mots_fins) == 2 else ""))
+        total += n
+        fin = chrono(total / vite) if lent == vite else f"{chrono(total / vite)}-{chrono(total / lent)}"
+        print(f"{nom:<{largeur}}  {n:>4}  {plage(n / vite, n / lent):>8}  {fin}")
 
         if i == 0 and n / vite > HOOK_MAX_S:
             points.append(f"hook ≈ {plage(n / vite, n / lent)} ({n} mots) : au-delà de 4 s, "
@@ -213,22 +194,6 @@ def main():
             for terme, motif in slop:
                 if motif.search(norm):
                     points.append(f"anti-slop, à relire : « {terme} » dans « {nom} »")
-
-    ig, tt = mots_fins.get("instagram"), mots_fins.get("tiktok")
-    lien = LIEN_COURT.search(tt) if tt else None
-    if ig is not None and not re.search(r"\bcomment", sans_accents(ig)):
-        points.append("« FIN INSTAGRAM » ne dit pas « commente » : c'est le mot auquel le montage la reconnaît")
-    if tt is not None and not lien:
-        points.append("« FIN TIKTOK » ne dit pas de lien court (domaine/mot) : rien ne répond à un "
-                      "commentaire sur TikTok, le lien se dit")
-    if lien:
-        mot_lien = lien.group(1)
-        if mot_lien != sans_accents(mot_lien):
-            points.append(f"le mot du lien « {mot_lien} » : sans accent et en minuscules "
-                          f"(« {sans_accents(mot_lien)} »)")
-        if ig and sans_accents(mot_lien) not in re.findall(r"[a-z0-9-]+", sans_accents(ig)):
-            points.append(f"le mot du lien « {mot_lien} » n'est pas dans la fin Instagram : le même mot "
-                          "dans les deux fins")
 
     duree = (total / vite, total / lent)
     print(f"{'TOTAL':<{largeur}}  {total:>4}  {plage(*duree):>8}")

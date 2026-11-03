@@ -45,11 +45,10 @@ anything.
 
 | key | what |
 |---|---|
-| `video` | the name (`<name>.mp4` is the video to post; with two endings, `<name>.tiktok.mp4` and `<name>.instagram.mp4`) |
+| `video` | the name (`<name>.mp4` is the video to post) |
 | `clips` | the raw clips, absolute paths, in order |
 | `command` | the exact command of the last edit: run it again, plus the new option, for any change |
 | `final`, `youtube` | the 9:16 to post, the 16:9 when there is one (`null` otherwise) |
-| `finals`, `endings` | two endings filmed (`edit --endings`): one video per platform (`tiktok`, `instagram`; `final` is then `null`), and what each ending says with the link |
 | `duration`, `lang`, `title`, `boards` | the edited length, the language, the title on screen, the boards file |
 | `steps.edit` | `done` (date), `rough` (only the cut) |
 | `steps.publish` | written by `publish`: `kit` (path of `post.md`) or `nadia` (the posts: platform, date, id), and `status` (`kit`, `scheduled`, `posted`) |
@@ -83,9 +82,8 @@ For a video found in step 1, when the user asks for "the next step" or
 The chain, for reference: `setup` (once) → `audit` (your account) →
 `outliers` (your niche) → `script` (`script.md`, with a "Pour le montage"
 block: title, end card, length) → record → `edit` (`<name>.mp4`) → `publish`.
-A `script.md` in the current folder gives `edit` its title (`titre`), end
-card and two endings (`deux fins : --endings <link>`: the TikTok without the
-comment ending, the Instagram without the link one): pass them along.
+A `script.md` in the current folder gives `edit` its title (`titre`) and end
+card: pass them along.
 
 Google Search Console is not a video job: that is the `search-console`
 skill.

@@ -131,14 +131,6 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 | `<nom>.takes.tsv` | chaque morceau de ton rush, gardé ou coupé, avec ce que tu y dis |
 | `<nom>.timeline.json` | les passages gardés et les mots, avec leurs temps dans la vidéo montée ; les vues et les cartons |
 | `<nom>.state.json` | où en est la vidéo : les rushs, la dernière commande, les étapes faites (montage, publication). « reprends ma vidéo » repart de là |
-| `<nom>.tiktok.mp4` · `<nom>.instagram.mp4` | à la place de `<nom>.mp4` quand tu as tourné deux fins (ci-dessous) : une vidéo par plateforme, chacune avec sa fin |
-
-**Deux fins, une par plateforme.** Tu envoies une ressource : sur Instagram, « commente MOT »
-(une automation l'envoie en DM) ; sur TikTok rien ne répond à un commentaire, tu dis ton lien
-court (« va sur ex.so/mot »). Tourne les deux l'une après l'autre, juste avant l'abonnement, un
-silence avant et après chacune, et dis-le : « j'ai tourné les deux fins, le lien c'est
-ex.so/mot ». Claude reconnaît chaque fin à ses mots, ne prend jamais l'une pour une reprise de
-l'autre, et rend la TikTok sans « commente » et l'Instagram sans le lien.
 
 5. **Il reste quelque chose ?** « coupe la phrase sur le prix », « garde la pause après la
    blague », « change le titre », « mets des cartons », « que du plein cadre », « dans les
