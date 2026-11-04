@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "video",
+      "name": "short-video",
       "description": "La vidéo courte seule (TikTok, Instagram Reels, YouTube Shorts), une skill par tâche : video (l'entrée), setup, edit, clips, audit, outliers, script, publish. Monter une vidéo face caméra, découper une longue en shorts, auditer ton compte, écrire, publier.",
       "version": "2.2.0",
       "author": {

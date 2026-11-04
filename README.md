@@ -74,20 +74,20 @@ par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skill
 
 ### Avec le plugin Claude Code
 
-Trois plugins dans le même dépôt : `video` (le pack vidéo courte), `seo` (le pack SEO), `vincent-skills`
+Trois plugins dans le même dépôt : `short-video` (le pack vidéo courte), `seo` (le pack SEO), `vincent-skills`
 (tout). Dans Claude Code :
 
 ```
 /plugin marketplace add vincentventalon/my-claude-skills
-/plugin install video@my-claude-skills
+/plugin install short-video@my-claude-skills
 ```
 
 Pour le SEO seul, `/plugin install seo@my-claude-skills` ; pour tout,
 `/plugin install vincent-skills@my-claude-skills`. Depuis Claude Code 2.1.275, en une ligne :
-`/plugin install video --marketplace vincentventalon/my-claude-skills` (de même pour `seo`).
+`/plugin install short-video --marketplace vincentventalon/my-claude-skills` (de même pour `seo`).
 Depuis un terminal, les mêmes commandes s'écrivent `claude plugin marketplace add …` et
 `claude plugin install …`. Relance Claude Code après l'installation. Les skills apparaissent sous
-le nom du plugin (`/video:edit`).
+le nom du plugin (`/short-video:edit`).
 
 ### À la main
 
@@ -117,7 +117,7 @@ puis copie à nouveau.
 
 ```sh
 claude plugin marketplace update my-claude-skills
-claude plugin update video@my-claude-skills
+claude plugin update short-video@my-claude-skills
 ```
 
 (`seo@my-claude-skills` ou `vincent-skills@my-claude-skills` selon ce que tu as installé), puis
