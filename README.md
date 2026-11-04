@@ -1,21 +1,55 @@
 # my-claude-skills
 
 Les skills Claude Code que j'utilise vraiment, offertes ici : une skill par tâche, rangées en deux
-packs.
-
-| Pack | Pour quoi | Les skills | Guide |
-|---|---|---|---|
-| [`skills/short-video/`](skills/short-video/) | tes vidéos face caméra : TikTok, Reels, Shorts. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `clips`, `publish` | [README du pack vidéo](skills/short-video/README.md) |
-| [`skills/seo/`](skills/seo/) | le SEO de ton site, sans outil payant : l'audit technique, les concurrents, quoi écrire ensuite, le maillage, et ce que dit vraiment ta Search Console. | `seo-audit`, `competitors`, `keywords`, `internal-links`, `search-console` | [README du pack SEO](skills/seo/README.md) |
+packs. Le **pack vidéo**, pour tes vidéos face caméra (TikTok, Reels, Shorts). Le **pack SEO**,
+pour le référencement de ton site. Chaque pack s'installe seul ou avec l'autre, et chaque pack a
+son README.
 
 Pas d'application, pas de serveur, pas d'abonnement. Une skill, c'est un dossier avec un
 `SKILL.md` qui dit à Claude comment travailler, des scripts qui calculent (deux lancements donnent
-le même résultat) et des références. Les scripts tournent sur ton ordinateur : ffmpeg,
-whisper.cpp, Remotion si tu as Node, l'API Google Search Console et tes propres pages. Ce qui part
-ailleurs est toujours dit, et rien ne se publie sans ton « oui ».
+le même résultat) et des références. Les scripts tournent sur ton ordinateur. Ce qui part
+ailleurs est toujours dit, et rien ne se publie sans ton « oui ». Je les utilise pour mes propres
+vidéos et mes propres sites avant de les mettre ici ; une nouvelle arrive chaque mardi avec
+[ma newsletter](https://vincentventalon.com/newsletter).
 
-Je les utilise pour mes propres vidéos et mes propres sites avant de les mettre ici. Une nouvelle
-arrive chaque mardi avec [ma newsletter](https://vincentventalon.com/newsletter).
+## Le pack vidéo : `skills/short-video/`
+
+Tu tournes face caméra, Claude fait le reste : il mesure ce qui marche déjà sur ton compte et ce
+qui explose dans ta niche, écrit le script, monte ton rush en vidéo à publier (coupes, titre,
+cartons, sous-titres mot à mot, 9:16), découpe une longue en shorts, et programme le post. Huit
+skills, une par étape, qui se passent le relais par des fichiers posés dans ton dossier.
+
+```text
+/setup → /audit → /outliers → /script → tu tournes → /edit → /clips → /publish
+                                                    /video : dis ce que tu veux, elle choisit
+```
+
+Tout tourne sur ta machine : ffmpeg pour couper et rendre, whisper.cpp pour le texte (gratuit),
+Remotion pour animer les titres si tu as Node ; yt-dlp lit les comptes sans connexion. En option,
+une clé ElevenLabs pour une transcription plus fidèle, et le connecteur Claude de
+[Nadia](https://usenadia.com) pour programmer tes posts.
+
+→ **[Le README du pack vidéo](skills/short-video/README.md)** : commence ici en trois étapes, les
+huit skills, le parcours, ce que `edit` rend par défaut, ce qu'il faut sur ta machine.
+
+## Le pack SEO : `skills/seo/`
+
+Le référencement de ton site sans outil payant et sans scraper Google : est-ce que Google lit tes
+pages, qui tient la première page sur ta requête, quoi écrire ensuite d'après ta propre Search
+Console, le maillage dans le texte, et ce qui a vraiment bougé cette semaine. Cinq skills, une par
+tâche, qui partagent un dossier `./seo/<site>/` et un journal des changements : ce qu'une skill met
+en ligne, `search-console` le mesure trois semaines après.
+
+```text
+/seo-audit → /competitors → /keywords → tu écris la page → /internal-links → /search-console chaque semaine
+```
+
+Les scripts mesurent (robots.txt, le sitemap, chaque page, l'API Search Console), Claude lit les
+chiffres et juge. Rien n'est modifié sur ton site sans ton « oui », et jamais dans ta Search
+Console. Il faut Python 3, et un accès Google branché une fois.
+
+→ **[Le README du pack SEO](skills/seo/README.md)** : commence ici, les cinq skills, le parcours,
+le journal partagé, mesuré contre jugé.
 
 ## Installer
 
