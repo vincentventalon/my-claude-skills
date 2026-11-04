@@ -72,7 +72,7 @@ décider quoi écrire et quoi corriger.
 
 ## Mettre à jour, signaler un problème
 
-Les commandes de mise à jour et la migration depuis le plugin `search-console` seul : [le README
+Les commandes de mise à jour : [le README
 du dépôt](../../README.md#mettre-à-jour). Une panne d'accès Google : la table du
 [guide de `search-console`](search-console/README.md#pannes-courantes), sinon une
 [issue](https://github.com/vincentventalon/my-claude-skills/issues) avec le nom de la skill, ton

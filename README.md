@@ -124,29 +124,6 @@ claude plugin update video@my-claude-skills
 relance Claude Code. Tes réglages (`~/.config/video-editing/`, `./seo/`) vivent en dehors des
 skills : une mise à jour n'y touche pas.
 
-### Installé avant novembre 2026 ?
-
-Le dépôt avait deux plugins, `video-editing` (avec les skills `video-editing`, `setup`,
-`insta-audit`) et `search-console`. `video-editing` est remplacé par `video` :
-`video-editing` s'appelle maintenant `edit`, `insta-audit` s'appelle `audit`. Retire l'ancien,
-puis installe le nouveau :
-
-```sh
-claude plugin marketplace update my-claude-skills
-claude plugin uninstall video-editing@my-claude-skills
-claude plugin install video@my-claude-skills
-```
-
-(ou `/plugin uninstall video-editing@my-claude-skills` dans Claude Code). Installé le plugin
-`search-console` ? Il reste installable, mais `seo` le contient avec quatre skills de plus :
-`claude plugin uninstall search-console@my-claude-skills` puis
-`claude plugin install seo@my-claude-skills` (les deux à la fois donneraient la skill en double ;
-pour la garder seule quand même : `/plugin install search-console --marketplace vincentventalon/my-claude-skills`).
-Tes données dans `./seo/` ne bougent pas. Installé `vincent-skills` début novembre ?
-`claude plugin update vincent-skills@my-claude-skills` ajoute les skills SEO. Copiées à la main ?
-Supprime `~/.claude/skills/video-editing` et `~/.claude/skills/insta-audit`, puis installe avec
-`npx skills`. Ta configuration (`~/.config/video-editing/`) ne bouge pas : rien à refaire.
-
 ## Ce qu'il n'y a pas ici
 
 - La relecture dans le navigateur, le split réglé sur ton propre cadrage, les scènes mesurées sur

@@ -102,7 +102,7 @@ vidéo et ses textes vers Nadia quand tu publies avec elle. Rien ne se publie sa
 
 ## Mettre à jour, signaler un problème
 
-Les commandes de mise à jour et la migration depuis l'ancien plugin `video-editing` : [le README
+Les commandes de mise à jour : [le README
 du dépôt](../../README.md#mettre-à-jour). Une panne : la table des pannes courantes du
 [guide de `edit`](edit/README.md#problèmes-fréquents), sinon une
 [issue](https://github.com/vincentventalon/my-claude-skills/issues) avec le nom de la skill, ton
