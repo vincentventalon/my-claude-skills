@@ -1,9 +1,12 @@
 # my-claude-skills
 
 Les skills Claude Code que j'utilise vraiment, offertes ici : une skill par tâche, rangées en deux
-packs. Le **pack vidéo**, pour tes vidéos face caméra (TikTok, Reels, Shorts). Le **pack SEO**,
-pour le référencement de ton site. Chaque pack s'installe seul ou avec l'autre, et chaque pack a
-son README.
+packs. Chaque pack s'installe seul ou avec l'autre, et chaque pack a son README.
+
+| Pack | Pour quoi | Les skills | Guide |
+|---|---|---|---|
+| [`skills/short-video/`](skills/short-video/) | tes vidéos face caméra : TikTok, Reels, Shorts. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `clips`, `publish` | [README du pack vidéo](skills/short-video/README.md) |
+| [`skills/seo/`](skills/seo/) | le SEO de ton site, sans outil payant : l'audit technique, les concurrents, quoi écrire ensuite, le maillage, et ce que dit vraiment ta Search Console. | `seo-audit`, `competitors`, `keywords`, `internal-links`, `search-console` | [README du pack SEO](skills/seo/README.md) |
 
 Pas d'application, pas de serveur, pas d'abonnement. Une skill, c'est un dossier avec un
 `SKILL.md` qui dit à Claude comment travailler, des scripts qui calculent (deux lancements donnent
