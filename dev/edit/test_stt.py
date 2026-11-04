@@ -22,14 +22,14 @@ zero-length word). They check that:
 --replay serves any recorded answer the same way (until Ctrl-C), for an
 end-to-end run of edit_video.py --stt elevenlabs on a real clip:
     VIDEO_EDITING_SCRIBE_URL=http://127.0.0.1:PORT/v1/speech-to-text \\
-    ELEVENLABS_API_KEY=test python skills/short-video/edit/scripts/edit_video.py clip.mp4 --stt elevenlabs
+    ELEVENLABS_API_KEY=test python skills/short-video/edit-my-video/scripts/edit_video.py clip.mp4 --stt elevenlabs
 (a cached answer is never asked again: delete ~/.cache/video-editing/elevenlabs/
 to replay a new one for the same clip).
 """
 import argparse, http.server, json, math, os, struct, sys, tempfile, threading, wave
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SCRIPTS = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'skills', 'short-video', 'edit', 'scripts')
+SCRIPTS = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'skills', 'short-video', 'edit-my-video', 'scripts')
 FIXTURE = os.path.join(HERE, 'fixtures', 'scribe-answer.json')
 KEY = 'test-key-not-a-real-one'
 
