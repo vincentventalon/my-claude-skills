@@ -37,7 +37,7 @@ Dans un terminal, dans le dossier de ton projet :
 npx skills add vincentventalon/my-claude-skills -a claude-code
 ```
 
-(ou le plugin Claude Code : [le README du dépôt](../../README.md#installer)), puis, dans Claude Code,
+(ou le plugin Claude Code : [le README du dépôt](../../../README.md#installer)), puis, dans Claude Code,
 dis **« installe la skill vidéo »** (ou `/setup`).
 
 Claude regarde ce qui est installé sur ta machine, te pose cinq questions (whisper ou ElevenLabs,
@@ -209,7 +209,7 @@ prêt à poster (`post.md` : titre, descriptions, hashtags, couverture, où cliq
 ## Mettre à jour
 
 Installé avec `npx skills` : `npx skills update`. Avec le plugin Claude Code : les commandes du
-[README du dépôt](../../README.md#mettre-à-jour), puis relance Claude Code. Ta configuration (`~/.config/video-editing/`) vit en dehors des skills : une mise à jour n'y
+[README du dépôt](../../../README.md#mettre-à-jour), puis relance Claude Code. Ta configuration (`~/.config/video-editing/`) vit en dehors des skills : une mise à jour n'y
 touche pas. Après une mise à jour, « vérifie l'installation du montage » refait le diagnostic.
 
 ## Pour qui maintient ce dépôt

@@ -5,7 +5,7 @@ packs. Chaque pack s'installe seul ou avec l'autre, et chaque pack a son README.
 
 | Pack | Pour quoi | Les skills | Guide |
 |---|---|---|---|
-| [`skills/short-video/`](skills/short-video/) | tes vidéos face caméra : TikTok, Reels, Shorts. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `clips`, `publish` | [README du pack vidéo](skills/short-video/README.md) |
+| [`skills/short-video/`](skills/short-video/) | la vidéo courte face caméra : TikTok, Instagram Reels, YouTube Shorts. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `clips`, `publish` | [README du pack vidéo courte](skills/short-video/README.md) |
 | [`skills/seo/`](skills/seo/) | le SEO de ton site, sans outil payant : l'audit technique, les concurrents, quoi écrire ensuite, le maillage, et ce que dit vraiment ta Search Console. | `seo-audit`, `competitors`, `keywords`, `internal-links`, `search-console` | [README du pack SEO](skills/seo/README.md) |
 
 Pas d'application, pas de serveur, pas d'abonnement. Une skill, c'est un dossier avec un
@@ -15,11 +15,11 @@ ailleurs est toujours dit, et rien ne se publie sans ton « oui ». Je les utili
 vidéos et mes propres sites avant de les mettre ici ; une nouvelle arrive chaque mardi avec
 [ma newsletter](https://vincentventalon.com/newsletter).
 
-## Le pack vidéo : `skills/short-video/`
+## Le pack vidéo courte : `skills/short-video/`
 
-Tu tournes face caméra, Claude fait le reste : il mesure ce qui marche déjà sur ton compte et ce
+Pour TikTok, Instagram Reels et YouTube Shorts. Tu tournes face caméra, Claude fait le reste : il mesure ce qui marche déjà sur ton compte et ce
 qui explose dans ta niche, écrit le script, monte ton rush en vidéo à publier (coupes, titre,
-cartons, sous-titres mot à mot, 9:16), découpe une longue en shorts, et programme le post. Huit
+cartons, sous-titres mot à mot, 9:16), découpe une longue en shorts, et programme le post sur les trois plateformes. Huit
 skills, une par étape, qui se passent le relais par des fichiers posés dans ton dossier.
 
 ```text
@@ -32,8 +32,8 @@ Remotion pour animer les titres si tu as Node ; yt-dlp lit les comptes sans conn
 une clé ElevenLabs pour une transcription plus fidèle, et le connecteur Claude de
 [Nadia](https://usenadia.com) pour programmer tes posts.
 
-→ **[Le README du pack vidéo](skills/short-video/README.md)** : commence ici en trois étapes, les
-huit skills, le parcours, ce que `edit` rend par défaut, ce qu'il faut sur ta machine.
+→ **[Le README du pack vidéo courte](skills/short-video/README.md)** : les huit skills, le parcours,
+ce que `edit` rend par défaut, puis l'installation et ce qu'il faut sur ta machine.
 
 ## Le pack SEO : `skills/seo/`
 
@@ -51,8 +51,8 @@ Les scripts mesurent (robots.txt, le sitemap, chaque page, l'API Search Console)
 chiffres et juge. Rien n'est modifié sur ton site sans ton « oui », et jamais dans ta Search
 Console. Il faut Python 3, et un accès Google branché une fois.
 
-→ **[Le README du pack SEO](skills/seo/README.md)** : commence ici, les cinq skills, le parcours,
-le journal partagé, mesuré contre jugé.
+→ **[Le README du pack SEO](skills/seo/README.md)** : les cinq skills, le parcours, le journal
+partagé, mesuré contre jugé, puis l'installation et l'accès Google.
 
 ## Installer
 
@@ -74,7 +74,7 @@ par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skill
 
 ### Avec le plugin Claude Code
 
-Trois plugins dans le même dépôt : `video` (le pack vidéo), `seo` (le pack SEO), `vincent-skills`
+Trois plugins dans le même dépôt : `video` (le pack vidéo courte), `seo` (le pack SEO), `vincent-skills`
 (tout). Dans Claude Code :
 
 ```
@@ -136,7 +136,7 @@ skills : une mise à jour n'y touche pas.
 
 ```text
 skills/
-  short-video/   le pack vidéo : README.md, puis un dossier par skill
+  short-video/   le pack vidéo courte : README.md, puis un dossier par skill
   seo/           le pack SEO : README.md, puis un dossier par skill
 .claude-plugin/  le marketplace Claude Code (les trois plugins)
 dev/             les tests et les outils du dépôt, rien n'en est installé
@@ -163,7 +163,7 @@ claude plugin validate . --strict
 ## In English
 
 Free Claude Code skills in two packs: [short video](skills/short-video/README.md) (script, edit
-and publish talking-head videos for TikTok, Reels and Shorts, cut a long video into shorts, audit
+and publish talking-head videos for TikTok, Instagram Reels and YouTube Shorts, cut a long video into shorts, audit
 your own account) and [SEO](skills/seo/README.md) (technical audit, competitors, keywords,
 internal links, Search Console), one skill per job. Install with
 `npx skills add vincentventalon/my-claude-skills -a claude-code`. `video`, `edit`, `clips`,

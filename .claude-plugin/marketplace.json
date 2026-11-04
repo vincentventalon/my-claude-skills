@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "my-claude-skills",
-  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment sur ses vidéos et ses sites, rangées par catégorie : skills/short-video/ (huit skills) et skills/seo/ (cinq skills). Trois plugins : video (la vidéo seule), seo (le SEO seul), vincent-skills (tout).",
+  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment, en deux packs : skills/short-video/ (huit skills pour la vidéo courte : TikTok, Instagram Reels, YouTube Shorts) et skills/seo/ (cinq skills SEO). Trois plugins : video (la vidéo courte seule), seo (le SEO seul), vincent-skills (tout).",
   "owner": {
     "name": "Vincent Ventalon"
   },
   "plugins": [
     {
       "name": "video",
-      "description": "La vidéo seule, une skill par tâche : video (l'entrée), setup, edit, clips, audit, outliers, script, publish. Monter une vidéo face caméra, découper une longue en shorts, auditer ton compte, écrire, publier.",
+      "description": "La vidéo courte seule (TikTok, Instagram Reels, YouTube Shorts), une skill par tâche : video (l'entrée), setup, edit, clips, audit, outliers, script, publish. Monter une vidéo face caméra, découper une longue en shorts, auditer ton compte, écrire, publier.",
       "version": "2.2.0",
       "author": {
         "name": "Vincent Ventalon"
@@ -19,35 +19,18 @@
       "license": "MIT",
       "keywords": [
         "video",
+        "short-video",
         "editing",
         "tiktok",
         "instagram",
         "reels",
+        "youtube",
         "shorts",
         "subtitles",
         "whisper"
       ],
       "skills": [
         "./skills/short-video/"
-      ]
-    },
-    {
-      "name": "search-console",
-      "description": "La lecture seule de Search Console. Contenue dans le plugin seo (cinq skills SEO) : installe seo plutôt que celui-ci.",
-      "version": "1.1.1",
-      "author": {
-        "name": "Vincent Ventalon"
-      },
-      "source": "./",
-      "category": "seo",
-      "homepage": "https://github.com/vincentventalon/my-claude-skills",
-      "license": "MIT",
-      "keywords": [
-        "seo",
-        "search-console"
-      ],
-      "skills": [
-        "./skills/seo/search-console"
       ]
     },
     {
@@ -75,7 +58,7 @@
     },
     {
       "name": "vincent-skills",
-      "description": "Tout : les huit skills vidéo (video, setup, edit, clips, audit, outliers, script, publish) et les cinq skills SEO (seo-audit, competitors, keywords, internal-links, search-console).",
+      "description": "Tout : les huit skills vidéo courte (video, setup, edit, clips, audit, outliers, script, publish) et les cinq skills SEO (seo-audit, competitors, keywords, internal-links, search-console).",
       "version": "2.4.0",
       "author": {
         "name": "Vincent Ventalon"

@@ -9,19 +9,6 @@ site sans ton « oui », et jamais dans ta Search Console.
 *Les cinq skills sont écrites en français ; elles comprennent les demandes en anglais (« SEO audit
 of my site », « what should I write next? »). This guide is in French.*
 
-## Commence ici
-
-1. **Installe** le pack ([les trois façons, dans le README du dépôt](../../README.md#installer)).
-   Il faut Python 3, rien d'autre côté Python. Node est facultatif : avec lui, `seo-audit` passe
-   Lighthouse.
-2. **Branche ton accès Google**, une fois, dix minutes : une propriété Search Console de type
-   Domaine, le Google Cloud CLI, une connexion avec ton compte. Pas à pas dans
-   [le guide de `search-console`](search-console/README.md#brancher-ton-accès-google-une-fois-dix-minutes).
-   Les quatre autres skills s'en servent aussi, et marchent sans en disant ce qu'elles n'ont pas
-   pu lire.
-3. Dis à Claude **« fais-moi un audit SEO de monsite.com »** : la première chose à savoir sur un
-   site, surtout un site neuf, c'est si Google arrive à le lire.
-
 ## Les skills
 
 | Skill | Ce qu'elle fait |
@@ -69,6 +56,20 @@ Pas de volume de recherche acheté à un outil tiers, pas de suivi de position p
 Google, pas de netlinking. Ce que Google te dit lui-même (Search Console, ses suggestions,
 l'inspection d'URL) et ce que tes pages et celles des concurrents contiennent suffisent pour
 décider quoi écrire et quoi corriger.
+
+## Installer
+
+Le pack s'installe seul ou avec le pack vidéo courte, de trois façons (npx skills, le plugin Claude
+Code `seo`, à la main) : [le README du dépôt](../../README.md#installer). Il faut Python 3, rien
+d'autre côté Python. Node est facultatif : avec lui, `seo-audit` passe Lighthouse. Puis :
+
+1. **Branche ton accès Google**, une fois, dix minutes : une propriété Search Console de type
+   Domaine, le Google Cloud CLI, une connexion avec ton compte. Pas à pas dans
+   [le guide de `search-console`](search-console/README.md#brancher-ton-accès-google-une-fois-dix-minutes).
+   Les quatre autres skills s'en servent aussi, et marchent sans en disant ce qu'elles n'ont pas
+   pu lire.
+2. Dis à Claude **« fais-moi un audit SEO de monsite.com »** : la première chose à savoir sur un
+   site, surtout un site neuf, c'est si Google arrive à le lire.
 
 ## Mettre à jour, signaler un problème
 
