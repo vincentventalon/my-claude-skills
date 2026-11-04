@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit your own TikTok or Instagram account: what works, measured.
+"""Audit your own TikTok account: what works, measured.
 
     python3 audit.py @your_account --platform tiktok -n 30 --followers 1200 --lang fr
 
@@ -13,10 +13,10 @@ One anonymous pass (yt-dlp, no cookies, no login, no password):
      the length that works, the cadence, the hooks of the 5 best against the
      5 worst, the hashtags, the videos that make people comment.
 
-Instagram does not let an anonymous reader list a profile (yt-dlp itself
-marks that reader as broken): the script says so, does not insist, and the
-manual way takes over: --csv FILE, your own numbers (an export, or typed),
-see references/manual.md.
+TikTok only. Instagram does not let a visitor read a profile (yt-dlp itself
+marks that reader as broken): an Instagram account is refused at once, never
+tried. When TikTok refuses the list, the manual way takes over: --csv FILE,
+your own numbers (an export, or typed), see references/manual.md.
 
 Writes ./audit-<account>-<date>/: catalogue.csv, hooks.tsv, chiffres.json,
 images/ (3 frames of the first 3 seconds of each video) and AUDIT.md: every
@@ -70,10 +70,10 @@ def die(msg, code=2):
 
 
 # --- arguments ---------------------------------------------------------------
-ap = argparse.ArgumentParser(description='Audit your own TikTok or Instagram account.')
+ap = argparse.ArgumentParser(description='Audit your own TikTok account (TikTok only).')
 ap.add_argument('account', help='@your_account, or the profile link')
-ap.add_argument('--platform', choices=['tiktok', 'instagram'],
-                help='found from the link; required with a bare @account')
+ap.add_argument('--platform', default='tiktok',
+                help='tiktok, the only platform this script reads (kept for older commands)')
 ap.add_argument('-n', '--count', type=int, default=30, help=f'last N videos (default 30, max {MAX_N})')
 ap.add_argument('--followers', type=int, help='follower count, read by the user in their app')
 ap.add_argument('--csv', help='manual way: a CSV of your own numbers (references/manual.md)')
@@ -129,19 +129,20 @@ def parse_account(s, platform):
     m = re.search(r'tiktok\.com/@([\w.\-]+)', s)
     if m:
         return m.group(1), 'tiktok'
-    m = re.search(r'instagram\.com/([\w.\-]+)', s)
-    if m and m.group(1).lower() not in ('p', 'reel', 'reels', 'tv', 'stories', 'explore'):
-        return m.group(1), 'instagram'
+    if 'instagram.com' in s.lower() or (platform or '').lower() in ('instagram', 'insta', 'ig'):
+        die('This skill reads TikTok only. Instagram does not let a visitor read a profile '
+            '(yt-dlp itself marks that reader as broken), so it is not tried.\n'
+            '  Give your TikTok account: @your_account or https://www.tiktok.com/@your_account')
+    if (platform or 'tiktok').lower() not in ('tiktok', 'tt'):
+        die(f'Unknown platform "{platform}": this skill reads TikTok only.')
     h = s.lstrip('@').strip('/')
     if not re.fullmatch(r'[\w.\-]+', h):
-        die(f'"{s}" is not an account: give @your_account or the profile link.')
-    if not platform:
-        die('TikTok or Instagram? Pass --platform tiktok or --platform instagram.')
-    return h, platform
+        die(f'"{s}" is not an account: give @your_account or your TikTok profile link.')
+    return h, 'tiktok'
 
 
 HANDLE, PLATFORM = parse_account(args.account, args.platform)
-PLAT = {'tiktok': 'TikTok', 'instagram': 'Instagram'}[PLATFORM]
+PLAT = 'TikTok'
 NOW = time.time()
 TODAY = local(NOW).strftime('%Y-%m-%d')
 OUT = Path(args.out).expanduser() / f'audit-{HANDLE}-{TODAY}'
@@ -258,10 +259,7 @@ def fetch_listing():
     if cache.exists() and not args.refresh:
         say(f'listing reused: {cache} (--refresh to read it again)')
         return json.loads(cache.read_text(encoding='utf-8'))
-    if PLATFORM == 'tiktok':
-        url, extra = f'https://www.tiktok.com/@{HANDLE}', 3      # up to 3 pinned videos come first
-    else:
-        url, extra = f'https://www.instagram.com/{HANDLE}/', 0
+    url, extra = f'https://www.tiktok.com/@{HANDLE}', 3      # up to 3 pinned videos come first
     say(f'reading the profile once, anonymously: {url}')
     r = subprocess.run([ytdlp(), '--flat-playlist', '-J', '--playlist-end', str(args.count + extra),
                         '--socket-timeout', '30', '--no-warnings', url],
@@ -274,12 +272,6 @@ def fetch_listing():
             entries = []
     if not entries:
         err = next((l for l in reversed((r.stderr or '').splitlines()) if l.strip()), 'no video returned')
-        if PLATFORM == 'instagram':
-            die(f'BLOCKED: Instagram did not let an anonymous reader list @{HANDLE}.\n'
-                f'  yt-dlp: {err}\n'
-                '  Not retried: insisting gets the network blocked, not the data.\n'
-                '  Manual way: your numbers in a CSV (export or typed), then the same command with '
-                '--csv FILE. See references/manual.md.', 3)
         die(f'TikTok returned nothing for @{HANDLE}.\n  yt-dlp: {err}\n'
             '  Check the account name and that the account is public. An old yt-dlp breaks often: '
             '`yt-dlp -U` (or `brew upgrade yt-dlp`), then run again once. Still nothing: --csv '
@@ -289,8 +281,7 @@ def fetch_listing():
         vid = str(e.get('id') or '')
         link = e.get('url') or e.get('webpage_url') or ''
         if not str(link).startswith('http'):
-            link = (f'https://www.tiktok.com/@{HANDLE}/short-video/{vid}' if PLATFORM == 'tiktok'
-                    else f'https://www.instagram.com/reel/{vid}/')
+            link = f'https://www.tiktok.com/@{HANDLE}/video/{vid}'
         out.append(video(vid, link, e.get('timestamp'), num(e.get('duration')),
                          num(e.get('view_count')), num(e.get('like_count')), num(e.get('comment_count')),
                          num(e.get('repost_count')), num(e.get('save_count')),

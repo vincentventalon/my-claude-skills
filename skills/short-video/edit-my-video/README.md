@@ -16,7 +16,7 @@ Tu tournes face caméra, tu donnes tes rushs à Claude, il te rend la vidéo à 
   propose à partir de ce que tu dis.
 - En 9:16 pour TikTok, Reels et Shorts ; aussi en 16:9 pour YouTube quand tu as filmé à l'horizontale.
 - Claude relit ensuite les prises comme un monteur. Ce qui reste à couper, tu le lui dis avec tes mots.
-- Avant de monter, la skill `audit-my-account` mesure ce qui marche déjà sur ton compte TikTok ou Instagram.
+- Avant de monter, la skill `audit-my-account` mesure ce qui marche déjà sur ton compte TikTok.
 
 ```
 toi     monte ma vidéo, les rushs sont dans Téléchargements, titre « Mon *gros* conseil »
@@ -172,10 +172,10 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 
 ## Auditer ton compte avant de monter
 
-La skill `audit-my-account` mesure ce qui marche déjà sur ton compte TikTok ou Instagram, sur tes propres
+La skill `audit-my-account` mesure ce qui marche déjà sur ton compte TikTok (TikTok seulement), sur tes propres
 vidéos, sans connexion, et écrit `AUDIT.md` avec un bloc « Pour le montage ». Au montage suivant,
 Claude relit ce bloc pour te proposer le titre et la durée à viser. Dis « audite mon compte
-Instagram » ou colle le lien de ton profil ; le détail est dans [sa SKILL.md](../audit-my-account/SKILL.md).
+TikTok » ou colle le lien de ton profil ; le détail est dans [sa SKILL.md](../audit-my-account/SKILL.md).
 
 ## Ce que ça ne fait pas, et où c'est
 

@@ -82,7 +82,7 @@ video found in step 1, the state answers:
 | to install, tools, whisper or ElevenLabs, a missing ffmpeg or yt-dlp, "les sous-titres ne s'incrustent pas", a setting (language, output folder) | `set-up-video-tools` |
 | clips edited, "monte", "coupe", subtitles, title, boards, "plein cadre", "split", a change on a video already edited ("garde la pause", "c'est cloud pas clown") | `edit-my-video` (asked before any setup: `set-up-video-tools` first) |
 | a long video cut into shorts: a YouTube link, a podcast, "découpe ma vidéo en shorts", "repurpose", "clips from my video" | `cut-long-video-into-shorts` (it edits each clip with `edit-my-video`) |
-| to know what works on their own TikTok or Instagram, their profile link | `audit-my-account` |
+| to know what works on their own TikTok, their profile link (TikTok only: an Instagram account is told so) | `audit-my-account` |
 | to know what blew up on other accounts, "ideas to remake", an @account to dig | `find-outliers-in-my-niche` |
 | a script, a hook, a topic or an anecdote to turn into a video | `write-my-script` |
 | to post or schedule, "publie-la", "mets-la en ligne", a caption, hashtags | `publish-my-video` |

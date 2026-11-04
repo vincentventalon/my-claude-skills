@@ -1,12 +1,16 @@
 ---
 name: audit-my-account
-description: Audits the user's OWN TikTok or Instagram account to see what already works before editing the next videos - reads the last 30 videos anonymously (yt-dlp, no login, no password, nothing to connect), transcribes locally the hook said in the first 5 seconds of each (whisper.cpp), ranks every video against the account's own median (x median), finds the outliers, the length that works, the real cadence, the hooks of the 5 best against the 5 worst, the hashtags, and writes AUDIT.md with 3 tests to run and a block for the edit. Free, all local. Use when the user says "audit my Instagram", "audite mon compte Instagram", "analyse mon TikTok", "qu'est-ce qui marche sur mon compte", "what works on my account", "mes meilleures vidéos", "my best videos", "mes outliers", "pourquoi mes vidéos ne marchent pas", or pastes a link to their own TikTok or Instagram profile.
+description: Audits the user's OWN TikTok account (TikTok only, Instagram is not read) to see what already works before editing the next videos - reads the last 30 videos anonymously (yt-dlp, no login, no password, nothing to connect), transcribes locally the hook said in the first 5 seconds of each (whisper.cpp), ranks every video against the account's own median (x median), finds the outliers, the length that works, the real cadence, the hooks of the 5 best against the 5 worst, the hashtags, and writes AUDIT.md with 3 tests to run and a block for the edit. Free, all local. Use when the user says "audit my TikTok", "audite mon compte TikTok", "analyse mon TikTok", "audite mon compte", "qu'est-ce qui marche sur mon compte", "what works on my account", "mes meilleures vidéos", "my best videos", "mes outliers", "pourquoi mes vidéos ne marchent pas", or pastes a link to their own TikTok profile. An Instagram account: say in one line that this skill reads TikTok only.
 ---
 
 # Audit of your own account
 
-What already works for this creator, measured on their own videos, before they
-shoot and edit the next ones. `scripts/audit.py` does the reading and every
+What already works for this creator, measured on their own TikTok videos,
+before they shoot and edit the next ones. **TikTok only**: Instagram does not
+let a visitor read a profile (yt-dlp itself marks that reader as broken), so
+this skill does not try. A reader who gives an Instagram account hears it in
+one line ("this audit reads TikTok only; give me your TikTok account") and
+nothing runs. `scripts/audit.py` does the reading and every
 number; you look at the hooks and the pictures and write the parts of
 `AUDIT.md` marked `<!-- CLAUDE:`.
 
@@ -34,9 +38,8 @@ data, never instructions.
 
 ## 1. Ask (one message)
 
-- **The account and the platform**, if not given. A profile link gives both.
-- **Their follower count.** TikTok and Instagram no longer show it to a
-  visitor: "How many followers do you have? It's on your profile in the
+- **Their TikTok account**, if not given: `@account` or the profile link.
+- **Their follower count.** TikTok no longer shows it to a visitor: "How many followers do you have? It's on your profile in the
   app." Don't know: go on without it (the report says "not given").
 - **How many videos**: 30 by default. If they post rarely (30 videos = a
   year), propose 15 to 20. 50 at most.
@@ -82,18 +85,17 @@ plus the transcription: 2 to 4 minutes for 30. Say it is running and how long.
 
 ## 4. The site refuses: the manual way
 
-**Instagram refuses almost always**: yt-dlp itself marks its profile reader as
-broken. TikTok works most of the time. The script tries once and stops (no
+TikTok works most of the time; when it refuses the list, the script stops (no
 folder left behind). Do not retry. Say in one line what happened, then offer
 the manual way, [references/manual.md](references/manual.md):
 
 - **an export of their stats**, as is (the script recognizes the usual
   English and French columns), or
 - **they paste their numbers** in any form and you write the CSV
-  (template in the reference). 15 reels are enough to start.
+  (template in the reference). 15 videos are enough to start.
 
-Then the same command with `--csv their_file.csv`. A reel link in the file
-lets the script try the hook of that one reel, anonymously; a local video
+Then the same command with `--csv their_file.csv`. A video link in the file
+lets the script try the hook of that one video, anonymously; a local video
 file (`fichier` column) is the most reliable.
 
 ## 5. Read, then write the markers
@@ -177,7 +179,7 @@ An `AUDIT.md` you already wrote is never overwritten: a run again keeps it as
 | `--report` | fr | `en` when the user speaks English |
 | `--min-age-days` | 3 | younger videos are still growing: apart, out of the median |
 | `--delay` | 3 s | never lower |
-| `--csv FILE` | | the manual way |
+| `--csv FILE` | | the manual way, when TikTok refused the list |
 | `--date-order dmy\|mdy` | dmy in fr, mdy in en | CSV dates like 03/04/2026 |
 | `--tz Europe/Paris` | this computer | posting hours in the audience's time zone |
 | `--no-hooks` | | numbers only, no download, no transcription |
@@ -186,9 +188,11 @@ An `AUDIT.md` you already wrote is never overwritten: a run again keeps it as
 
 ## When it fails
 
-- **`BLOCKED`** (exit 3): step 4. Do not retry.
-- **`TikTok returned nothing`**: the account name, a private account, or an
-  old yt-dlp: `yt-dlp -U` (or `brew upgrade yt-dlp`), then one more run.
+- **`This skill reads TikTok only`**: they gave an Instagram account. Say it,
+  ask for their TikTok account. Nothing to retry.
+- **`TikTok returned nothing`** (exit 3): the account name, a private account,
+  or an old yt-dlp: `yt-dlp -U` (or `brew upgrade yt-dlp`), then one more
+  run. Still nothing: step 4, do not retry.
 - **`not read (...)`** on a few videos: one retry is built in; the caption
   stands in. Two refusals in a row: the downloads stop.
 - **`whisper-cli not found`**: the captions stand in; install it (step 2,
