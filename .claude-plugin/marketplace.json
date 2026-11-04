@@ -9,7 +9,7 @@
     {
       "name": "short-video",
       "description": "La vidéo courte seule (TikTok, Instagram Reels, YouTube Shorts), une skill par tâche : video (l'entrée), setup, edit, clips, audit, outliers, script, publish. Monter une vidéo face caméra, découper une longue en shorts, auditer ton compte, écrire, publier.",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -59,7 +59,7 @@
     {
       "name": "vincent-skills",
       "description": "Tout : les huit skills vidéo courte (video, setup, edit, clips, audit, outliers, script, publish) et les cinq skills SEO (seo-audit, competitors, keywords, internal-links, search-console).",
-      "version": "2.4.0",
+      "version": "2.4.1",
       "author": {
         "name": "Vincent Ventalon"
       },
