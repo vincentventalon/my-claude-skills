@@ -9,7 +9,7 @@
     {
       "name": "short-video",
       "description": "La vidéo courte seule (TikTok, Instagram Reels), une skill par tâche : short-video (l'entrée), set-up-video-tools, edit-my-video, cut-long-video-into-shorts, audit-my-account, find-outliers-in-my-niche, write-my-script, publish-my-video.",
-      "version": "3.3.0",
+      "version": "3.4.1",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -57,7 +57,7 @@
     {
       "name": "vincent-skills",
       "description": "Tout : les huit skills vidéo courte (short-video, set-up-video-tools, edit-my-video, cut-long-video-into-shorts, audit-my-account, find-outliers-in-my-niche, write-my-script, publish-my-video) et les cinq skills SEO (audit-my-site-seo, analyze-my-competitors, find-keywords-to-write, improve-my-internal-links, read-my-search-console).",
-      "version": "3.3.0",
+      "version": "3.4.1",
       "author": {
         "name": "Vincent Ventalon"
       },
