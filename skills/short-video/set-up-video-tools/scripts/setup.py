@@ -8,7 +8,7 @@ Diagnostic, configuration, installations.
                      --sous-titres oui --remotion non
                                          # écrit ~/.config/video-editing/config.json (fusionné avec
                                          # l'existant) et crée le dossier de sortie
-    python3 setup.py --ecris --police Anton --couleur jaune
+    python3 setup.py --ecris --police "Montserrat Black" --couleur jaune
                                          # la police et la couleur du mot dit : seulement les clés qui
                                          # changent, dans ~/.config/video-editing/style.json
     pbpaste | python3 setup.py --cle-elevenlabs-stdin
@@ -99,9 +99,9 @@ LECTEURS = ("audit-my-account", "find-outliers-in-my-niche")
 # Un .exe qui ne démarre pas faute de DLL (0xC0000135, 0xC0000139, 0xC000007B), signé ou non selon Python.
 DLL_MANQUANTE = {3221225781, 3221225785, 3221225595, -1073741515, -1073741511, -1073741701}
 
-# Le style : les deux polices livrées avec le montage (edit-my-video/fonts/), les couleurs proposées.
+# Le style : la police livrée avec le montage (edit-my-video/fonts/), les couleurs proposées.
 POLICE_DEFAUT = "Inter ExtraBold"
-POLICES_LIVREES = {"inter extrabold": "Inter ExtraBold", "inter": "Inter ExtraBold", "anton": "Anton"}
+POLICES_LIVREES = {"inter extrabold": "Inter ExtraBold", "inter": "Inter ExtraBold"}
 COULEUR_DEFAUT = "#3DDC97"
 COULEURS = {"menthe": "#3DDC97", "jaune": "#FFD23F", "orange": "#FF8C42", "rose": "#FF5DA2", "bleu": "#4DA3FF"}
 COULEURS_EN = {"mint": "menthe", "green": "menthe", "vert": "menthe", "yellow": "jaune", "pink": "rose", "blue": "bleu"}
@@ -1083,7 +1083,7 @@ def noms_police(chemin) -> list:
 
 def nom_de_fichier(chemin) -> str | None:
     """Le nom à écrire dans `font` pour un fichier de police : sa famille quand c'est la graisse
-    normale (Anton), sinon son nom complet (Montserrat Bold), que libass et Remotion retrouvent."""
+    normale (Impact), sinon son nom complet (Montserrat Bold), que libass et Remotion retrouvent."""
     for d in noms_police(chemin)[:1]:
         if d.get(1) and d.get(2, "Regular") in ("Regular", "Normal"):
             return d[1]
@@ -1112,7 +1112,7 @@ def cherche_police(s: Sonde, nom: str) -> str | None:
 def police(v: str) -> str:
     v = v.strip().strip('"').strip("'")
     if not v:
-        raise argparse.ArgumentTypeError("Inter ExtraBold, Anton, le nom d'une police installée ou un fichier .ttf / .otf")
+        raise argparse.ArgumentTypeError("Inter ExtraBold, le nom d'une police installée ou un fichier .ttf / .otf")
     return v
 
 
@@ -1499,7 +1499,7 @@ def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> i
     ap.add_argument("--sous-titres", dest="sous_titres", type=oui_non, help="sous-titres incrustés : oui ou non")
     ap.add_argument("--remotion", type=oui_non, help="finition Remotion (Node) : oui ou non")
     ap.add_argument("--police", type=police, metavar="POLICE",
-                    help=f"sous-titres et titre : {POLICE_DEFAUT} (défaut), Anton, le nom d'une police installée, "
+                    help=f"sous-titres et titre : {POLICE_DEFAUT} (défaut), le nom d'une police installée, "
                          "ou le chemin d'un .ttf / .otf")
     ap.add_argument("--couleur", type=couleur, metavar="COULEUR",
                     help=f"le mot dit : {', '.join(COULEURS)} ({COULEUR_DEFAUT}, défaut), ou un hex #RRGGBB")
