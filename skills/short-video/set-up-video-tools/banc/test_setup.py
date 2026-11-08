@@ -244,6 +244,58 @@ with tempfile.TemporaryDirectory() as home:
     verifie(c.get("ffmpeg") == "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg" and c.get("lang") == "en", f"ligne qui marche : {c}")
 
 with tempfile.TemporaryDirectory() as home:
+    print("--police et --couleur : seulement les clés qui changent, dans style.json")
+    m = machine_disque("mac-ffmpeg-full-a-cote.json")
+    m["polices"] = ["~/Library/Fonts"]
+    s = setup.SondeSimulee(m, home=home)
+    stp = Path(home) / ".config/video-editing/style.json"
+    livrees = setup.MONTAGE / "fonts"
+    code, out, err = lance(["--ecris", "--police", "anton", "--couleur", "jaune", "--json"], s)
+    st = json.loads(stp.read_text(encoding="utf-8"))
+    verifie(st == {"font": "Anton", "captions": {"highlight": "#FFD23F"}, "split": {"highlight": "#FFD23F"},
+                   "title": {"highlight": st.get("title", {}).get("highlight")}}, f"style.json : {st}")
+    verifie(setup.contraste(st["title"]["highlight"], "#FFFFFF") >= 3, f"le mot du titre se lit sur blanc : {st}")
+    verifie(json.loads(out)["choix"]["couleur"] == "#FFD23F" and json.loads(out)["choix"]["police"] == "Anton",
+            f"--json : choix {json.loads(out)['choix']}")
+    st["captions"]["size"] = 120                       # une clé posée à la main reste
+    stp.write_text(json.dumps(st), encoding="utf-8")
+    lance(["--ecris", "--police", "Inter ExtraBold", "--couleur", "#3ddc97"], s)
+    verifie(json.loads(stp.read_text(encoding="utf-8")) == {"captions": {"size": 120}},
+            f"retour au défaut, la clé à la main gardée : {stp.read_text(encoding='utf-8')}")
+    st = {"captions": {}}
+    stp.write_text(json.dumps(st), encoding="utf-8")
+    code, out, _ = lance(["--ecris", "--couleur", "menthe"], s)
+    verifie(not stp.exists() and "retiré" in out, f"style vide : retiré ({out})")
+    (Path(home) / "Library/Fonts").mkdir(parents=True)
+    import shutil
+    shutil.copy(livrees / "Anton-Regular.ttf", Path(home) / "Library/Fonts" / "x.ttf")
+    lance(["--ecris", "--police", "ANTON REGULAR"], s)
+    verifie(json.loads(stp.read_text(encoding="utf-8")) == {"font": "Anton Regular"},
+            f"une police installée, son nom tel que la machine l'écrit : {stp.read_text(encoding='utf-8')}")
+    code, out, _ = lance(["--ecris", "--police", "Pas Une Police"], s)
+    verifie("pas trouvée" in out and json.loads(stp.read_text(encoding="utf-8"))["font"] == "Pas Une Police",
+            f"une police introuvable : dite, écrite quand même ({out})")
+    shutil.copy(livrees / "Anton-Regular.ttf", Path(home) / "ma police.ttf")
+    lance(["--ecris", "--police", str(Path(home) / "ma police.ttf"), "--couleur", "ff5"], s)
+    st = json.loads(stp.read_text(encoding="utf-8"))
+    verifie(st.get("font_file") == "~/ma police.ttf" and st.get("font") == "Anton"
+            and st["captions"]["highlight"] == "#FFFF55", f"un fichier : font_file + font : {st}")
+    lance(["--ecris", "--police", "inter"], s)
+    st = json.loads(stp.read_text(encoding="utf-8"))
+    verifie("font_file" not in st and "font" not in st, f"la police livrée après un fichier : font_file part : {st}")
+    avant = stp.read_text(encoding="utf-8")
+    code, _, err = lance(["--ecris", "--police", str(Path(home) / "absente.otf")], s)
+    verifie(code == 2 and stp.read_text(encoding="utf-8") == avant, f"fichier absent : refusé, rien d'écrit ({err})")
+    code, _, err = lance(["--couleur", "jaune"], s)
+    verifie(code == 2 and "avec --ecris" in err, "--couleur sans --ecris : refusé")
+    for mauvaise in ("violet", "#12345", "autre"):
+        try:
+            setup.couleur(mauvaise)
+            verifie(False, f"couleur {mauvaise!r} acceptée")
+        except Exception:
+            pass
+
+with tempfile.TemporaryDirectory() as home:
     print("--installe sans config : n'écrit pas de config.json")
     m = machine_disque("mac-ffmpeg-sans-libass.json")
     code, out, _ = lance(["--installe", "--a-blanc"], setup.SondeSimulee(m, home=home))

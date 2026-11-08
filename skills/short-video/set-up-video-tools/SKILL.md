@@ -1,14 +1,14 @@
 ---
 name: set-up-video-tools
-description: Installe et configure tout ce dont les skills vidéo ont besoin - le montage de la skill `edit-my-video` (vidéos face caméra), et yt-dlp avec lequel audit-my-account et find-outliers-in-my-niche lisent les comptes sans connexion - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, yt-dlp, dossier de sortie), questionnaire (whisper ou ElevenLabs, langue, dossier de sortie, sous-titres, Remotion), installation de ce qui manque, puis ~/.config/video-editing/config.json. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "il manque ffmpeg", "il manque yt-dlp", "les sous-titres ne s'incrustent pas", or when the edit-my-video, audit-my-account or find-outliers-in-my-niche skill stops on a missing tool, model, key or setting.
+description: Installe et configure tout ce dont les skills vidéo ont besoin - le montage de la skill `edit-my-video` (vidéos face caméra), et yt-dlp avec lequel audit-my-account et find-outliers-in-my-niche lisent les comptes sans connexion - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, yt-dlp, dossier de sortie), questions (whisper ou ElevenLabs, langue, sortie, sous-titres, Remotion, police, couleur), installation de ce qui manque, puis ~/.config/video-editing/. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "change ma police", "il manque ffmpeg", "il manque yt-dlp", "les sous-titres ne s'incrustent pas", or when the edit-my-video, audit-my-account or find-outliers-in-my-niche skill stops on a missing tool, model, key or setting.
 ---
 
 # Installer les skills vidéo
 
 Cette skill prépare l'ordinateur pour les skills vidéo installées à côté d'elle : le montage
 (`edit-my-video`), et yt-dlp, avec lequel `audit-my-account` et `find-outliers-in-my-niche` lisent les comptes sans connexion. Elle
-regarde ce qui est installé, pose cinq questions, installe ce qui manque et écrit
-`~/.config/video-editing/config.json`. C'est la seule à installer : les autres skills renvoient
+regarde ce qui est installé, pose sept questions, installe ce qui manque et écrit
+`~/.config/video-editing/config.json` (et `style.json` quand la police ou la couleur changent). C'est la seule à installer : les autres skills renvoient
 ici. Une fois au premier usage ; ensuite, seulement quand un réglage change ou qu'une skill
 s'arrête sur un manque.
 
@@ -20,7 +20,7 @@ s'arrête sur un manque.
   du diagnostic (`corrige`) sont déjà écrites pour le système.
 - Windows : Claude Code lance les commandes dans Git Bash ou PowerShell. Écris les chemins avec des
   `/` (`C:/Users/...`), entre guillemets s'ils ont des espaces : ça passe dans les deux.
-- Une question par message, sauf les questions 2 à 5 (section 2), qui vont ensemble.
+- Une question par message, sauf les questions 2 à 7 (section 2), qui vont ensemble.
 - Rien de payant, rien d'installé sans que l'utilisateur ait vu la commande.
 
 ## 1. Le diagnostic
@@ -49,13 +49,14 @@ Dis à l'utilisateur, en trois à six lignes, ce qui est là et ce qui manque. P
 les chemins sauf s'il les demande.
 
 - **Première installation** (`config_etat` vaut `absente`) : tout le questionnaire (section 2).
-- **Une seule chose à changer** (« passe à ElevenLabs », « coupe les sous-titres ») : seulement
+- **Une seule chose à changer** (« passe à ElevenLabs », « coupe les sous-titres », « change ma
+  police ») : seulement
   la question concernée, puis section 5. Les autres réglages restent tels quels.
 - **Envoyée par le montage** : voir « Quand c'est le montage qui t'envoie » plus bas.
 
 ## 2. Le questionnaire
 
-Pose la question 1 seule : c'est la seule qui demande une explication. Puis les questions 2 à 5
+Pose la question 1 seule : c'est la seule qui demande une explication. Puis les questions 2 à 7
 dans un même message, chacune avec son défaut ; « ok » garde tous les défauts. Si l'outil de
 questions à choix (AskUserQuestion) est disponible, sers-t'en. N'invente aucune réponse : une
 réponse floue prend le défaut, et tu le dis.
@@ -92,7 +93,7 @@ propose un modèle plus léger, passé ensuite par `--modele` à `--ecris` :
 Sur Windows, le whisper.cpp que setup télécharge est la build processeur : la carte graphique ne
 sert pas, même sur un PC qui en a une (vitesse pas encore mesurée sur PC).
 
-### Questions 2 à 5, ensemble
+### Questions 2 à 7, ensemble
 
 2. **La langue parlée dans tes vidéos ?** Défaut : la langue dans laquelle l'utilisateur
    t'écrit. Un code : `fr`, `en`, `es`, `de`...
@@ -106,6 +107,15 @@ sert pas, même sur un PC qui en a une (vitesse pas encore mesurée sur PC).
    est là (le diagnostic le dit), non sinon. Sans Remotion, ffmpeg dessine le titre, les cartons
    et le carton de fin, sans les animations, et la vidéo sort quand même. Avec, il faut Node ; le
    premier rendu installe Remotion tout seul (environ une minute, une fois).
+6. **La police des sous-titres et du titre ?** Défaut : `Inter ExtraBold` (livrée avec le montage).
+   Aussi livrée : `Anton` (étroite, en hauteur). Ou le nom d'une police installée sur l'ordinateur
+   (`Montserrat Black`), ou le chemin d'un fichier `.ttf` / `.otf`.
+7. **La couleur du mot dit ?** (le mot qui s'allume dans les sous-titres, et le mot en couleur du
+   titre) Défaut : menthe `#3DDC97`. Aussi : jaune `#FFD23F`, orange `#FF8C42`, rose `#FF5DA2`,
+   bleu `#4DA3FF`, ou autre : un hex (`#FF3B30`).
+
+Le reste du look (tailles, hauteur des sous-titres, fond, carton de fin) ne se demande pas ici : il
+se règle dans `style.json` (section « Le contrat avec la skill de montage »).
 
 ## 3. La clé ElevenLabs (seulement si ElevenLabs)
 
@@ -198,14 +208,22 @@ gardé) :
 
 ```sh
 python3 <setup>/scripts/setup.py --ecris --moteur whisper --langue fr --sortie "~/Videos/edited" \
-  --sous-titres oui --remotion oui --json
+  --sous-titres oui --remotion oui --police Anton --couleur jaune --json
 ```
 
 `--moteur whisper|elevenlabs`, `--langue <code>`, `--sortie <dossier>`, `--sous-titres oui|non`,
-`--remotion oui|non`, `--modele <nom>`. La clé ElevenLabs peut venir dans le même appel
+`--remotion oui|non`, `--modele <nom>`, `--police <nom ou fichier>`, `--couleur <nom ou hex>` (les
+noms de la question 7, en français ou en anglais). Police et couleur gardées par défaut : ne passe
+ni `--police` ni `--couleur`. La clé ElevenLabs peut venir dans le même appel
 (`--cle-elevenlabs-stdin`, le presse-papier en entrée). `--ecris` crée aussi le dossier de
 sortie, et retire de config.json une ligne `ffmpeg` qui pointe un ffmpeg disparu ou sans libass
 quand le montage en trouve un meilleur tout seul.
+
+`--police` et `--couleur` écrivent `~/.config/video-editing/style.json`, seulement ce qui change du
+style de base ; les autres clés qui y sont restent telles quelles, et revenir au défaut retire la
+ligne. Une police par son nom que setup ne trouve pas parmi celles de l'ordinateur est écrite quand
+même, et `faits` le dit : vérifie le nom avec l'utilisateur, ou demande-lui le fichier. Un fichier
+`.ttf` / `.otf` introuvable est refusé (code 2), rien n'est écrit.
 
 La sortie contient le diagnostic refait. `pret: true` : dis-le, en une phrase, avec ce qu'il
 faut dire pour la première vidéo : **« monte ma vidéo, les rushs sont dans Téléchargements »**.
@@ -264,6 +282,19 @@ Sur Windows, `~` est `C:\Users\<toi>` : la configuration est dans
 le PATH, puis dans `%LOCALAPPDATA%\whisper.cpp\Release\` ; ffmpeg dans le PATH, puis là où
 `winget install Gyan.FFmpeg` le pose.
 
+`~/.config/video-editing/style.json` : ce qui change du style livré avec le montage (son
+`style.json`, à côté de ses `scripts/`). Setup n'y pose que deux choses :
+
+| clé | posée par | valeur |
+|---|---|---|
+| `font` | `--police` | le nom de la police (`Anton`, `Montserrat Black`) |
+| `font_file` | `--police <fichier>` | le chemin du `.ttf` / `.otf` ; `font` prend alors le nom lu dans le fichier |
+| `captions.highlight`, `split.highlight` | `--couleur` | la couleur choisie |
+| `title.highlight` | `--couleur` | la même teinte, assombrie juste assez pour se lire sur le cadre blanc du titre |
+
+Le reste des clés (tailles, hauteurs, fond, carton de fin) : la section « The look: style.json » de
+`../edit-my-video/SKILL.md`, à la main.
+
 La clé ElevenLabs : seulement dans la variable d'environnement `ELEVENLABS_API_KEY`, ou dans
 `~/.config/video-editing/env` (mode 600, une ligne `ELEVENLABS_API_KEY=...`). Jamais dans
 config.json. La variable d'environnement passe avant le fichier.
@@ -297,5 +328,5 @@ python3 <setup>/scripts/setup.py --simule <setup>/banc/machines/mac-vide.json
 
 Des machines simulées (`banc/machines/*.json` : un Mac neuf, un Mac avec le ffmpeg sans libass,
 Linux, Windows...) disent chacune ce que le diagnostic doit y trouver. Le banc vérifie aussi ce
-que `--ecris` et `--cle-elevenlabs-stdin` écrivent, dans un dossier jetable, et que la clé
+que `--ecris` (`style.json` compris) et `--cle-elevenlabs-stdin` écrivent, dans un dossier jetable, et que la clé
 n'apparaît jamais à l'écran.

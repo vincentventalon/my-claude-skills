@@ -61,7 +61,8 @@ du script pour te proposer le titre et la durée, `publish-my-video` et `short-v
 - **En 9:16** pour TikTok, Instagram Reels et YouTube Shorts ; en 16:9 pour YouTube si tu as
   filmé à l'horizontale.
 
-Le style (police, couleurs, taille des sous-titres, couleur du haut) se change dans
+Un seul style de base : la police et la couleur du mot dit se choisissent à l'installation
+(`/set-up-video-tools`), le reste (taille des sous-titres, couleur du haut) se change dans
 `~/.config/video-editing/style.json` : « mets mes sous-titres en jaune », « un haut gris clair ».
 Ce qu'une vidéo produit, sur un vrai exemple : [edit/examples/](edit-my-video/examples/). Le détail du
 montage (les prérequis par système, whisper ou ElevenLabs, les fichiers rendus, les pannes
@@ -70,8 +71,9 @@ courantes) : [le guide de `edit-my-video`](edit-my-video/README.md).
 ## Ce que le pack ne fait pas, et où c'est
 
 - La relecture dans le navigateur, le split réglé sur ton propre cadrage, les scènes mesurées sur
-  ce qui marche, le motion design : [Pif Paf Cut Pro](https://pifpafcut.com/pro), c'est avec ça
-  que je monte mes vidéos.
+  ce qui marche, le motion design, choisir son style (sept looks ou le sien, réglé sur sa propre
+  prise ; ici, un style de base dont tu choisis la police et la couleur) :
+  [Pif Paf Cut Pro](https://pifpafcut.com/skill), c'est avec ça que je monte mes vidéos.
 - Plus de hooks que les 22 formules de `write-my-script` (la recherche parmi des milliers de vrais hooks
   qui ont marché) et la programmation des posts : le connecteur Claude de
   [Nadia](https://usenadia.com).
@@ -84,7 +86,8 @@ ta première vidéo montée :
 
 1. **Ouvre Claude Code** dans le dossier de ton projet.
 2. **`/set-up-video-tools`** (ou « installe la skill vidéo ») : Claude regarde ce qui est installé sur ta
-   machine, te fait choisir whisper ou ElevenLabs, pose ta langue et ton dossier de sortie, et
+   machine, te fait choisir whisper ou ElevenLabs, pose ta langue, ton dossier de sortie, ta police et ta
+   couleur, et
    installe ce qui manque une fois que tu as vu les commandes. Une fois.
 3. Tourne une prise (téléphone, webcam, caméra), puis **`/edit-my-video`** : « monte ma vidéo, le rush est
    dans Téléchargements, titre : J'en ai *marre* ». Tu obtiens `~/Videos/edited/<nom>.mp4`, plus le

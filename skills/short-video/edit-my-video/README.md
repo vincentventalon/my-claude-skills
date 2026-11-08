@@ -40,11 +40,12 @@ npx skills add vincentventalon/my-claude-skills -a claude-code
 (ou le plugin Claude Code : [le README du dépôt](../../../README.md#installer)), puis, dans Claude Code,
 dis **« installe la skill vidéo »** (ou `/set-up-video-tools`).
 
-Claude regarde ce qui est installé sur ta machine, te pose cinq questions (whisper ou ElevenLabs,
-la langue de tes vidéos, où ranger les vidéos montées, les sous-titres, Remotion), installe ce qui
-manque une fois que tu as vu les commandes, et écrit ta configuration dans
-`~/.config/video-editing/config.json`. Un réglage à changer plus tard : « passe à ElevenLabs »,
-« change le dossier de sortie ».
+Claude regarde ce qui est installé sur ta machine, te pose sept questions (whisper ou ElevenLabs,
+la langue de tes vidéos, où ranger les vidéos montées, les sous-titres, Remotion, la police, la
+couleur du mot dit), installe ce qui manque une fois que tu as vu les commandes, et écrit ta
+configuration dans `~/.config/video-editing/config.json` (la police et la couleur dans `style.json`).
+Un réglage à changer plus tard : « passe à ElevenLabs », « change le dossier de sortie », « change ma
+police ».
 
 Les skills `set-up-video-tools` et `edit-my-video` doivent rester côte à côte (elles se renvoient l'une à l'autre) :
 les deux installations les posent ainsi.
@@ -180,8 +181,10 @@ TikTok » ou colle le lien de ton profil ; le détail est dans [sa SKILL.md](../
 ## Ce que ça ne fait pas, et où c'est
 
 Pas de page pour relire et couper à la souris (tu dis à Claude ce qu'il faut couper), pas de
-split réglé sur ton propre cadrage ni d'autres scènes, pas de motion design. Ça existe dans Pif
-Paf Cut : [pifpafcut.com/pro](https://pifpafcut.com/pro).
+split réglé sur ton propre cadrage ni d'autres scènes, pas de motion design, pas de choix du style :
+un seul style de base, dont tu choisis la police et la couleur à l'installation. Choisir son style
+(sept looks ou le sien, réglé sur sa propre prise), c'est dans Pif Paf Cut, avec le reste :
+[pifpafcut.com/skill](https://pifpafcut.com/skill).
 
 ## Publier
 

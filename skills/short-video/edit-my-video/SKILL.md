@@ -248,7 +248,9 @@ ask, do not guess.
 
 `style.json` (next to `scripts/`) holds the defaults: Inter ExtraBold
 (shipped, SIL OFL), white subtitles with the said word in mint green, an
-anthracite top zone. To change the look,
+anthracite top zone. The font and the colour of the said word are chosen at
+setup (the `set-up-video-tools` skill asks for them and writes them); the rest
+is set in the JSON. To change the look,
 write **only the keys that change** in `~/.config/video-editing/style.json`
 (kept when the skill updates), or in a file passed with `--style FILE`:
 
@@ -303,5 +305,6 @@ transcription (silences only, no subtitles).
 ## Not in this skill
 
 The review page in the browser with the audio check, the split fitted to
-your own framing and the scenes measured on what works, the motion design:
-the paid version, https://pifpafcut.com/pro.
+your own framing and the scenes measured on what works, the motion design,
+choosing your style (seven looks or your own, set on your own take): the paid
+version, https://pifpafcut.com/skill.

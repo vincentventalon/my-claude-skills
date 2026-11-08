@@ -27,8 +27,9 @@ one transparent clip laid over the video; without Node the .ass draws them
 too, and the video comes out all the same. Their look comes from style.json:
 the one next to scripts/, then ~/.config/video-editing/style.json, then
 --style FILE, each one saying only what it changes. The geometry of the split
-is fixed (SEAM, CARD_*, SOURCE_TOP below): fitting it to one's own framing is
-the paid version.
+is fixed (SEAM, CARD_*, SOURCE_TOP below): fitting it to one's own framing,
+and choosing one's style (seven looks or one's own, set on one's own take),
+are the paid version.
 """
 import json, math, os, re, shutil, struct, subprocess, sys, zlib
 

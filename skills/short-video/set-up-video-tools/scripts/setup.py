@@ -8,6 +8,9 @@ Diagnostic, configuration, installations.
                      --sous-titres oui --remotion non
                                          # écrit ~/.config/video-editing/config.json (fusionné avec
                                          # l'existant) et crée le dossier de sortie
+    python3 setup.py --ecris --police Anton --couleur jaune
+                                         # la police et la couleur du mot dit : seulement les clés qui
+                                         # changent, dans ~/.config/video-editing/style.json
     pbpaste | python3 setup.py --cle-elevenlabs-stdin
                                          # la clé ElevenLabs, lue sur l'entrée standard, écrite dans
                                          # ~/.config/video-editing/env (mode 600), jamais affichée
@@ -30,6 +33,9 @@ Le contrat, partagé avec la skill de montage :
      "lang": "fr", "output_dir": "~/Videos/edited", "subtitles": true, "remotion": true}
   la clé ElevenLabs seulement dans ELEVENLABS_API_KEY (l'environnement) ou dans
   ~/.config/video-editing/env (mode 600, des lignes KEY=valeur). Jamais dans config.json.
+  ~/.config/video-editing/style.json : ce qui change du style livré avec le montage (son style.json) ;
+  setup n'y pose que la police (font, font_file) et la couleur du mot dit (captions.highlight, et
+  title.highlight, split.highlight qui la suivent), le reste se règle à la main.
 
 Sur Windows, `py` (le lanceur de python.org) ou `python` au lieu de `python3`.
 Bibliothèque standard seulement. Tourne dès Python 3.8, pour pouvoir dire qu'il faut 3.10.
@@ -67,6 +73,7 @@ MONTAGE = ICI.parent.parent / "edit-my-video"          # à côté de set-up-vid
 CONFIG_DIR = "~/.config/video-editing"
 CONFIG = CONFIG_DIR + "/config.json"
 ENV = CONFIG_DIR + "/env"
+STYLE = CONFIG_DIR + "/style.json"
 CLES = ("stt", "whisper_model", "ffmpeg", "lang", "output_dir", "subtitles", "remotion")
 MOTEURS = ("whisper", "elevenlabs")
 
@@ -91,6 +98,16 @@ WINGET = " -e --accept-package-agreements --accept-source-agreements"
 LECTEURS = ("audit-my-account", "find-outliers-in-my-niche")
 # Un .exe qui ne démarre pas faute de DLL (0xC0000135, 0xC0000139, 0xC000007B), signé ou non selon Python.
 DLL_MANQUANTE = {3221225781, 3221225785, 3221225595, -1073741515, -1073741511, -1073741701}
+
+# Le style : les deux polices livrées avec le montage (edit-my-video/fonts/), les couleurs proposées.
+POLICE_DEFAUT = "Inter ExtraBold"
+POLICES_LIVREES = {"inter extrabold": "Inter ExtraBold", "inter": "Inter ExtraBold", "anton": "Anton"}
+COULEUR_DEFAUT = "#3DDC97"
+COULEURS = {"menthe": "#3DDC97", "jaune": "#FFD23F", "orange": "#FF8C42", "rose": "#FF5DA2", "bleu": "#4DA3FF"}
+COULEURS_EN = {"mint": "menthe", "green": "menthe", "vert": "menthe", "yellow": "jaune", "pink": "rose", "blue": "bleu"}
+# Si le montage n'est pas à côté : les valeurs de son style.json qui comptent ici.
+STYLE_LIVRE = {"font": POLICE_DEFAUT, "font_file": "", "captions": {"highlight": COULEUR_DEFAUT},
+               "title": {"box": "#FFFFFF", "highlight": "#0F9D6B"}, "split": {"highlight": COULEUR_DEFAUT}}
 
 
 # --------------------------------------------------------------------------- la machine, interrogée
@@ -175,6 +192,17 @@ class Sonde:
 
     def lecteurs_presents(self) -> list:
         return [n for n in LECTEURS if (ICI.parent.parent / n / "SKILL.md").exists()]
+
+    def dossiers_polices(self) -> list:
+        """Là où le système range les polices installées."""
+        sy = self.systeme()
+        if sy == "Darwin":
+            return ["/System/Library/Fonts", "/Library/Fonts", str(self.home / "Library/Fonts")]
+        if sy == "Windows":
+            return [os.path.join(self.env.get("WINDIR", "C:/Windows"), "Fonts"),
+                    str(local_appdata(self) / "Microsoft" / "Windows" / "Fonts")]
+        return ["/usr/share/fonts", "/usr/local/share/fonts", str(self.home / ".local/share/fonts"),
+                str(self.home / ".fonts")]
 
 
 class SondeSimulee(Sonde):
@@ -304,6 +332,9 @@ class SondeSimulee(Sonde):
 
     def lecteurs_presents(self):                 # par défaut, audit et outliers sont là, comme après npx skills add
         return list(self.m.get("lecteurs", LECTEURS))
+
+    def dossiers_polices(self):                  # seulement ceux de la machine simulée, sous `home`
+        return [str(self.chemin(d)) for d in self.m.get("polices", [])] if self.disque else []
 
 
 # --------------------------------------------------------------------------- un constat
@@ -934,10 +965,13 @@ def texte(d: Diagnostic) -> str:
 
 def en_json(d: Diagnostic, s: Sonde, faits: list) -> str:
     c = d.contexte
+    st = style_resolu(s)
     out = {"pret": d.pret, "pret_comptes": d.pret_comptes, "systeme": c.systeme, "config_fichier": montre(s, s.chemin(CONFIG)),
            "env_fichier": montre(s, s.chemin(ENV)), "config": c.cfg, "config_etat": c.cfg_etat,
            "choix": {"stt": c.stt, "moteur_effectif": c.moteur, "subtitles": c.sous_titres,
-                     "remotion": c.remotion, "whisper_model": c.modele, "output_dir": c.sortie},
+                     "remotion": c.remotion, "whisper_model": c.modele, "output_dir": c.sortie,
+                     "police": st.get("font"), "couleur": st["captions"].get("highlight")},
+           "style_fichier": montre(s, s.chemin(STYLE)),
            "a_installer_brew": d.plan_brew() if c.systeme == "Darwin" else [],
            "faits": faits, "constats": [asdict(k) for k in d.constats]}
     return json.dumps(out, ensure_ascii=False, indent=1)
@@ -1003,6 +1037,225 @@ def ecrit_cle(s: Sonde, cle: str) -> str:
     lignes.append(f"ELEVENLABS_API_KEY={cle}")
     ecrit_atomique(p, "\n".join(lignes) + "\n", 0o600)
     return f"clé ElevenLabs enregistrée dans {montre(s, p)} (mode 600)"
+
+
+# --------------------------------------------------------------------------- le style : police et couleur
+
+def noms_police(chemin) -> list:
+    """Les noms que porte un .ttf / .otf / .ttc (sa table name) : [{1: famille, 2: graisse, 4: nom complet,
+    16, 17: famille et graisse typographiques}], une entrée par police du fichier. [] s'il ne se lit pas."""
+    import struct
+    try:
+        with open(str(chemin), "rb") as f:
+            tete = f.read(12)
+            debuts = [0]
+            if tete[:4] == b"ttcf":
+                n = struct.unpack(">I", tete[8:12])[0]
+                debuts = list(struct.unpack(f">{n}I", f.read(4 * n)))
+            out = []
+            for o in debuts:
+                f.seek(o + 4)
+                nt = struct.unpack(">H", f.read(2))[0]
+                f.seek(o + 12)
+                tables = f.read(16 * nt)
+                for i in range(nt):
+                    tag, _, off, _ = struct.unpack(">4sIII", tables[16 * i:16 * i + 16])
+                    if tag != b"name":
+                        continue
+                    f.seek(off)
+                    _, cnt, so = struct.unpack(">HHH", f.read(6))
+                    recs = f.read(12 * cnt)
+                    d = {}
+                    for j in range(cnt):
+                        pid, _, lid, nid, ln, oo = struct.unpack(">6H", recs[12 * j:12 * j + 12])
+                        if nid not in (1, 2, 4, 16, 17) or pid not in (0, 1, 3):
+                            continue
+                        if nid in d and not (pid == 3 and lid == 0x409):   # l'anglais d'abord
+                            continue
+                        f.seek(off + so + oo)
+                        brut = f.read(ln)
+                        d[nid] = brut.decode("mac_roman" if pid == 1 else "utf-16-be", "replace").strip("\x00 ")
+                    out.append(d)
+            return out
+    except (OSError, struct.error, ValueError):
+        return []
+
+
+def nom_de_fichier(chemin) -> str | None:
+    """Le nom à écrire dans `font` pour un fichier de police : sa famille quand c'est la graisse
+    normale (Anton), sinon son nom complet (Montserrat Bold), que libass et Remotion retrouvent."""
+    for d in noms_police(chemin)[:1]:
+        if d.get(1) and d.get(2, "Regular") in ("Regular", "Normal"):
+            return d[1]
+        return d.get(4) or d.get(1)
+    return None
+
+
+def cherche_police(s: Sonde, nom: str) -> str | None:
+    """Le nom tel que la machine l'écrit, si une police installée le porte (famille ou nom complet)."""
+    voulu = nom.casefold()
+    for dossier in s.dossiers_polices():
+        for racine, _, fichiers in os.walk(dossier):
+            for f in fichiers:
+                if not f.lower().endswith((".ttf", ".otf", ".ttc")):
+                    continue
+                for d in noms_police(os.path.join(racine, f)):
+                    noms = [d.get(1), d.get(4), d.get(16)]
+                    if d.get(16) and d.get(17):
+                        noms.append(f"{d[16]} {d[17]}")
+                    for n in noms:
+                        if n and n.casefold() == voulu:
+                            return n
+    return None
+
+
+def police(v: str) -> str:
+    v = v.strip().strip('"').strip("'")
+    if not v:
+        raise argparse.ArgumentTypeError("Inter ExtraBold, Anton, le nom d'une police installée ou un fichier .ttf / .otf")
+    return v
+
+
+def couleur(v: str) -> str:
+    """Un nom proposé (menthe, jaune, orange, rose, bleu ; en anglais aussi) ou un hex : #RRGGBB, #RGB."""
+    n = v.strip().lower()
+    n = COULEURS_EN.get(n, n)
+    if n in COULEURS:
+        return COULEURS[n]
+    h = n.lstrip("#")
+    if re.fullmatch(r"[0-9a-f]{3}", h):
+        h = "".join(x * 2 for x in h)
+    if not re.fullmatch(r"[0-9a-f]{6}", h):
+        raise argparse.ArgumentTypeError(f"{', '.join(COULEURS)}, ou un hex (#FFD23F)")
+    return "#" + h.upper()
+
+
+def luminance(hexa: str) -> float:
+    def canal(x):
+        x = int(x, 16) / 255
+        return x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4
+    h = hexa.lstrip("#")
+    return 0.2126 * canal(h[0:2]) + 0.7152 * canal(h[2:4]) + 0.0722 * canal(h[4:6])
+
+
+def contraste(a: str, b: str) -> float:
+    la, lb = sorted((luminance(a), luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def lisible_sur(hexa: str, fond: str, mini: float = 3.0) -> str:
+    """La couleur, assombrie (même teinte) ou éclaircie juste assez pour se lire sur `fond` (3:1, du
+    gros texte) : le mot en couleur du titre, posé sur son cadre blanc."""
+    h = hexa.lstrip("#")
+    rgb = [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+    sombre = luminance(fond[:7]) > 0.4
+    for pas in range(51):
+        k = pas / 50
+        c = [round(x * (1 - k)) for x in rgb] if sombre else [round(x + (255 - x) * k) for x in rgb]
+        out = "#" + "".join(f"{x:02X}" for x in c)
+        if contraste(out, fond[:7]) >= mini:
+            return out
+    return out
+
+
+def style_livre() -> dict:
+    try:
+        return json.loads((MONTAGE / "style.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return json.loads(json.dumps(STYLE_LIVRE))
+
+
+def lire_style(s: Sonde) -> tuple:
+    texte = s.lit(STYLE)
+    if texte is None:
+        return {}, "absente"
+    try:
+        st = json.loads(texte)
+    except ValueError:
+        return {}, "illisible"
+    return (st, "ok") if isinstance(st, dict) else ({}, "illisible")
+
+
+def style_resolu(s: Sonde) -> dict:
+    """Le style que le montage prendra : le livré, puis celui de l'utilisateur (comme finish.load_style)."""
+    def fusion(base, sur):
+        for k, v in sur.items():
+            if isinstance(v, dict) and isinstance(base.get(k), dict):
+                fusion(base[k], v)
+            elif not isinstance(base.get(k), dict):      # une section remplacée par autre chose : ignorée
+                base[k] = v
+        return base
+    st = fusion(json.loads(json.dumps(STYLE_LIVRE)), style_livre())
+    return fusion(st, lire_style(s)[0])
+
+
+def pose(perso: dict, livre: dict, chemin: tuple, valeur) -> None:
+    """Met une clé du style de l'utilisateur ; None ou égale au style livré, elle part (le défaut suffit),
+    et sa section avec si elle se vide."""
+    if len(chemin) == 1:
+        d, ref = perso, livre
+    else:
+        if not isinstance(perso.get(chemin[0]), dict):
+            perso[chemin[0]] = {}
+        d, ref = perso[chemin[0]], livre.get(chemin[0]) or {}
+    cle = chemin[-1]
+    if valeur is None or valeur == ref.get(cle):
+        d.pop(cle, None)
+    else:
+        d[cle] = valeur
+    if len(chemin) > 1 and not d:
+        perso.pop(chemin[0])
+
+
+def ecris_style(s: Sonde, a: argparse.Namespace) -> list:
+    """La police et la couleur dans ~/.config/video-editing/style.json : seulement ce qui change du style
+    livré, les autres clés de l'utilisateur gardées. Rend ce qui a été fait."""
+    faits = []
+    p = s.chemin(STYLE)
+    perso, etat = lire_style(s)
+    if etat == "illisible":
+        bak = p.with_name(f"style.json.bak-{datetime.date.today().isoformat()}")
+        shutil.copyfile(str(p), str(bak))
+        faits.append(f"style.json illisible gardée en {montre(s, bak)}")
+    avant = json.loads(json.dumps(perso))
+    livre = style_livre()
+    if a.police:
+        v = a.police
+        fichier = s.chemin(v) if v.lower().endswith((".ttf", ".otf")) else None
+        if fichier is not None:
+            nom = nom_de_fichier(fichier)
+            if not fichier.is_file() or not nom:
+                raise ValueError(f"{v} : fichier de police introuvable ou illisible (un .ttf ou un .otf)")
+            pose(perso, livre, ("font_file",), tilde(s, str(fichier)))
+            pose(perso, livre, ("font",), nom)
+        else:
+            nom = POLICES_LIVREES.get(v.casefold())
+            if not nom:
+                nom = cherche_police(s, v)
+                if not nom:
+                    nom = v
+                    faits.append(f"police « {v} » pas trouvée parmi celles de cette machine : vérifie son nom "
+                                 f"(sinon le montage en prend une autre), ou donne le fichier .ttf / .otf")
+            pose(perso, livre, ("font_file",), None)       # un fichier d'avant passerait devant le nom
+            pose(perso, livre, ("font",), nom)
+    if a.couleur:
+        c = a.couleur
+        if c == COULEUR_DEFAUT:                            # la couleur de base : le style livré, tel quel
+            for k in (("captions", "highlight"), ("title", "highlight"), ("split", "highlight")):
+                pose(perso, livre, k, None)
+        else:
+            pose(perso, livre, ("captions", "highlight"), c)
+            pose(perso, livre, ("split", "highlight"), c)
+            cadre = str(style_resolu(s)["title"].get("box") or "#FFFFFF")
+            pose(perso, livre, ("title", "highlight"), lisible_sur(c, cadre))
+    if perso != avant or etat == "illisible":
+        if perso:
+            ecrit_atomique(p, json.dumps(perso, ensure_ascii=False, indent=2) + "\n")
+            faits.append(f"{montre(s, p)} écrit : " + json.dumps(perso, ensure_ascii=False))
+        elif p.exists():
+            p.unlink()
+            faits.append(f"{montre(s, p)} retiré : le style de base")
+    return faits
 
 
 def ecris(s: Sonde, a: argparse.Namespace) -> list:
@@ -1240,6 +1493,11 @@ def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> i
     ap.add_argument("--sortie", help=f"le dossier des vidéos montées (défaut : {SORTIE_DEFAUT})")
     ap.add_argument("--sous-titres", dest="sous_titres", type=oui_non, help="sous-titres incrustés : oui ou non")
     ap.add_argument("--remotion", type=oui_non, help="finition Remotion (Node) : oui ou non")
+    ap.add_argument("--police", type=police, metavar="POLICE",
+                    help=f"sous-titres et titre : {POLICE_DEFAUT} (défaut), Anton, le nom d'une police installée, "
+                         "ou le chemin d'un .ttf / .otf")
+    ap.add_argument("--couleur", type=couleur, metavar="COULEUR",
+                    help=f"le mot dit : {', '.join(COULEURS)} ({COULEUR_DEFAUT}, défaut), ou un hex #RRGGBB")
     ap.add_argument("--modele", nargs="?", const="", default=None, metavar="NOM",
                     help="seul : télécharge le modèle whisper maintenant ; avec --ecris : le modèle à utiliser "
                          "(large-v3-turbo, large-v3-turbo-q5_0, small)")
@@ -1259,8 +1517,10 @@ def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> i
     if isinstance(sonde, SondeSimulee) and not sonde.disque and ecrit_qqch:
         print("setup : machine simulée, rien n'est écrit ni installé (seul le diagnostic tourne)", file=sys.stderr)
         return 2
-    if (a.moteur or a.langue or a.sortie or a.sous_titres is not None or a.remotion is not None) and not a.ecris:
-        print("setup : --moteur, --langue, --sortie, --sous-titres et --remotion vont avec --ecris", file=sys.stderr)
+    if (a.moteur or a.langue or a.sortie or a.sous_titres is not None or a.remotion is not None
+            or a.police or a.couleur) and not a.ecris:
+        print("setup : --moteur, --langue, --sortie, --sous-titres, --remotion, --police et --couleur vont avec --ecris",
+              file=sys.stderr)
         return 2
 
     faits = []
@@ -1287,6 +1547,12 @@ def main(argv: list | None = None, sonde: Sonde | None = None, entree=None) -> i
                                                      remotion=None, modele=None))
     if a.ecris:
         faits += ecris(sonde, a)
+        if a.police or a.couleur:
+            try:
+                faits += ecris_style(sonde, a)
+            except ValueError as e:
+                print(f"setup : {e}. Le style n'a pas été écrit.", file=sys.stderr)
+                return 2
 
     d = diagnostic(sonde)
     if a.json:

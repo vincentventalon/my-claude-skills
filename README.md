@@ -129,8 +129,9 @@ skills : une mise à jour n'y touche pas.
 ## Ce qu'il n'y a pas ici
 
 - La relecture dans le navigateur, le split réglé sur ton propre cadrage, les scènes mesurées sur
-  ce qui marche, le motion design : c'est avec ça que je monte mes vidéos, dans
-  [Pif Paf Cut Pro](https://pifpafcut.com/pro).
+  ce qui marche, le motion design, choisir son style (sept looks ou le sien, réglé sur sa propre
+  prise) : c'est avec ça que je monte mes vidéos, dans
+  [Pif Paf Cut Pro](https://pifpafcut.com/skill).
 - Plus de hooks que les 22 formules de `write-my-script`, et la programmation des posts : le connecteur
   Claude de [Nadia](https://usenadia.com).
 
