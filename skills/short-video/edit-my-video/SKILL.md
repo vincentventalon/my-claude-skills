@@ -258,7 +258,7 @@ write **only the keys that change** in `~/.config/video-editing/style.json`
 
 | key | default | what |
 |---|---|---|
-| `font`, `font_file` | `Inter ExtraBold` (shipped) | a font installed on the computer by its name, or `font_file` = the path of a .ttf / .otf and `font` = its family name |
+| `font`, `font_file` | `Inter ExtraBold` (shipped; `Anton` too) | a font installed on the computer by its name, or `font_file` = the path of a .ttf / .otf and `font` = its family name |
 | `captions.size` | 86 | px on the 1080x1920 frame |
 | `captions.color`, `.highlight` | white, mint `#3DDC97` | the line, the word being said |
 | `captions.outline`, `.outline_width`, `.shadow` | near black, 6, 2 | |

@@ -143,24 +143,6 @@ verifie("$ pipx install yt-dlp" in out, f"Linux : yt-dlp dans les commandes : {o
 
 # --------------------------------------------------------------------------- 2. l'écriture, dans un dossier jetable
 
-
-def fausse_police(chemin: Path, famille: str, graisse: str = "Regular") -> None:
-    """Un .ttf réduit à sa table `name` (famille, graisse, nom complet), ce que lit setup.noms_police :
-    le banc n'embarque aucune vraie police."""
-    import struct
-    complet = famille if graisse == "Regular" else f"{famille} {graisse}"
-    chaines = [(1, famille), (2, graisse), (4, complet)]
-    donnees = b""
-    recs = b""
-    for nid, texte in chaines:
-        brut = texte.encode("utf-16-be")
-        recs += struct.pack(">6H", 3, 1, 0x409, nid, len(brut), len(donnees))
-        donnees += brut
-    table = struct.pack(">HHH", 0, len(chaines), 6 + len(recs)) + recs + donnees
-    entete = struct.pack(">IHHHH", 0x00010000, 1, 16, 0, 0)
-    repertoire = struct.pack(">4sIII", b"name", 0, 12 + 16, len(table))
-    chemin.write_bytes(entete + repertoire + table)
-
 def machine_disque(nom, sans_config=True):
     m = copy.deepcopy(json.loads((ICI / "machines" / nom).read_text(encoding="utf-8")))
     m["disque"] = True
@@ -267,11 +249,10 @@ with tempfile.TemporaryDirectory() as home:
     m["polices"] = ["~/Library/Fonts"]
     s = setup.SondeSimulee(m, home=home)
     stp = Path(home) / ".config/video-editing/style.json"
-    (Path(home) / "Library/Fonts").mkdir(parents=True)
-    fausse_police(Path(home) / "Library/Fonts" / "x.ttf", "Bricolage")   # une police installée, pas livrée
-    code, out, err = lance(["--ecris", "--police", "bricolage", "--couleur", "jaune", "--json"], s)
+    livrees = setup.MONTAGE / "fonts"
+    code, out, err = lance(["--ecris", "--police", "anton", "--couleur", "jaune", "--json"], s)
     st = json.loads(stp.read_text(encoding="utf-8"))
-    verifie(st == {"font": "Bricolage", "captions": {"highlight": "#FFD23F"}, "split": {"highlight": "#FFD23F"},
+    verifie(st == {"font": "Anton", "captions": {"highlight": "#FFD23F"}, "split": {"highlight": "#FFD23F"},
                    "title": {"highlight": st.get("title", {}).get("highlight")}, "end_card": {"box": "#FFD23F"}},
             f"style.json : {st}")
     lance(["--ecris", "--couleur", "#1A237E"], s)      # une couleur sombre : le texte du carton passe au blanc
@@ -281,7 +262,7 @@ with tempfile.TemporaryDirectory() as home:
     st = json.loads(stp.read_text(encoding="utf-8"))
     verifie("color" not in st["end_card"], f"couleur claire à nouveau : le blanc posé par nous retiré : {st}")
     verifie(setup.contraste(st["title"]["highlight"], "#FFFFFF") >= 3, f"le mot du titre se lit sur blanc : {st}")
-    verifie(json.loads(out)["choix"]["couleur"] == "#FFD23F" and json.loads(out)["choix"]["police"] == "Bricolage",
+    verifie(json.loads(out)["choix"]["couleur"] == "#FFD23F" and json.loads(out)["choix"]["police"] == "Anton",
             f"--json : choix {json.loads(out)['choix']}")
     st["captions"]["size"] = 120                       # une clé posée à la main reste
     stp.write_text(json.dumps(st), encoding="utf-8")
@@ -292,16 +273,19 @@ with tempfile.TemporaryDirectory() as home:
     stp.write_text(json.dumps(st), encoding="utf-8")
     code, out, _ = lance(["--ecris", "--couleur", "menthe"], s)
     verifie(not stp.exists() and "retiré" in out, f"style vide : retiré ({out})")
-    lance(["--ecris", "--police", "BRICOLAGE"], s)
-    verifie(json.loads(stp.read_text(encoding="utf-8")) == {"font": "Bricolage"},
+    (Path(home) / "Library/Fonts").mkdir(parents=True)
+    import shutil
+    shutil.copy(livrees / "Anton-Regular.ttf", Path(home) / "Library/Fonts" / "x.ttf")
+    lance(["--ecris", "--police", "ANTON REGULAR"], s)
+    verifie(json.loads(stp.read_text(encoding="utf-8")) == {"font": "Anton Regular"},
             f"une police installée, son nom tel que la machine l'écrit : {stp.read_text(encoding='utf-8')}")
     code, out, _ = lance(["--ecris", "--police", "Pas Une Police"], s)
     verifie("pas trouvée" in out and json.loads(stp.read_text(encoding="utf-8"))["font"] == "Pas Une Police",
             f"une police introuvable : dite, écrite quand même ({out})")
-    fausse_police(Path(home) / "ma police.ttf", "Bricolage")
+    shutil.copy(livrees / "Anton-Regular.ttf", Path(home) / "ma police.ttf")
     lance(["--ecris", "--police", str(Path(home) / "ma police.ttf"), "--couleur", "ff5"], s)
     st = json.loads(stp.read_text(encoding="utf-8"))
-    verifie(st.get("font_file") == "~/ma police.ttf" and st.get("font") == "Bricolage"
+    verifie(st.get("font_file") == "~/ma police.ttf" and st.get("font") == "Anton"
             and st["captions"]["highlight"] == "#FFFF55", f"un fichier : font_file + font : {st}")
     lance(["--ecris", "--police", "inter"], s)
     st = json.loads(stp.read_text(encoding="utf-8"))

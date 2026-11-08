@@ -108,8 +108,8 @@ sert pas, même sur un PC qui en a une (vitesse pas encore mesurée sur PC).
    et le carton de fin, sans les animations, et la vidéo sort quand même. Avec, il faut Node ; le
    premier rendu installe Remotion tout seul (environ une minute, une fois).
 6. **La police des sous-titres et du titre ?** Défaut : `Inter ExtraBold` (livrée avec le montage).
-   Ou le nom d'une police installée sur l'ordinateur (`Montserrat Black`), ou le chemin d'un
-   fichier `.ttf` / `.otf`.
+   Aussi livrée : `Anton` (étroite, en hauteur). Ou le nom d'une police installée sur l'ordinateur
+   (`Montserrat Black`), ou le chemin d'un fichier `.ttf` / `.otf`.
 7. **La couleur du mot dit ?** (le mot qui s'allume dans les sous-titres, et le mot en couleur du
    titre) Défaut : menthe `#3DDC97`. Aussi : jaune `#FFD23F`, orange `#FF8C42`, rose `#FF5DA2`,
    bleu `#4DA3FF`, ou autre : un hex (`#FF3B30`).
@@ -208,7 +208,7 @@ gardé) :
 
 ```sh
 python3 <setup>/scripts/setup.py --ecris --moteur whisper --langue fr --sortie "~/Videos/edited" \
-  --sous-titres oui --remotion oui --police "Montserrat Black" --couleur jaune --json
+  --sous-titres oui --remotion oui --police Anton --couleur jaune --json
 ```
 
 `--moteur whisper|elevenlabs`, `--langue <code>`, `--sortie <dossier>`, `--sous-titres oui|non`,
@@ -287,7 +287,7 @@ le PATH, puis dans `%LOCALAPPDATA%\whisper.cpp\Release\` ; ffmpeg dans le PATH, 
 
 | clé | posée par | valeur |
 |---|---|---|
-| `font` | `--police` | le nom de la police (`Montserrat Black`) |
+| `font` | `--police` | le nom de la police (`Anton`, `Montserrat Black`) |
 | `font_file` | `--police <fichier>` | le chemin du `.ttf` / `.otf` ; `font` prend alors le nom lu dans le fichier |
 | `captions.highlight`, `split.highlight`, `end_card.box` | `--couleur` | la couleur choisie (le mot dit, le mot du titre sur le bandeau, le fond du carton de fin ; `end_card.color` passe au blanc si la couleur est sombre) |
 | `title.highlight` | `--couleur` | la même teinte, assombrie juste assez pour se lire sur le cadre blanc du titre |

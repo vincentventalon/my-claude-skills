@@ -36,7 +36,7 @@ SKILL = os.path.dirname(HERE)
 STYLE = os.path.join(SKILL, 'style.json')
 FONTS = os.path.join(SKILL, 'fonts')
 REMOTION = os.path.join(SKILL, 'remotion')
-FONT_FILES = {'Inter ExtraBold': 'Inter-ExtraBold.ttf'}   # shipped in fonts/
+FONT_FILES = {'Inter ExtraBold': 'Inter-ExtraBold.ttf', 'Anton': 'Anton-Regular.ttf'}   # shipped in fonts/
 
 # The end card when the user gave none (--cta), in the language of the video.
 CTA = {'fr': 'Abonne-toi pour la suite', 'en': 'Follow for more', 'es': 'Sígueme para más',
