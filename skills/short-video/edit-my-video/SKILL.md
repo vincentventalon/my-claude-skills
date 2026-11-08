@@ -1,6 +1,6 @@
 ---
 name: edit-my-video
-description: Edits a talking-head video from the raw clips to the video you post, in one command - joins the clips, cuts the silences, the false starts and the retakes (the last take wins, never inside a word), transcribes word by word (whisper.cpp on the computer, or ElevenLabs Scribe with the user's key), burns in subtitles word by word, renders 9:16 for TikTok, Instagram Reels and Shorts in two views that take turns between sentences (full frame for the hook, then a split - a flat top zone over the camera in a rounded card - with the title and the boards on top and the subtitles on the seam), a title, boards on the words that say them (a figure, a list, a sentence), an end card, 16:9 for YouTube on request. macOS first, Windows, Linux. Use when the user says "edit my video", "cut the silences", "remove my retakes", "add subtitles", "add captions", "make it a TikTok / a Reel / a Short", "add boards", "split screen", "monte ma vidéo", "coupe les blancs", "enlève mes reprises", "ajoute des sous-titres", "mets un titre sur ma vidéo", "mets des cartons", "fais-en un TikTok / un Reel", or drops raw clips to edit.
+description: Edits a talking-head video from the raw clips to the video you post, in one command - joins the clips, cuts the silences, the false starts and the retakes (the last take wins, never inside a word), transcribes word by word (whisper.cpp on the computer, or ElevenLabs Scribe with the user's key), burns in subtitles word by word, renders 9:16 for TikTok and Instagram Reels in two views that take turns between sentences (full frame for the hook, then a split - a flat top zone over the camera in a rounded card - with the title and the boards on top and the subtitles on the seam), a title, boards on the words that say them (a figure, a list, a sentence), an end card. macOS first, Windows, Linux. Use when the user says "edit my video", "cut the silences", "remove my retakes", "add subtitles", "add captions", "make it a TikTok / a Reel / a Short", "add boards", "split screen", "monte ma vidéo", "coupe les blancs", "enlève mes reprises", "ajoute des sous-titres", "mets un titre sur ma vidéo", "mets des cartons", "fais-en un TikTok / un Reel", or drops raw clips to edit.
 ---
 
 # Edit a video
@@ -22,11 +22,10 @@ Windows):
 
 | file | what it is |
 |---|---|
-| `<name>.mp4` | **the video to post**: 1080x1920 for TikTok, Reels and Shorts, full frame and split taking turns (below), subtitles word by word, the title on top, the boards, the end card on the last seconds, the voice evened out to about -14 LUFS (the loudness the platforms play at) |
-| `<name>.youtube.mp4` | with `--youtube`, 1920x1080, when the clips are horizontal |
+| `<name>.mp4` | **the video to post**: 1080x1920 for TikTok and Reels, full frame and split taking turns (below), subtitles word by word, the title on top, the boards, the end card on the last seconds, the voice evened out to about -14 LUFS (the loudness the platforms play at) |
 | `<name>.cut.mp4` | the cut alone, as filmed, no text (for someone who finishes in their own editor) |
 | `<name>.srt`, `<name>.txt` | the transcript of the video (the .srt can be uploaded as captions) |
-| `<name>.ass` | the subtitles as burned in, plain text, with the title, the boards and the end card when ffmpeg draws them (not Remotion); `<name>.youtube.ass` for the 16:9 |
+| `<name>.ass` | the subtitles as burned in, plain text, with the title, the boards and the end card when ffmpeg draws them (not Remotion) |
 | `<name>.takes.tsv` | every island of sound, kept or cut and why, with its words |
 | `<name>.timeline.json` | the kept passages and the words, with their times in the edited video; the views (`views`) and the boards placed (`boards`) |
 | `<name>.state.json` | this video's state: the clips, the exact command of the last run (`command`), the steps done (`steps.edit`, then `steps.publish` written by the `publish-my-video` skill). The `short-video` skill reads it to pick the video up where it was left |
@@ -235,7 +234,6 @@ change.
 | "another end card", "no end card" | `--cta "..."`, `--no-cta` |
 | "add boards", "mets des cartons", "show the figures" | `--boards <name>.boards.json` (section Boards) |
 | "full frame only", "no split", "only the split" | `--scene full`, `--scene split` |
-| "a YouTube version" | `--youtube` (horizontal clips only; a vertical video goes on YouTube as a Short) |
 | "no subtitles" | `--no-subtitles` |
 | "it's slow", a PC without a graphics card | `--model small` (or `large-v3-turbo-q5_0`); for every video, the `set-up-video-tools` skill sets `whisper_model` |
 | "just the cut, I finish it myself" | `--rough` (`-o` is then the cut) |

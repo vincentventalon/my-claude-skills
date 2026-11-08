@@ -1,7 +1,7 @@
 ---
 name: write-my-script
 description: >
-  Écrit le script d'une vidéo face caméra courte (TikTok, Reels, Shorts) avec une méthode mesurée
+  Écrit le script d'une vidéo face caméra courte (TikTok, Reels) avec une méthode mesurée
   sur 100 vidéos publiées et 60 comptes étudiés : 3 hooks tirés de 22 formules nommées (un hook se
   récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script oral en beats « mais /
   donc » avec lock-in, double payoff, relances et CTA aux coutures, les notes visuelles pour le

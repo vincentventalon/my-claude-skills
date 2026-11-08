@@ -6,7 +6,7 @@ French; the skill writes the script in the language you record in.*
 ## Ce que ça fait
 
 Tu donnes un sujet ou une anecdote, Claude te rend le script d'une vidéo face caméra de 30 s à
-2 min (TikTok, Reels, Shorts), prêt à tourner :
+2 min (TikTok, Reels), prêt à tourner :
 
 - **3 hooks**, chacun tiré d'une des 22 formules nommées, avec pourquoi il fait rester. Un hook ne
   s'invente pas : il se récupère parmi ceux qui ont marché.

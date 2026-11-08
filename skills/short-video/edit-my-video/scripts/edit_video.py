@@ -33,8 +33,7 @@ THE FINISH (finish.py).
      frame, and split (a flat top zone over the camera in a card); the
      subtitles word by word, a title on top for the first seconds (--title),
      the boards on their words (--boards), an end card on the last seconds,
-     the voice evened out to about -14 LUFS. With --youtube, also
-     <name>.youtube.mp4 in 1920x1080 when the clips are horizontal;
+     the voice evened out to about -14 LUFS;
   7. writes the transcript (<name>.txt, <name>.srt), the subtitles
      (<name>.ass), the list of every island with what happened to it
      (<name>.takes.tsv), the timeline (<name>.timeline.json: the views and
@@ -68,7 +67,6 @@ ap.add_argument('--lang', help='spoken language: en, fr, es, de... (config: lang
 ap.add_argument('--title', default='', help='title on top for the first seconds; *word* = highlighted, " | " = new line')
 ap.add_argument('--cta', help='end card text (default: end_card.text of the style, else "Follow for more" in the language)')
 ap.add_argument('--no-cta', action='store_true', help='no end card')
-ap.add_argument('--youtube', action='store_true', help='also a 16:9 version for YouTube, when the clips are horizontal')
 ap.add_argument('--scene', choices=['auto', 'split', 'full'], default='auto',
                 help='9:16 views: auto = full frame for the hook, then full frame and split take turns between '
                      'sentences; split = the camera in a card under a flat top zone; full = the camera fills it')
@@ -741,11 +739,6 @@ if not args.rough:
     if not cfg['subtitles']:
         say('subtitles off (config or --no-subtitles): the .srt is written all the same')
     formats = [(out, False)]
-    if args.youtube:
-        if width > height:
-            formats.append((f'{base}.youtube.mp4', True))
-        else:
-            say('--youtube: the clips are vertical, no 16:9 version (the 9:16 goes on YouTube as a Short)')
     audio = finish.loudness_filter(FF, CUT, style.get('loudness'))
     fps = round(1 / FRAME, 3)
     title_sec = min(style['title']['duration'], kept_dur) if args.title else 0.0
@@ -780,7 +773,7 @@ if not args.rough:
                 left = []
         ass = None
         if burn:
-            ass = f'{base}.youtube.ass' if wide else f'{base}.ass'
+            ass = f'{base}.ass'
             n = finish.build_ass(ass, L, out_words if cfg['subtitles'] else [], left, style, views)
             if n:                                       # a plain name: nothing to escape in the filtergraph
                 shutil.copy(ass, os.path.join(work, f'subs{int(wide)}.ass'))
@@ -860,7 +853,6 @@ state.update({
     'video': os.path.basename(base), 'clips': [os.path.abspath(r) for r in args.rushes],
     'command': [os.path.abspath(__file__), *[os.path.abspath(r) for r in args.rushes], *options],
     'final': os.path.basename(out) if not args.rough else None,
-    'youtube': os.path.basename(f'{base}.youtube.mp4') if len(finals) > 1 else None,
     'duration': round(kept_dur, 3), 'lang': args.lang, 'title': args.title,
     'boards': os.path.abspath(args.boards) if args.boards else None,
 })

@@ -1,7 +1,7 @@
 ---
 name: publish-my-video
-description: Gets a finished video out on TikTok and Instagram (YouTube on request) - picks the video (the one in progress, from <name>.state.json), writes the description of each platform from what the video says (the search query as the first line, one sentence per line, the comment keyword of a lead magnet on Instagram only, the follow line, 4 to 6 hashtags last), shows the plan, then after the user's yes schedules it through Nadia (usenadia.com, its Claude connector) - never "now", one post per video and per platform, TikTok and Instagram at the same time - or, without Nadia, writes a ready-to-post kit (post.md, cover.jpg, where to tap). Nothing goes out before the user's yes. Use when the user says "publie-la", "programme-la", "poste-la", "mets-la en ligne", "publish it", "schedule it", "post it on TikTok / Instagram", "écris la description", "les hashtags de ma vidéo".
-argument-hint: "[video | path] [when] [tiktok instagram youtube]"
+description: Gets a finished video out on TikTok and Instagram - picks the video (the one in progress, from <name>.state.json), writes the description of each platform from what the video says (the search query as the first line, one sentence per line, the comment keyword of a lead magnet on Instagram only, the follow line, 4 to 6 hashtags last), shows the plan, then after the user's yes schedules it through Nadia (usenadia.com, its Claude connector) - never "now", one post per video and per platform, TikTok and Instagram at the same time - or, without Nadia, writes a ready-to-post kit (post.md, cover.jpg, where to tap). Nothing goes out before the user's yes. Use when the user says "publie-la", "programme-la", "poste-la", "mets-la en ligne", "publish it", "schedule it", "post it on TikTok / Instagram", "écris la description", "les hashtags de ma vidéo".
+argument-hint: "[video | path] [when] [tiktok instagram]"
 ---
 
 # Publish
@@ -34,7 +34,7 @@ out again.
 ffprobe -v error -show_entries format=duration,size:stream=width,height -of default=nw=1 <video>
 ```
 
-Vertical (a short: TikTok, Reels, Shorts) or horizontal (YouTube). Instagram
+A 9:16 (a short: TikTok, Reels). Instagram
 plays a Reel up to 3 minutes: a longer 9:16, say it and offer a version cut
 under 3 minutes with `edit-my-video` (never cut it yourself).
 
@@ -54,7 +54,7 @@ Nadia's connector (usenadia.com) schedules from Claude, without insisting.
 
 - **The video**: `<video>` as it is, full quality (an mp4 H.264 + AAC, which
   is what `edit-my-video` renders; Nadia takes 500 MB at most).
-- **The cover** (the kit, and YouTube): `<base>.cover.jpg`. Pick it in the
+- **The cover** (the kit): `<base>.cover.jpg`. Pick it in the
   first 3 seconds: the face with the eyes open, the title fully in. A
   contact sheet, read it, then extract the chosen time `<t>`:
 
@@ -115,12 +115,9 @@ Also, for the kit and for them to paste:
 - **The first comment**: a question in their words that matches the video
   (no emoji alone), to post as soon as it is live; answering the first
   comments in the first half hour helps.
-- **YouTube** (only if they want it there): ask in one question the title
-  (under 60 characters for a Short), the description, the visibility
-  (public, unlisted, private) and the time. Invent nothing.
 
 Write them in `<base>.post.md`, one heading per text (`## TikTok`,
-`## Instagram`, `## YouTube`, `## First comment`).
+`## Instagram`, `## First comment`).
 
 **The lead magnet, before anything is scheduled.** The voice (`<base>.txt`)
 or the Instagram description says "commente MOT" / "comment WORD": there
@@ -132,8 +129,7 @@ Instagram post carries the comment-to-DM automation (step 6a).
 
 ## 5. The plan (mandatory)
 
-- **Platforms**: a 9:16 goes to TikTok and Instagram, a 16:9 to YouTube,
-  unless they name others.
+- **Platforms**: TikTok and Instagram, unless they name one only.
 - **Time**: the one they give. TikTok and Instagram **at the same time**.
   Nothing given: ask once ("when? I can take the next free slot of your
   Nadia queue"; `findSlotTool` gives it per channel). "Now" means scheduled
@@ -149,7 +145,6 @@ Show it, with the descriptions in full, and wait for a clear yes:
 PLAN · IMG_4127.mp4 · 0:58 · 1080x1920 · 41 MB
 TikTok     · Nadia · Tue 4 Nov 18:30 (their time) · direct post, public
 Instagram  · Nadia · Tue 4 Nov 18:30 · Reel · comment GUIDE → DM with the link
-YouTube    · not this time
 Descriptions: [TikTok] … [Instagram] …
 Reply yes to schedule, or tell me what to change.
 ```
@@ -213,8 +208,6 @@ steps:
   Schedule, in the advanced settings of a professional account). A
   "commente MOT" line needs something that answers: by hand, or an
   automation.
-- **YouTube**: studio.youtube.com → Create → Upload videos → `<video>` → the
-  title and description → the thumbnail (a Short takes a frame) → Visibility.
 
 ## 7. Record it, hand back
 
@@ -236,5 +229,3 @@ Offer the `audit-my-account` skill in a week, to see how it did.
   accounts waits on TikTok's review of the app): the draft route above.
 - Instagram through Nadia needs a professional account (Creator or Business,
   a free switch in the app) connected in Nadia.
-- YouTube has no rules here: its title, description, visibility and time
-  come from the user.

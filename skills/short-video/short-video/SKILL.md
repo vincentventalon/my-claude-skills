@@ -56,7 +56,7 @@ anything.
 | `short-video` | the name (`<name>.mp4` is the video to post) |
 | `cut-long-video-into-shorts` | the raw clips, absolute paths, in order |
 | `command` | the exact command of the last edit: run it again, plus the new option, for any change |
-| `final`, `youtube` | the 9:16 to post, the 16:9 when there is one (`null` otherwise) |
+| `final` | the 9:16 to post |
 | `duration`, `lang`, `title`, `boards` | the edited length, the language, the title on screen, the boards file |
 | `steps.edit` | `done` (date), `rough` (only the cut) |
 | `steps.publish` | written by `publish-my-video`: `kit` (path of `post.md`) or `nadia` (the posts: platform, date, id), and `status` (`kit`, `scheduled`, `posted`) |

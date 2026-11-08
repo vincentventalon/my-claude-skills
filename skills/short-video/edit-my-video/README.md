@@ -14,7 +14,7 @@ Tu tournes face caméra, tu donnes tes rushs à Claude, il te rend la vidéo à 
   une carte aux coins arrondis en bas, les sous-titres sur la couture), avec ton titre et tes cartons en haut.
 - Des cartons sur le mot qui les dit : un chiffre, une liste, une phrase. Dis « mets des cartons », Claude les
   propose à partir de ce que tu dis.
-- En 9:16 pour TikTok, Reels et Shorts ; aussi en 16:9 pour YouTube quand tu as filmé à l'horizontale.
+- En 9:16, pour TikTok et Reels.
 - Claude relit ensuite les prises comme un monteur. Ce qui reste à couper, tu le lui dis avec tes mots.
 - Avant de monter, la skill `audit-my-account` mesure ce qui marche déjà sur ton compte TikTok.
 
@@ -117,7 +117,7 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 3. **Ce qu'il te demande** : où sont tes rushs (et leur ordre, si ce n'est pas celui des noms), ta
    langue si ta configuration ne la donne pas, et si tu veux un titre : le tien, ou il t'en propose
    un d'après ce que tu dis. Le reste a un défaut : le carton de fin dit « Abonne-toi pour la
-   suite ». La version YouTube, c'est toi qui la demandes, si tu as filmé à l'horizontale. Si tu as
+   suite ». Si tu as
    fait l'audit de ton compte (plus bas), il s'en sert pour te proposer le titre et la durée à viser.
 4. **Ce que tu obtiens**, dans ton dossier de sortie (`~/Videos/edited` par défaut), au nom de
    ton premier rush :
@@ -125,9 +125,8 @@ dis à Claude « c'est copié » : il la lit dans ton presse-papier
 | Fichier | Ce que c'est |
 |---|---|
 | `<nom>.mp4` | la vidéo à publier, 1080×1920 : plein cadre et split, sous-titres, titre, cartons, carton de fin, voix à -14 LUFS |
-| `<nom>.youtube.mp4` | la version 16:9 pour YouTube, quand tu l'as demandée et que tu as filmé à l'horizontale |
 | `<nom>.cut.mp4` | le montage seul, cadré comme tu as filmé, sans texte |
-| `<nom>.txt` · `<nom>.srt` | le texte de la vidéo, et les sous-titres avec leurs temps (CapCut, Premiere, YouTube) |
+| `<nom>.txt` · `<nom>.srt` | le texte de la vidéo, et les sous-titres avec leurs temps (CapCut, Premiere) |
 | `<nom>.ass` | les sous-titres tels qu'incrustés, en texte (avec le titre et le carton quand c'est ffmpeg qui les dessine, pas Remotion) |
 | `<nom>.takes.tsv` | chaque morceau de ton rush, gardé ou coupé, avec ce que tu y dis |
 | `<nom>.timeline.json` | les passages gardés et les mots, avec leurs temps dans la vidéo montée ; les vues et les cartons |

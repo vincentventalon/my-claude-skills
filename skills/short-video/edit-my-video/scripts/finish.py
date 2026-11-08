@@ -1,6 +1,6 @@
 """finish.py — the cut becomes the video you post (edit_video.py calls it).
 
-  - 9:16, 1080x1920, for TikTok, Instagram Reels and YouTube Shorts, in two
+  - 9:16, 1080x1920, for TikTok and Instagram Reels, in two
     views (the SCENE):
       full   the camera fills the screen (a sideways rush sits in the middle
              on a blurred copy of itself; --fit fill crops it instead);
@@ -11,8 +11,6 @@
              selfie), a sideways one sits in the card whole, not cropped.
     By default (auto) the video opens in full frame for the hook, then the
     two views take turns at the boundaries between sentences (plan_views);
-  - 16:9, 1920x1080, for YouTube (--youtube), when the rush is horizontal:
-    full frame;
   - the subtitles burned in, a few words at a time, the word being said lit up;
   - a title on top for the first seconds, an end card (the call to action)
     on the last ones, the boards (a figure, a list, a sentence) on the words

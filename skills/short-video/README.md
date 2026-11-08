@@ -1,9 +1,9 @@
-# Le pack vidéo courte : tes TikTok, Reels et Shorts avec Claude Code
+# Le pack vidéo courte : tes TikTok et Reels avec Claude Code
 
-Huit skills, une par tâche, pour la vidéo courte face caméra sur TikTok, Instagram Reels et
-YouTube Shorts : savoir ce qui marche déjà sur ton compte, ce qui explose dans ta niche, écrire le
+Huit skills, une par tâche, pour la vidéo courte face caméra sur TikTok et Instagram
+Reels : savoir ce qui marche déjà sur ton compte, ce qui explose dans ta niche, écrire le
 script, tourner, monter le rush en vidéo à publier, découper une longue en shorts, publier sur les
-trois plateformes. Pas d'application : les scripts tournent sur ton ordinateur (ffmpeg, whisper.cpp,
+deux plateformes. Pas d'application : les scripts tournent sur ton ordinateur (ffmpeg, whisper.cpp,
 Remotion si tu as Node), et tu parles à Claude.
 
 *Les skills `short-video`, `edit-my-video`, `cut-long-video-into-shorts`, `audit-my-account`, `find-outliers-in-my-niche` et `publish-my-video` comprennent aussi l'anglais ;
@@ -18,9 +18,9 @@ Remotion si tu as Node), et tu parles à Claude.
 | [`/audit-my-account`](audit-my-account/SKILL.md) | Ton propre compte TikTok (TikTok seulement : Instagram ne laisse pas lire un profil sans connexion, la skill n'essaie pas) : tes 30 dernières vidéos lues sans connexion, chacune comparée à la médiane de ton compte, ce que tu dis dans les 5 premières secondes transcrit sur ton ordinateur, et `AUDIT.md` : ce qui marche déjà chez toi, chiffres à l'appui, 3 tests à faire et un bloc que `edit-my-video` relit pour ton titre et ta durée. Gratuit. Si TikTok refuse la lecture, tu donnes tes chiffres. |
 | [`/find-outliers-in-my-niche`](find-outliers-in-my-niche/SKILL.md) | Ce qui a explosé chez les comptes TikTok que tu suis : les 30 dernières vidéos de chaque compte lues sans connexion, chacune contre la médiane de son propre compte (×3 ou plus), les vidéos trop récentes et sponsorisées à part, les succès qui se répètent, le hook des 5 premières secondes transcrit sur ton ordinateur, une liste de comptes qui grandit avec toi, et 5 idées à refaire avec ta voix dans `OUTLIERS.md`, comme des tests. Gratuit ; Instagram à la main. |
 | [`/write-my-script`](write-my-script/SKILL.md) · [guide](write-my-script/README.md) | Le script de ta prochaine vidéo courte : 3 hooks tirés de 22 formules nommées (un hook se récupère, il ne s'invente pas), 3 hooks texte pour l'écran, le script en beats « mais / donc » avec double payoff et appels à l'action aux coutures, les notes pour le montage, une passe anti-slop et le timing à ton débit, dans `script.md`. Part de ton audit et de tes outliers s'ils sont dans le dossier. |
-| [`/edit-my-video`](edit-my-video/SKILL.md) · [guide](edit-my-video/README.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16 (16:9 pour YouTube), plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
+| [`/edit-my-video`](edit-my-video/SKILL.md) · [guide](edit-my-video/README.md) | Ton rush en vidéo à publier, en une commande : rushs joints, blancs, faux départs et reprises coupés (ta dernière prise gagne), texte mot à mot par whisper ou ElevenLabs, plein cadre et split qui alternent entre deux phrases, ton titre, des cartons (un chiffre, une liste, une phrase) sur le mot qui les dit, sous-titres mot à mot, carton de fin, voix à -14 LUFS, en 9:16, plus le `.srt` pour CapCut ou Premiere. Ce qui reste à couper, tu le lui dis avec tes mots. |
 | [`/cut-long-video-into-shorts`](cut-long-video-into-shorts/SKILL.md) | Une longue (un lien YouTube, un podcast, un live, un fichier) en shorts finis : le transcript lu dans les sous-titres YouTube avec yt-dlp (ou transcrit sur ton ordinateur par `edit-my-video`), les moments qui tiennent seuls (une idée, 20 à 60 s) trouvés et notés sur 10, le plan dans `clips/<source>.md`, puis chaque clip que tu choisis coupé en rush et monté par `edit-my-video` (coupes, titre, cartons, sous-titres, 9:16). Les idées trop étalées pour être coupées deviennent des scripts à tourner, écrits par `write-my-script`. |
-| [`/publish-my-video`](publish-my-video/SKILL.md) | La vidéo finie en ligne sur TikTok et Instagram (YouTube Shorts si tu le demandes) : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de [Nadia](https://usenadia.com) : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
+| [`/publish-my-video`](publish-my-video/SKILL.md) | La vidéo finie en ligne sur TikTok et Instagram : les descriptions de TikTok et d'Instagram tirées de ce que tu dis (la recherche en première ligne, une phrase par ligne, le mot à commenter quand tu envoies une ressource, 4 à 6 hashtags), le plan montré, puis, après ton « oui », programmée avec le connecteur Claude de [Nadia](https://usenadia.com) : jamais tout de suite, un seul post par plateforme, TikTok et Instagram à la même heure. Sans Nadia, un kit prêt à poster (`post.md`, la couverture, où cliquer). |
 
 Tu n'es pas obligé de taper le nom d'une skill : dis à Claude ce que tu veux, il reconnaît la tâche.
 Tu ne sais pas laquelle prendre ? **`/short-video <ce que tu veux>`** la choisit pour toi et reprend
@@ -36,7 +36,7 @@ la vidéo en cours au lieu de repartir de zéro.
                               tu tournes
 /edit-my-video                ton rush → la vidéo à publier              → ~/Videos/edited/<nom>.mp4
 /cut-long-video-into-shorts   une longue → des shorts finis              → clips/<source>.md, ~/Videos/edited/<slug>.mp4
-/publish-my-video             TikTok, Instagram Reels, YouTube Shorts    → Nadia, ou post.md
+/publish-my-video             TikTok, Instagram Reels                    → Nadia, ou post.md
 ```
 
 `/short-video <ce que tu veux>` à n'importe quelle étape : elle sait où tu en es.
@@ -58,8 +58,7 @@ du script pour te proposer le titre et la durée, `publish-my-video` et `short-v
 - **Les sous-titres** mot à mot, le mot dit en vert, sur la couture du split.
 - **Un carton de fin** (« Abonne-toi pour la suite » dans ta langue), la voix à -14 LUFS, le
   volume des plateformes.
-- **En 9:16** pour TikTok, Instagram Reels et YouTube Shorts ; en 16:9 pour YouTube si tu as
-  filmé à l'horizontale.
+- **En 9:16**, pour TikTok et Instagram Reels.
 
 Un seul style de base : la police et la couleur du mot dit se choisissent à l'installation
 (`/set-up-video-tools`), le reste (taille des sous-titres, couleur du haut) se change dans

@@ -5,7 +5,7 @@ packs. Chaque pack s'installe seul ou avec l'autre, et chaque pack a son README.
 
 | Pack | Pour quoi | Les skills | Guide |
 |---|---|---|---|
-| [`skills/short-video/`](skills/short-video/) | la vidéo courte face caméra : TikTok, Instagram Reels, YouTube Shorts. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `short-video`, `set-up-video-tools`, `audit-my-account`, `find-outliers-in-my-niche`, `write-my-script`, `edit-my-video`, `cut-long-video-into-shorts`, `publish-my-video` | [README du pack vidéo courte](skills/short-video/README.md) |
+| [`skills/short-video/`](skills/short-video/) | la vidéo courte face caméra : TikTok, Instagram Reels. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `short-video`, `set-up-video-tools`, `audit-my-account`, `find-outliers-in-my-niche`, `write-my-script`, `edit-my-video`, `cut-long-video-into-shorts`, `publish-my-video` | [README du pack vidéo courte](skills/short-video/README.md) |
 | [`skills/seo/`](skills/seo/) | le SEO de ton site, sans outil payant : l'audit technique, les concurrents, quoi écrire ensuite, le maillage, et ce que dit vraiment ta Search Console. | `audit-my-site-seo`, `analyze-my-competitors`, `find-keywords-to-write`, `improve-my-internal-links`, `read-my-search-console` | [README du pack SEO](skills/seo/README.md) |
 
 Pas d'application, pas de serveur, pas d'abonnement. Une skill, c'est un dossier avec un
@@ -17,9 +17,9 @@ vidéos et mes propres sites avant de les mettre ici ; une nouvelle arrive chaqu
 
 ## Le pack vidéo courte : `skills/short-video/`
 
-Pour TikTok, Instagram Reels et YouTube Shorts. Tu tournes face caméra, Claude fait le reste : il mesure ce qui marche déjà sur ton compte et ce
+Pour TikTok et Instagram Reels. Tu tournes face caméra, Claude fait le reste : il mesure ce qui marche déjà sur ton compte et ce
 qui explose dans ta niche, écrit le script, monte ton rush en vidéo à publier (coupes, titre,
-cartons, sous-titres mot à mot, 9:16), découpe une longue en shorts, et programme le post sur les trois plateformes. Huit
+cartons, sous-titres mot à mot, 9:16), découpe une longue en shorts, et programme le post sur les deux plateformes. Huit
 skills, une par étape, qui se passent le relais par des fichiers posés dans ton dossier.
 
 ```text
@@ -168,7 +168,7 @@ claude plugin validate . --strict
 ## In English
 
 Free Claude Code skills in two packs: [short video](skills/short-video/README.md) (script, edit
-and publish talking-head videos for TikTok, Instagram Reels and YouTube Shorts, cut a long video into shorts, audit
+and publish talking-head videos for TikTok and Instagram Reels, cut a long video into shorts, audit
 your own account) and [SEO](skills/seo/README.md) (technical audit, competitors, keywords,
 internal links, Search Console), one skill per job. Install with
 `npx skills add vincentventalon/my-claude-skills -a claude-code`. `short-video`, `edit-my-video`, `cut-long-video-into-shorts`,
