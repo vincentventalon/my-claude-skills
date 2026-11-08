@@ -35,7 +35,7 @@ Le contrat, partagé avec la skill de montage :
   ~/.config/video-editing/env (mode 600, des lignes KEY=valeur). Jamais dans config.json.
   ~/.config/video-editing/style.json : ce qui change du style livré avec le montage (son style.json) ;
   setup n'y pose que la police (font, font_file) et la couleur du mot dit (captions.highlight, et
-  title.highlight, split.highlight qui la suivent), le reste se règle à la main.
+  title.highlight, split.highlight, end_card.box qui la suivent), le reste se règle à la main.
 
 Sur Windows, `py` (le lanceur de python.org) ou `python` au lieu de `python3`.
 Bibliothèque standard seulement. Tourne dès Python 3.8, pour pouvoir dire qu'il faut 3.10.
@@ -1241,13 +1241,18 @@ def ecris_style(s: Sonde, a: argparse.Namespace) -> list:
     if a.couleur:
         c = a.couleur
         if c == COULEUR_DEFAUT:                            # la couleur de base : le style livré, tel quel
-            for k in (("captions", "highlight"), ("title", "highlight"), ("split", "highlight")):
+            for k in (("captions", "highlight"), ("title", "highlight"), ("split", "highlight"), ("end_card", "box")):
                 pose(perso, livre, k, None)
+            if perso.get("end_card", {}).get("color") == "#FFFFFF":   # le blanc qu'on avait posé nous-mêmes
+                pose(perso, livre, ("end_card", "color"), None)
         else:
             pose(perso, livre, ("captions", "highlight"), c)
             pose(perso, livre, ("split", "highlight"), c)
             cadre = str(style_resolu(s)["title"].get("box") or "#FFFFFF")
             pose(perso, livre, ("title", "highlight"), lisible_sur(c, cadre))
+            pose(perso, livre, ("end_card", "box"), c)         # le carton de fin est de sa couleur aussi
+            texte = str((livre.get("end_card") or {}).get("color") or "#101114")   # le texte livré, pas le blanc d'un choix d'avant
+            pose(perso, livre, ("end_card", "color"), "#FFFFFF" if contraste(c, texte) < 3.0 else None)
     if perso != avant or etat == "illisible":
         if perso:
             ecrit_atomique(p, json.dumps(perso, ensure_ascii=False, indent=2) + "\n")

@@ -253,7 +253,14 @@ with tempfile.TemporaryDirectory() as home:
     code, out, err = lance(["--ecris", "--police", "anton", "--couleur", "jaune", "--json"], s)
     st = json.loads(stp.read_text(encoding="utf-8"))
     verifie(st == {"font": "Anton", "captions": {"highlight": "#FFD23F"}, "split": {"highlight": "#FFD23F"},
-                   "title": {"highlight": st.get("title", {}).get("highlight")}}, f"style.json : {st}")
+                   "title": {"highlight": st.get("title", {}).get("highlight")}, "end_card": {"box": "#FFD23F"}},
+            f"style.json : {st}")
+    lance(["--ecris", "--couleur", "#1A237E"], s)      # une couleur sombre : le texte du carton passe au blanc
+    st2 = json.loads(stp.read_text(encoding="utf-8"))
+    verifie(st2["end_card"] == {"box": "#1A237E", "color": "#FFFFFF"}, f"carton sombre, texte blanc : {st2}")
+    lance(["--ecris", "--couleur", "jaune"], s)
+    st = json.loads(stp.read_text(encoding="utf-8"))
+    verifie("color" not in st["end_card"], f"couleur claire à nouveau : le blanc posé par nous retiré : {st}")
     verifie(setup.contraste(st["title"]["highlight"], "#FFFFFF") >= 3, f"le mot du titre se lit sur blanc : {st}")
     verifie(json.loads(out)["choix"]["couleur"] == "#FFD23F" and json.loads(out)["choix"]["police"] == "Anton",
             f"--json : choix {json.loads(out)['choix']}")

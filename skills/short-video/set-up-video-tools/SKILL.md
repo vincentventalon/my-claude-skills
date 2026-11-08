@@ -289,7 +289,7 @@ le PATH, puis dans `%LOCALAPPDATA%\whisper.cpp\Release\` ; ffmpeg dans le PATH, 
 |---|---|---|
 | `font` | `--police` | le nom de la police (`Anton`, `Montserrat Black`) |
 | `font_file` | `--police <fichier>` | le chemin du `.ttf` / `.otf` ; `font` prend alors le nom lu dans le fichier |
-| `captions.highlight`, `split.highlight` | `--couleur` | la couleur choisie |
+| `captions.highlight`, `split.highlight`, `end_card.box` | `--couleur` | la couleur choisie (le mot dit, le mot du titre sur le bandeau, le fond du carton de fin ; `end_card.color` passe au blanc si la couleur est sombre) |
 | `title.highlight` | `--couleur` | la même teinte, assombrie juste assez pour se lire sur le cadre blanc du titre |
 
 Le reste des clés (tailles, hauteurs, fond, carton de fin) : la section « The look: style.json » de

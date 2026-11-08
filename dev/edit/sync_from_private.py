@@ -23,7 +23,7 @@ Porting rules (the reason this is not a copy):
     local, ElevenLabs Scribe with the user's own key: stt.py), the
     subtitles burned in (finish.py, style.json), the title, the end card,
     the 9:16 / 16:9 framing, the loudness;
-  - WHAT STAYS OUT (paid, https://pifpafcut.com/pro): the review page and
+  - WHAT STAYS OUT (paid, https://pifpafcut.com/skill): the review page and
     the audio check in the browser (no scripts/review.*, no edits.json),
     the measured scenes, the motion, the b-roll, the covers, the
     publishing (the skill only says the video is scheduled with Nadia);
@@ -59,7 +59,7 @@ WATCHED = ['scripts/salves.py', 'scripts/jump_cuts.py', 'scripts/align.py',
 LEAKS = ['/Users/', '/home/', 'cockpit', 'pifpafpoum', 'claude -p', 'openai', 'treg', 'metricool',
          'review.py', 'review.html', 'edits.json',   # the review page is not part of this skill
          'sk_', 'xi-api-key: ']                      # a key written down
-ALLOWED = ['pifpafcut.com/pro']                      # the one link to the paid version
+ALLOWED = ['pifpafcut.com/skill']                      # the one link to the paid version
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument('cmd', choices=['status', 'test', 'mark'])
