@@ -11,7 +11,7 @@ never written here: pass it in the PRIVATE_SKILL environment variable (or
 
     python dev/edit/sync_from_private.py status       # 1. what changed in the private code that travels
     #  -> hand the printed diff file to Claude: "port what is worth it into
-    #     skills/short-video/edit-my-video/scripts/ (rules below)"
+    #     skills/short-video/edit/scripts/ (rules below)"
     python dev/edit/sync_from_private.py test RUSH.MP4 --lang fr    # 2. real test, old vs new
     python dev/edit/test_stt.py                         #    the Scribe path, no network
     python dev/edit/sync_from_private.py mark          # 3. once ported: remember where we are
@@ -33,7 +33,7 @@ Porting rules (the reason this is not a copy):
     video comes out all the same); no key in the repo, no `claude -p`, no
     personal path, no name of a person or an account;
   - the settings file ~/.config/video-editing/config.json is a contract
-    with the `set-up-video-tools` skill: its keys (stt, whisper_model, ffmpeg, lang,
+    with the `setup` skill: its keys (stt, whisper_model, ffmpeg, lang,
     output_dir, subtitles, remotion) do not change name;
   - no interface: Claude applies the user's changes from the terminal
     (--cut / --protect / --fix / --title / --cta);
@@ -50,7 +50,7 @@ import argparse, os, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))           # the repo root (this file: dev/edit/)
-SKILL = os.path.join(REPO, 'skills', 'short-video', 'edit-my-video')
+SKILL = os.path.join(REPO, 'skills', 'short-video', 'edit')
 STATE = os.path.join(HERE, 'private-sync.txt')          # last private commit carried over
 WATCHED = ['scripts/salves.py', 'scripts/jump_cuts.py', 'scripts/align.py',
            'scripts/postflight.py', 'references/coupes.md',          # the cut
@@ -80,7 +80,7 @@ def git(*a, cwd=REPO, check=True):
 
 def leak_check():
     bad = []
-    scope = ['skills/short-video/edit-my-video', 'dev/edit']                    # what a sync touches (the other skills have their own rules)
+    scope = ['skills/short-video/edit', 'dev/edit']                    # what a sync touches (the other skills have their own rules)
     for f in (git('ls-files', '--', *scope).split()
               + git('ls-files', '--others', '--exclude-standard', '--', *scope).split()):
         if f.startswith('dev/edit/private-sync') or f == 'dev/edit/sync_from_private.py':
@@ -129,7 +129,7 @@ if args.cmd == 'status':
         os.write(fd, diff.encode())
         os.close(fd)
         print(f'full diff: {path}')
-        print('next: ask Claude in this repo — "read that diff and port into skills/short-video/edit-my-video/scripts/ '
+        print('next: ask Claude in this repo — "read that diff and port into skills/short-video/edit/scripts/ '
               'what travels (the cut, the two engines, the subtitles), following the rules at the top of '
               'dev/edit/sync_from_private.py", then run `test` and dev/edit/test_stt.py.')
     leak_check()
@@ -142,7 +142,7 @@ elif args.cmd == 'test':
     old = os.path.join(out, 'edit_video_old.py')
     # where edit_video.py lived at that ref: today, then inside the old video-editing plugin
     # (until 2.0.0), then at the root (before the collection)
-    for where in ('skills/short-video/edit-my-video/scripts/edit_video.py', 'video-editing/skills/video-editing/scripts/edit_video.py',
+    for where in ('skills/short-video/edit/scripts/edit_video.py', 'video-editing/skills/video-editing/scripts/edit_video.py',
                   'scripts/edit_video.py'):
         try:
             src = git('show', f'{args.against}:{where}')
@@ -177,7 +177,7 @@ elif args.cmd == 'test':
     print(f'renders in {out} — watch old.mp4 and new.mp4 before deciding.')
     leak_check()
     print('\nnothing was committed or pushed. If it is good:\n'
-          f'  git -C {REPO} add skills/short-video/edit-my-video dev/edit && git -C {REPO} commit -m "..." -- skills/short-video/edit-my-video dev/edit && '
+          f'  git -C {REPO} add skills/short-video/edit dev/edit && git -C {REPO} commit -m "..." -- skills/short-video/edit dev/edit && '
           f'git -C {REPO} push -u origin $(git -C {REPO} branch --show-current)')
 
 elif args.cmd == 'mark':

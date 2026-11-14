@@ -3,9 +3,9 @@
 short-video). Every SKILL.md opens on a front matter with a `name` equal to its folder and a
 `description`: Claude Code and `npx skills add` both install a skill under that name. A category holds
 only skills (no stray SKILL.md at the category level, no skill left at the root of skills/).
-A skill is named after what it does for the user, in words (edit-my-video, find-outliers-in-my-niche):
-at least three hyphenated words, never a bare noun (edit, outliers). The one exception is the front
-door of a pack, named after the pack (short-video).
+A skill has a short name, one or two hyphenated words that say what it does (edit, outliers,
+seo-audit), never a brand prefix: the plugin already prefixes it (/short-video:edit). Long names
+(edit-my-video, find-outliers-in-my-niche) were dropped on 2026-11-14.
 Standard library only; run by .githooks/pre-commit and the CI."""
 import pathlib, re, sys
 
@@ -35,8 +35,8 @@ for cat in sorted(p for p in root.iterdir() if p.is_dir()):
             bad.append(f'{label}: name is {name.group(1) if name else "missing"}, should be {d.name}')
         if not re.search(r'^description:', head, re.M):
             bad.append(f'{label}: no description')
-        if d.name != cat.name and len(d.name.split('-')) < 3:
-            bad.append(f'{label}: a skill is named after what it does, in at least three words (edit-my-video), not {d.name}')
+        if len(d.name.split('-')) > 2:
+            bad.append(f'{label}: a skill name is one or two words (edit, seo-audit), not {d.name}')
 # A skill name is unique across categories: both installers flatten them.
 names = [d.name for cat in root.iterdir() if cat.is_dir() for d in cat.iterdir() if d.is_dir()]
 for n in sorted(set(n for n in names if names.count(n) > 1)):

@@ -5,8 +5,8 @@ packs. Chaque pack s'installe seul ou avec l'autre, et chaque pack a son README.
 
 | Pack | Pour quoi | Les skills | Guide |
 |---|---|---|---|
-| [`skills/short-video/`](skills/short-video/) | la vidéo courte face caméra : TikTok, Instagram Reels. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `short-video`, `set-up-video-tools`, `audit-my-account`, `find-outliers-in-my-niche`, `write-my-script`, `edit-my-video`, `cut-long-video-into-shorts`, `publish-my-video` | [README du pack vidéo courte](skills/short-video/README.md) |
-| [`skills/seo/`](skills/seo/) | le SEO de ton site, sans outil payant : l'audit technique, les concurrents, quoi écrire ensuite, le maillage, et ce que dit vraiment ta Search Console. | `audit-my-site-seo`, `analyze-my-competitors`, `find-keywords-to-write`, `improve-my-internal-links`, `read-my-search-console` | [README du pack SEO](skills/seo/README.md) |
+| [`skills/short-video/`](skills/short-video/) | la vidéo courte face caméra : TikTok, Instagram Reels. Auditer ton compte, trouver ce qui explose dans ta niche, écrire le script, monter le rush, découper une longue en shorts, publier. | `video`, `setup`, `audit`, `outliers`, `script`, `edit`, `clips`, `publish` | [README du pack vidéo courte](skills/short-video/README.md) |
+| [`skills/seo/`](skills/seo/) | le SEO de ton site, sans outil payant : l'audit technique, les concurrents, quoi écrire ensuite, le maillage, et ce que dit vraiment ta Search Console. | `seo-audit`, `competitors`, `keywords`, `internal-links`, `search-console` | [README du pack SEO](skills/seo/README.md) |
 
 Pas d'application, pas de serveur, pas d'abonnement. Une skill, c'est un dossier avec un
 `SKILL.md` qui dit à Claude comment travailler, des scripts qui calculent (deux lancements donnent
@@ -23,9 +23,9 @@ cartons, sous-titres mot à mot, 9:16), découpe une longue en shorts, et progra
 skills, une par étape, qui se passent le relais par des fichiers posés dans ton dossier.
 
 ```text
-/set-up-video-tools → /audit-my-account → /find-outliers-in-my-niche → /write-my-script
-                   → tu tournes → /edit-my-video → /cut-long-video-into-shorts → /publish-my-video
-/short-video <ce que tu veux> : à n'importe quelle étape, elle choisit et reprend la vidéo en cours
+/setup → /audit → /outliers → /script
+                   → tu tournes → /edit → /clips → /publish
+/video <ce que tu veux> : à n'importe quelle étape, elle choisit et reprend la vidéo en cours
 ```
 
 Tout tourne sur ta machine : ffmpeg pour couper et rendre, whisper.cpp pour le texte (gratuit),
@@ -34,7 +34,7 @@ une clé ElevenLabs pour une transcription plus fidèle, et le connecteur Claude
 [Nadia](https://usenadia.com) pour programmer tes posts.
 
 → **[Le README du pack vidéo courte](skills/short-video/README.md)** : les huit skills, le parcours,
-ce que `edit-my-video` rend par défaut, puis l'installation et ce qu'il faut sur ta machine.
+ce que `edit` rend par défaut, puis l'installation et ce qu'il faut sur ta machine.
 
 ## Le pack SEO : `skills/seo/`
 
@@ -42,11 +42,11 @@ Le référencement de ton site sans outil payant et sans scraper Google : est-ce
 pages, qui tient la première page sur ta requête, quoi écrire ensuite d'après ta propre Search
 Console, le maillage dans le texte, et ce qui a vraiment bougé cette semaine. Cinq skills, une par
 tâche, qui partagent un dossier `./seo/<site>/` et un journal des changements : ce qu'une skill met
-en ligne, `read-my-search-console` le mesure trois semaines après.
+en ligne, `search-console` le mesure trois semaines après.
 
 ```text
-/audit-my-site-seo → /analyze-my-competitors → /find-keywords-to-write
-                   → tu écris la page → /improve-my-internal-links → /read-my-search-console chaque semaine
+/seo-audit → /competitors → /keywords
+                   → tu écris la page → /internal-links → /search-console chaque semaine
 ```
 
 Les scripts mesurent (robots.txt, le sitemap, chaque page, l'API Search Console), Claude lit les
@@ -59,7 +59,7 @@ partagé, mesuré contre jugé, puis l'installation et l'accès Google.
 ## Installer
 
 Trois façons, pour un pack ou pour tout. Dans les trois, une skill s'installe sous son nom
-(`edit-my-video`, `find-keywords-to-write`…), sans le dossier de catégorie, et tu n'es pas obligé de taper son nom :
+(`edit`, `keywords`…), sans le dossier de catégorie, et tu n'es pas obligé de taper son nom :
 dis à Claude ce que tu veux, il reconnaît la tâche.
 
 ### Avec `npx skills` (Claude Code, et les autres agents)
@@ -71,8 +71,8 @@ npx skills add vincentventalon/my-claude-skills -a claude-code
 ```
 
 Il te montre la liste et tu coches ce que tu veux : la vidéo seule, le SEO seul, ou tout. Ajoute
-`-g` pour les installer pour tous tes projets, `--skill set-up-video-tools edit-my-video` pour les nommer sans passer
-par la liste (`set-up-video-tools` et `edit-my-video` vont ensemble). Pour mettre à jour : `npx skills update`.
+`-g` pour les installer pour tous tes projets, `--skill setup edit` pour les nommer sans passer
+par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skills update`.
 
 ### Avec le plugin Claude Code
 
@@ -89,7 +89,7 @@ Pour le SEO seul, `/plugin install seo@my-claude-skills` ; pour tout,
 `/plugin install short-video --marketplace vincentventalon/my-claude-skills` (de même pour `seo`).
 Depuis un terminal, les mêmes commandes s'écrivent `claude plugin marketplace add …` et
 `claude plugin install …`. Relance Claude Code après l'installation. Les skills apparaissent sous
-le nom du plugin (`/short-video:edit-my-video`).
+le nom du plugin (`/short-video:edit`).
 
 ### À la main
 
@@ -132,7 +132,7 @@ skills : une mise à jour n'y touche pas.
   ce qui marche, le motion design, choisir son style (sept looks ou le sien, réglé sur sa propre
   prise) : c'est avec ça que je monte mes vidéos, dans
   [Pif Paf Cut Pro](https://pifpafcut.com/skill).
-- Plus de hooks que les 22 formules de `write-my-script`, et la programmation des posts : le connecteur
+- Plus de hooks que les 22 formules de `script`, et la programmation des posts : le connecteur
   Claude de [Nadia](https://usenadia.com).
 
 ## Le dépôt
@@ -145,11 +145,12 @@ skills/
 dev/             les tests et les outils du dépôt, rien n'en est installé
 ```
 
-Chaque skill porte le nom de ce qu'elle fait pour toi, en mots (`edit-my-video`,
-`find-outliers-in-my-niche`), jamais un nom seul ; `dev/check_skills.py` le vérifie. Chaque skill
+Chaque skill porte un nom court, un ou deux mots qui disent ce qu'elle fait (`edit`,
+`outliers`, `seo-audit`), sans préfixe : le plugin en met déjà un (`/short-video:edit`) ;
+`dev/check_skills.py` le vérifie. Chaque skill
 est un dossier `skills/<pack>/<nom>/` : `SKILL.md` (ce que Claude lit), `scripts/`
 (ce qui calcule), `references/` (les règles et les mesures), parfois un `README.md` à elle quand
-elle demande une installation ou un accès (`edit-my-video`, `write-my-script`, `read-my-search-console`).
+elle demande une installation ou un accès (`edit`, `script`, `search-console`).
 
 ## Signaler un problème, contribuer
 
@@ -171,9 +172,9 @@ Free Claude Code skills in two packs: [short video](skills/short-video/README.md
 and publish talking-head videos for TikTok and Instagram Reels, cut a long video into shorts, audit
 your own account) and [SEO](skills/seo/README.md) (technical audit, competitors, keywords,
 internal links, Search Console), one skill per job. Install with
-`npx skills add vincentventalon/my-claude-skills -a claude-code`. `short-video`, `edit-my-video`, `cut-long-video-into-shorts`,
-`audit-my-account`, `find-outliers-in-my-niche` and `publish-my-video` work in English as well as in French (their guides are in
-French); `set-up-video-tools`, `write-my-script` and the five SEO skills are written in French.
+`npx skills add vincentventalon/my-claude-skills -a claude-code`. `video`, `edit`, `clips`,
+`audit`, `outliers` and `publish` work in English as well as in French (their guides are in
+French); `setup`, `script` and the five SEO skills are written in French.
 
 ## Licence
 

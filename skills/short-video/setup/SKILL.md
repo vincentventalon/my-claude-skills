@@ -1,0 +1,332 @@
+---
+name: setup
+description: Installe et configure tout ce dont les skills vidéo ont besoin - le montage de la skill `edit` (vidéos face caméra), et yt-dlp avec lequel audit et outliers lisent les comptes sans connexion - diagnostic de la machine (Python, ffmpeg avec libass pour les sous-titres, whisper.cpp et son modèle, clé ElevenLabs, Node pour Remotion, yt-dlp, dossier de sortie), questions (whisper ou ElevenLabs, langue, sortie, sous-titres, Remotion, police, couleur), installation de ce qui manque, puis ~/.config/video-editing/. Use when the user says "installe la skill vidéo", "configure le montage", "set up video editing", "install the video editing skill", "je veux utiliser ElevenLabs", "change de moteur de transcription", "passe à whisper", "ma clé ElevenLabs", "change ma police", "il manque ffmpeg", "il manque yt-dlp", "les sous-titres ne s'incrustent pas", or when the edit, audit or outliers skill stops on a missing tool, model, key or setting.
+---
+
+# Installer les skills vidéo
+
+Cette skill prépare l'ordinateur pour les skills vidéo installées à côté d'elle : le montage
+(`edit`), et yt-dlp, avec lequel `audit` et `outliers` lisent les comptes sans connexion. Elle
+regarde ce qui est installé, pose sept questions, installe ce qui manque et écrit
+`~/.config/video-editing/config.json` (et `style.json` quand la police ou la couleur changent). C'est la seule à installer : les autres skills renvoient
+ici. Une fois au premier usage ; ensuite, seulement quand un réglage change ou qu'une skill
+s'arrête sur un manque.
+
+- Parle la langue de l'utilisateur. Le script écrit en français : traduis ce que tu en dis.
+- `<setup>` = le dossier de ce fichier. Le script : `<setup>/scripts/setup.py`, bibliothèque
+  standard seulement. `python3` sur macOS et Linux. Sur Windows, `py` (le lanceur que pose
+  python.org ; `python` seulement s'il n'y a pas de `py`, jamais `python3`, qui y ouvre souvent le
+  Microsoft Store) : remplace `python3` par lui dans toutes les commandes ci-dessous. Les commandes
+  du diagnostic (`corrige`) sont déjà écrites pour le système.
+- Windows : Claude Code lance les commandes dans Git Bash ou PowerShell. Écris les chemins avec des
+  `/` (`C:/Users/...`), entre guillemets s'ils ont des espaces : ça passe dans les deux.
+- Une question par message, sauf les questions 2 à 7 (section 2), qui vont ensemble.
+- Rien de payant, rien d'installé sans que l'utilisateur ait vu la commande.
+
+## 1. Le diagnostic
+
+```sh
+python3 <setup>/scripts/setup.py --json
+```
+
+N'écrit rien. Chaque point de `constats` a un `etat` :
+
+| etat | sens |
+|---|---|
+| `ok` | là et bon |
+| `manque` | le montage ne peut pas tourner (`bloque: true`) |
+| `a_faire` | setup ou le premier montage s'en charge (le modèle, le dossier de sortie, la config, yt-dlp) |
+| `option` | pas besoin avec les choix faits (whisper-cli quand on a choisi ElevenLabs) |
+| `attention` | marche, mais à savoir (pas de Node : le titre est dessiné par ffmpeg) |
+
+`corrige` donne les commandes exactes pour ce système ; une ligne `# ...` est une explication,
+pas une commande. `pret` dit si le montage peut tourner tel quel. `pret_comptes` dit si `audit` et
+`outliers` peuvent lire un compte : la ligne `ytdlp` (yt-dlp) est `ok`. yt-dlp ne bloque jamais le
+montage : absent, il est `a_faire` (setup l'installe avec le reste), ou `option` quand ni `audit`
+ni `outliers` ne sont installés à côté.
+
+Dis à l'utilisateur, en trois à six lignes, ce qui est là et ce qui manque. Pas le JSON, pas
+les chemins sauf s'il les demande.
+
+- **Première installation** (`config_etat` vaut `absente`) : tout le questionnaire (section 2).
+- **Une seule chose à changer** (« passe à ElevenLabs », « coupe les sous-titres », « change ma
+  police ») : seulement
+  la question concernée, puis section 5. Les autres réglages restent tels quels.
+- **Envoyée par le montage** : voir « Quand c'est le montage qui t'envoie » plus bas.
+
+## 2. Le questionnaire
+
+Pose la question 1 seule : c'est la seule qui demande une explication. Puis les questions 2 à 7
+dans un même message, chacune avec son défaut ; « ok » garde tous les défauts. Si l'outil de
+questions à choix (AskUserQuestion) est disponible, sers-t'en. N'invente aucune réponse : une
+réponse floue prend le défaut, et tu le dis.
+
+### Question 1 : le moteur de transcription
+
+Le montage a besoin du texte de la vidéo, mot par mot, pour savoir où couper et pour les
+sous-titres. Présente le choix tel quel, sans pousser l'un ou l'autre :
+
+| | **whisper** (défaut) | **ElevenLabs Scribe** |
+|---|---|---|
+| Prix | gratuit | payant à l'usage, selon la durée du son (tarifs sur elevenlabs.io) |
+| Où ça tourne | sur ton ordinateur, rien ne sort | le son de ta vidéo est envoyé à ElevenLabs |
+| À installer | whisper.cpp et un modèle de 1,6 Go | rien : une clé d'API |
+| Ce qu'il entend | bien ; un peu moins précis sur les reprises (une phrase redite juste après l'autre peut être avalée) et les noms propres | le meilleur verbatim : les reprises, les noms, les chiffres |
+
+Ce qu'il faut savoir en plus :
+
+- Avec ElevenLabs, la réponse est gardée sur l'ordinateur : remonter la même vidéo avec d'autres
+  réglages ne repaie rien.
+- On peut changer d'avis à tout moment : « passe à ElevenLabs », « reviens à whisper ».
+- Pour commencer sans compte ni carte, whisper. ElevenLabs quand whisper laisse passer des
+  reprises que tu entends.
+
+Ordinateur modeste avec whisper (un PC sans carte graphique, 8 Go de mémoire, peu de place) :
+propose un modèle plus léger, passé ensuite par `--modele` à `--ecris` :
+
+| modèle | téléchargement | quand |
+|---|---|---|
+| `large-v3-turbo` (défaut) | 1,6 Go | Mac M1 ou plus récent, PC avec carte graphique |
+| `large-v3-turbo-q5_0` | 0,57 Go | peu de place ou 8 Go de mémoire ; presque aussi bon |
+| `small` | 0,49 Go | PC sans carte graphique, ou trop lent : plus rapide, rate un peu plus de reprises |
+
+Sur Windows, le whisper.cpp que setup télécharge est la build processeur : la carte graphique ne
+sert pas, même sur un PC qui en a une (vitesse pas encore mesurée sur PC).
+
+### Questions 2 à 7, ensemble
+
+2. **La langue parlée dans tes vidéos ?** Défaut : la langue dans laquelle l'utilisateur
+   t'écrit. Un code : `fr`, `en`, `es`, `de`...
+3. **Où ranger les vidéos montées ?** Défaut : `~/Videos/edited`. Sur Mac, le dossier Vidéos
+   du Finder est `~/Movies` : propose `~/Movies/edited` s'il veut les y retrouver. Sur Windows,
+   `~/Videos` est le dossier Vidéos de l'Explorateur (`C:\Users\<toi>\Videos`), sauf si OneDrive
+   le sauvegarde : il est alors sous `~/OneDrive/`.
+4. **Sous-titres incrustés dans la vidéo ?** (quelques mots à la fois, le mot dit qui
+   s'allume) Défaut : oui. Il faut un ffmpeg avec libass ; sur Mac, c'est `ffmpeg-full`.
+5. **Titre, cartons et carton de fin animés avec Remotion ?** Défaut : oui si Node 18 ou plus
+   est là (le diagnostic le dit), non sinon. Sans Remotion, ffmpeg dessine le titre, les cartons
+   et le carton de fin, sans les animations, et la vidéo sort quand même. Avec, il faut Node ; le
+   premier rendu installe Remotion tout seul (environ une minute, une fois).
+6. **La police des sous-titres et du titre ?** Défaut : `Inter ExtraBold` (livrée avec le montage).
+   Aussi livrée : `Anton` (étroite, en hauteur). Ou le nom d'une police installée sur l'ordinateur
+   (`Montserrat Black`), ou le chemin d'un fichier `.ttf` / `.otf`.
+7. **La couleur du mot dit ?** (le mot qui s'allume dans les sous-titres, et le mot en couleur du
+   titre) Défaut : menthe `#3DDC97`. Aussi : jaune `#FFD23F`, orange `#FF8C42`, rose `#FF5DA2`,
+   bleu `#4DA3FF`, ou autre : un hex (`#FF3B30`).
+
+Le reste du look (tailles, hauteur des sous-titres, fond, carton de fin) ne se demande pas ici : il
+se règle dans `style.json` (section « Le contrat avec la skill de montage »).
+
+## 3. La clé ElevenLabs (seulement si ElevenLabs)
+
+La clé ne passe jamais par la conversation, ni par config.json, ni par une ligne de commande.
+Dis à l'utilisateur :
+
+1. Crée un compte sur elevenlabs.io, puis une clé d'API (dans les réglages développeur, « API
+   Keys »). Si on te propose de limiter ses droits, garde seulement « Speech to Text ».
+2. Copie la clé. **Ne la colle pas ici.**
+3. Dis-moi « c'est copié ».
+
+Puis lance, selon le système :
+
+```sh
+pbpaste | python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin                      # macOS
+powershell -NoProfile -Command Get-Clipboard | py <setup>/scripts/setup.py --cle-elevenlabs-stdin   # Windows
+xclip -selection clipboard -o | python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin # Linux (wl-paste sous Wayland)
+```
+
+(La ligne Windows passe par `powershell` : elle marche aussi bien dans PowerShell que dans le Git
+Bash de Claude Code.) Le script lit la clé sur son entrée, l'écrit dans
+`~/.config/video-editing/env` (mode 600 ; sur Windows, le dossier personnel n'est lisible que par
+son compte) et ne l'affiche jamais. « rien reçu » ou « pas la forme d'une clé » : le
+presse-papier contenait autre chose, fais recopier. L'utilisateur peut aussi le faire seul, dans
+un terminal : `python3 <setup>/scripts/setup.py --cle-elevenlabs-stdin` (`py` sur Windows) demande
+la clé sans l'afficher.
+
+Si l'utilisateur colle quand même sa clé dans la conversation : ne la répète pas, ne l'écris
+nulle part toi-même. Dis-lui qu'elle est maintenant dans l'historique de la conversation, qu'il
+vaut mieux la supprimer sur ElevenLabs et en créer une autre, puis refais les étapes 2 et 3.
+
+## 4. Installer ce qui manque
+
+**macOS** : les installations passent par Homebrew.
+
+```sh
+python3 <setup>/scripts/setup.py --installe --a-blanc     # la liste, rien n'est lancé
+```
+
+Montre la liste à l'utilisateur ; sur son accord :
+
+```sh
+python3 <setup>/scripts/setup.py --installe
+```
+
+`ffmpeg-full` tire beaucoup de dépendances : plusieurs minutes, c'est normal. Il s'installe à
+côté du `ffmpeg` de Homebrew sans le remplacer, et le montage le trouve tout seul. yt-dlp est dans
+la liste quand il manque, même si le montage est déjà prêt.
+
+Homebrew absent : la commande d'installation est dans le diagnostic. Elle demande le mot de
+passe de l'ordinateur, c'est donc l'utilisateur qui la lance, dans son terminal. À la fin,
+l'installeur affiche deux lignes « Next steps » à copier (elles mettent `brew` dans le PATH) :
+qu'il les lance aussi, puis qu'il rouvre Claude Code.
+
+**Windows** : whisper.cpp n'a pas de paquet winget, setup le télécharge lui-même.
+
+```sh
+py <setup>/scripts/setup.py --installe --a-blanc     # ce qu'il fera, rien n'est lancé
+```
+
+Montre-le à l'utilisateur ; sur son accord, `--installe` sans `--a-blanc` : le zip officiel de
+whisper.cpp (GitHub, vérifié par son empreinte) dézippé dans `%LOCALAPPDATA%\whisper.cpp`, où le
+montage le trouve sans toucher au PATH. Le reste, ce sont les commandes `winget` du diagnostic :
+lance-les si l'utilisateur est d'accord (elles portent `--accept-package-agreements
+--accept-source-agreements` : sans elles, winget attend une réponse au premier usage et la
+commande ne rend jamais la main). ffmpeg installé par winget est trouvé tout de suite ; après
+Python, Node ou yt-dlp, il faut fermer et rouvrir le terminal et Claude Code. whisper-cli « ne
+démarre pas » (une DLL manque) : le diagnostic donne la commande du Visual C++ Redistributable.
+
+**Linux** : les commandes `sudo` demandent un mot de passe, l'utilisateur les tape dans son
+terminal. Donne-les telles que le diagnostic les écrit. whisper.cpp : le diagnostic donne de quoi
+le compiler ; un paquet de la distribution qui pose `whisper-cli` convient aussi. yt-dlp :
+`pipx install yt-dlp`, sans `sudo` (le paquet apt est souvent trop vieux pour TikTok).
+
+**Le modèle whisper** : demande « maintenant (1,6 Go) ou au premier montage ? ». Maintenant :
+
+```sh
+python3 <setup>/scripts/setup.py --modele
+```
+
+(en tâche de fond si tu peux, c'est long ; relancé après une coupure, il recommence). Au premier
+montage : rien à faire, il se télécharge tout seul.
+
+**Remotion** : rien à faire, le premier rendu l'installe.
+
+## 5. Écrire la configuration
+
+Avec les réponses, en ne passant que ce que l'utilisateur a choisi (le reste de config.json est
+gardé) :
+
+```sh
+python3 <setup>/scripts/setup.py --ecris --moteur whisper --langue fr --sortie "~/Videos/edited" \
+  --sous-titres oui --remotion oui --police Anton --couleur jaune --json
+```
+
+`--moteur whisper|elevenlabs`, `--langue <code>`, `--sortie <dossier>`, `--sous-titres oui|non`,
+`--remotion oui|non`, `--modele <nom>`, `--police <nom ou fichier>`, `--couleur <nom ou hex>` (les
+noms de la question 7, en français ou en anglais). Police et couleur gardées par défaut : ne passe
+ni `--police` ni `--couleur`. La clé ElevenLabs peut venir dans le même appel
+(`--cle-elevenlabs-stdin`, le presse-papier en entrée). `--ecris` crée aussi le dossier de
+sortie, et retire de config.json une ligne `ffmpeg` qui pointe un ffmpeg disparu ou sans libass
+quand le montage en trouve un meilleur tout seul.
+
+`--police` et `--couleur` écrivent `~/.config/video-editing/style.json`, seulement ce qui change du
+style de base ; les autres clés qui y sont restent telles quelles, et revenir au défaut retire la
+ligne. Une police par son nom que setup ne trouve pas parmi celles de l'ordinateur est écrite quand
+même, et `faits` le dit : vérifie le nom avec l'utilisateur, ou demande-lui le fichier. Un fichier
+`.ttf` / `.otf` introuvable est refusé (code 2), rien n'est écrit.
+
+La sortie contient le diagnostic refait. `pret: true` : dis-le, en une phrase, avec ce qu'il
+faut dire pour la première vidéo : **« monte ma vidéo, les rushs sont dans Téléchargements »**.
+Sinon, ce qui bloque encore, et retour à la section 4.
+
+## Quand c'est le montage qui t'envoie
+
+La skill de montage peut citer cette phrase :
+
+> Il manque un outil, le modèle whisper, la clé ElevenLabs ou un réglage ? Suis la skill `setup`,
+> installée à côté de celle-ci (`../setup/SKILL.md`, son diagnostic :
+> `python3 ../setup/scripts/setup.py --json`, `py` sur Windows), puis reprends le montage là où il
+> s'est arrêté.
+
+Dans ce cas, pas de questionnaire complet :
+
+1. Le diagnostic (section 1).
+2. Répare seulement ce qui a `bloque: true` (section 4). Pour la clé, la section 3.
+3. Ne pose que les questions dont la réponse manque et sans laquelle le montage ne peut pas
+   tourner (par exemple : ElevenLabs choisi, pas de clé → « tu as une clé, ou on passe à
+   whisper ? »). Puis `--ecris` avec ces réponses seulement.
+4. Rends la main au montage : relance la commande qui s'était arrêtée.
+
+## Quand c'est audit ou outliers qui t'envoie
+
+Ils lisent les comptes avec yt-dlp, et transcrivent les hooks avec ffmpeg (sans libass, ça leur
+suffit) et whisper-cli ; sans ces deux-là, ils tournent quand même, les légendes remplacent les
+hooks. Pas de questionnaire :
+
+1. Le diagnostic (section 1).
+2. Installe ce qui manque sur les lignes `ytdlp`, `ffmpeg` et `whisper` (section 4) ; sur macOS,
+   `--installe` prend yt-dlp. Avec ElevenLabs choisi, la ligne whisper-cli dit `option` : leurs
+   hooks passent quand même par whisper ; absent, propose `brew install whisper-cpp` (macOS) sans
+   l'imposer.
+3. Rends la main à la skill qui t'a envoyé (`pret_comptes: true` : yt-dlp est prêt) : elle relance
+   sa commande.
+
+## Le contrat avec la skill de montage
+
+`~/.config/video-editing/config.json`, toutes les clés facultatives ; sans clé, le montage prend
+son défaut :
+
+| clé | valeurs | sans la clé, le montage prend |
+|---|---|---|
+| `stt` | `"whisper"` ou `"elevenlabs"` | `whisper` |
+| `whisper_model` | un nom (`large-v3-turbo`, `small`...) ou le chemin d'un `ggml-*.bin` | `large-v3-turbo`, cherché dans `~/.cache/whisper-cpp/` puis `~/.local/share/whisper-cpp/models/` |
+| `ffmpeg` | le chemin d'un ffmpeg | le premier qui a libass (`ffmpeg-full` de Homebrew d'abord), sinon celui du PATH |
+| `lang` | `"fr"`, `"en"`... | `en` |
+| `output_dir` | un dossier, `~` accepté | `~/Videos/edited` |
+| `subtitles` | `true` / `false` | `true` |
+| `remotion` | `true` / `false` | `true` (sans Node, ffmpeg dessine le titre) |
+
+Sur Windows, `~` est `C:\Users\<toi>` : la configuration est dans
+`C:\Users\<toi>\.config\video-editing\` et le modèle dans `C:\Users\<toi>\.cache\whisper-cpp\`
+(des dossiers en point, à la manière de macOS et Linux : c'est voulu). whisper-cli est cherché dans
+le PATH, puis dans `%LOCALAPPDATA%\whisper.cpp\Release\` ; ffmpeg dans le PATH, puis là où
+`winget install Gyan.FFmpeg` le pose.
+
+`~/.config/video-editing/style.json` : ce qui change du style livré avec le montage (son
+`style.json`, à côté de ses `scripts/`). Setup n'y pose que deux choses :
+
+| clé | posée par | valeur |
+|---|---|---|
+| `font` | `--police` | le nom de la police (`Anton`, `Montserrat Black`) |
+| `font_file` | `--police <fichier>` | le chemin du `.ttf` / `.otf` ; `font` prend alors le nom lu dans le fichier |
+| `captions.highlight`, `split.highlight`, `end_card.box` | `--couleur` | la couleur choisie (le mot dit, le mot du titre sur le bandeau, le fond du carton de fin ; `end_card.color` passe au blanc si la couleur est sombre) |
+| `title.highlight` | `--couleur` | la même teinte, assombrie juste assez pour se lire sur le cadre blanc du titre |
+
+Le reste des clés (tailles, hauteurs, fond, carton de fin) : la section « The look: style.json » de
+`../edit/SKILL.md`, à la main.
+
+La clé ElevenLabs : seulement dans la variable d'environnement `ELEVENLABS_API_KEY`, ou dans
+`~/.config/video-editing/env` (mode 600, une ligne `ELEVENLABS_API_KEY=...`). Jamais dans
+config.json. La variable d'environnement passe avant le fichier.
+
+Ce que le montage en lit vraiment, et d'où vient chaque valeur :
+`python3 <setup>/../edit/scripts/edit_video.py --config`.
+
+## Pannes fréquentes
+
+| ce qu'on voit | quoi faire |
+|---|---|
+| `command not found` juste après une installation | fermer et rouvrir le terminal et Claude Code |
+| Mac : les sous-titres ne s'incrustent pas | la formule `ffmpeg` de Homebrew n'a pas libass : `brew install ffmpeg-full` |
+| Mac : `brew` introuvable alors qu'il est installé | lancer les deux lignes « Next steps » de l'installeur Homebrew, rouvrir le terminal |
+| Mac : Python 3.9 | c'est celui d'Apple : `brew install python` |
+| le téléchargement du modèle s'est arrêté | `setup.py --modele` le recommence |
+| ElevenLabs refuse la clé (401) | clé mal copiée ou supprimée : section 3 |
+| ElevenLabs : quota épuisé | recharger le compte ElevenLabs, ou repasser à whisper (`--ecris --moteur whisper`) |
+| Windows : `python3` ou `python` ouvre le Microsoft Store, ou n'existe pas | `py`, le lanceur de python.org |
+| Windows : winget ne rend pas la main | il attend l'accord sur les conditions : les options `--accept-...` du diagnostic |
+| Windows : whisper-cli ne démarre pas (code 3221225781, « MSVCP140.dll introuvable ») | `winget install Microsoft.VCRedist.2015+.x64`, comme le dit le diagnostic |
+| audit ou outliers : `yt-dlp not found` juste après l'installation | fermer et rouvrir le terminal et Claude Code ; installé par pipx : `pipx ensurepath` d'abord |
+| audit ou outliers : TikTok ne rend plus rien, avec un yt-dlp ancien | `brew upgrade yt-dlp`, `winget upgrade yt-dlp.yt-dlp` ou `pipx upgrade yt-dlp`, puis une seule nouvelle lecture |
+
+## Le banc
+
+```sh
+python3 <setup>/banc/test_setup.py                                   # tout, sans rien installer
+python3 <setup>/scripts/setup.py --simule <setup>/banc/machines/mac-vide.json
+```
+
+Des machines simulées (`banc/machines/*.json` : un Mac neuf, un Mac avec le ffmpeg sans libass,
+Linux, Windows...) disent chacune ce que le diagnostic doit y trouver. Le banc vérifie aussi ce
+que `--ecris` (`style.json` compris) et `--cle-elevenlabs-stdin` écrivent, dans un dossier jetable, et que la clé
+n'apparaît jamais à l'écran.

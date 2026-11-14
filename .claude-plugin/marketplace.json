@@ -1,15 +1,15 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "my-claude-skills",
-  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment, en deux packs : skills/short-video/ (huit skills pour la vidéo courte : TikTok, Instagram Reels) et skills/seo/ (cinq skills SEO). Chaque skill porte le nom de ce qu'elle fait (edit-my-video, find-outliers-in-my-niche…). Trois plugins : short-video (la vidéo courte seule), seo (le SEO seul), vincent-skills (tout).",
+  "description": "Les skills Claude Code que Vincent Ventalon utilise vraiment, en deux packs : skills/short-video/ (huit skills pour la vidéo courte : TikTok, Instagram Reels) et skills/seo/ (cinq skills SEO). Chaque skill porte le nom de ce qu'elle fait (edit, outliers…). Trois plugins : short-video (la vidéo courte seule), seo (le SEO seul), vincent-skills (tout).",
   "owner": {
     "name": "Vincent Ventalon"
   },
   "plugins": [
     {
       "name": "short-video",
-      "description": "La vidéo courte seule (TikTok, Instagram Reels), une skill par tâche : short-video (l'entrée), set-up-video-tools, edit-my-video, cut-long-video-into-shorts, audit-my-account, find-outliers-in-my-niche, write-my-script, publish-my-video.",
-      "version": "3.4.1",
+      "description": "La vidéo courte seule (TikTok, Instagram Reels), une skill par tâche : video (l'entrée), setup, edit, clips, audit, outliers, script, publish.",
+      "version": "4.0.0",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -33,8 +33,8 @@
     },
     {
       "name": "seo",
-      "description": "Le SEO seul, une skill par tâche : audit-my-site-seo (Google lit-il tes pages), analyze-my-competitors (qui tient la page 1), find-keywords-to-write (quoi écrire ensuite, d'après ta Search Console), improve-my-internal-links (le maillage dans le texte), read-my-search-console (ce qui a vraiment bougé).",
-      "version": "2.0.0",
+      "description": "Le SEO seul, une skill par tâche : seo-audit (Google lit-il tes pages), competitors (qui tient la page 1), keywords (quoi écrire ensuite, d'après ta Search Console), internal-links (le maillage dans le texte), search-console (ce qui a vraiment bougé).",
+      "version": "3.0.0",
       "author": {
         "name": "Vincent Ventalon"
       },
@@ -56,8 +56,8 @@
     },
     {
       "name": "vincent-skills",
-      "description": "Tout : les huit skills vidéo courte (short-video, set-up-video-tools, edit-my-video, cut-long-video-into-shorts, audit-my-account, find-outliers-in-my-niche, write-my-script, publish-my-video) et les cinq skills SEO (audit-my-site-seo, analyze-my-competitors, find-keywords-to-write, improve-my-internal-links, read-my-search-console).",
-      "version": "3.4.1",
+      "description": "Tout : les huit skills vidéo courte (video, setup, edit, clips, audit, outliers, script, publish) et les cinq skills SEO (seo-audit, competitors, keywords, internal-links, search-console).",
+      "version": "4.0.0",
       "author": {
         "name": "Vincent Ventalon"
       },
