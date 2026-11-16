@@ -200,6 +200,8 @@ prêt à poster (`post.md` : titre, descriptions, hashtags, couverture, où cliq
 | Mac : `brew` introuvable juste après l'avoir installé | lance les deux lignes « Next steps » que l'installeur de Homebrew a affichées, puis rouvre le terminal |
 | le premier montage est long | le modèle whisper (1,6 Go) se télécharge, une seule fois |
 | le téléchargement du modèle s'est arrêté | « relance le téléchargement du modèle whisper » |
+| dans Codex, la transcription est plus lente | son bac à sable cache la carte graphique à whisper : la skill repasse toute seule sur le processeur |
+| dans Codex, le titre n'est pas animé | Remotion ne peut pas s'installer dans le dossier de la skill : ffmpeg dessine le titre et le carton de fin |
 | rien n'est coupé, il y a du bruit de fond (rue, ventilateur) | « coupe plus fort, il y a du bruit » (le seuil de silence, `--noise 25`) |
 | une vidéo de 0 s ou une erreur `concat` | tes rushs n'ont pas le même format (taille, images par seconde) : monte-les un par un |
 | ElevenLabs refuse la clé | clé mal copiée ou supprimée : « change ma clé ElevenLabs » |

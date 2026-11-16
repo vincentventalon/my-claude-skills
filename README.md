@@ -62,7 +62,7 @@ Trois façons, pour un pack ou pour tout. Dans les trois, une skill s'installe s
 (`edit`, `keywords`…), sans le dossier de catégorie, et tu n'es pas obligé de taper son nom :
 dis à Claude ce que tu veux, il reconnaît la tâche.
 
-### Avec `npx skills` (Claude Code, et les autres agents)
+### Avec `npx skills` (Claude Code, Codex, et les autres agents)
 
 Dans le dossier de ton projet :
 
@@ -73,6 +73,17 @@ npx skills add vincentventalon/my-claude-skills -a claude-code
 Il te montre la liste et tu coches ce que tu veux : la vidéo seule, le SEO seul, ou tout. Ajoute
 `-g` pour les installer pour tous tes projets, `--skill setup edit` pour les nommer sans passer
 par la liste (`setup` et `edit` vont ensemble). Pour mettre à jour : `npx skills update`.
+
+**Dans Codex**, la même ligne avec `-a codex` :
+
+```sh
+npx skills add vincentventalon/my-claude-skills -a codex
+```
+
+Puis tu lui parles pareil : « installe la skill vidéo », « monte ma vidéo ». Deux différences,
+à cause de son bac à sable : whisper y tourne sur le processeur (la skill bascule toute seule,
+c'est plus lent), et Remotion ne peut pas s'installer dans le dossier de la skill, alors ffmpeg
+dessine le titre et le carton de fin. La vidéo sort quand même, sous-titrée.
 
 ### Avec le plugin Claude Code
 

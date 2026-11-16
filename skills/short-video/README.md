@@ -80,7 +80,8 @@ courantes) : [le guide de `edit`](edit/README.md).
 ## Installer
 
 Le pack s'installe seul ou avec le pack SEO, de trois façons (npx skills, le plugin Claude Code
-`short-video`, à la main) : [le README du dépôt](../../README.md#installer). Puis, trois étapes jusqu'à
+`short-video`, à la main) : [le README du dépôt](../../README.md#installer). Dans Codex, c'est la
+ligne `npx skills` avec `-a codex`. Puis, trois étapes jusqu'à
 ta première vidéo montée :
 
 1. **Ouvre Claude Code** dans le dossier de ton projet.

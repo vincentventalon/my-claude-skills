@@ -65,6 +65,25 @@ def whisper_failed(binary, code, err):
 
 
 # --- whisper ------------------------------------------------------------------------
+NO_GPU = []      # becomes ['-ng'] once whisper-cli has been killed with the GPU on (whisper_run)
+
+
+def whisper_run(cmd, names, cwd):
+    """Run whisper-cli on the files `names` of `cwd`. Killed by a signal with the GPU on (an agent's
+    sandbox that hides Metal from it, as the one of Codex does: code -11 before a single word): run
+    it again on the CPU, and stay there for the rest of this video. Slower, same words. A plain
+    error (a bad model, a missing DLL) is not the GPU: it goes up as it is."""
+    kw = dict(cwd=cwd, check=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
+    try:
+        return subprocess.run(cmd + NO_GPU + names, **kw)
+    except subprocess.CalledProcessError as e:
+        if NO_GPU or e.returncode >= 0:
+            raise
+        say(f'whisper-cli stopped (code {e.returncode}) with the GPU on: again on the CPU, slower...')
+        NO_GPU.append('-ng')
+        return subprocess.run(cmd + NO_GPU + names, **kw)
+
+
 def find_model(name):
     """An existing ggml-*.bin: the path given, else ggml-<name>.bin in a known folder. None if absent."""
     if os.path.exists(os.path.expanduser(name)):
@@ -178,9 +197,8 @@ def whisper_spans(wav, spans, todo, dur, model, lang, binary, ff, dtw=False):
             # the pieces by their bare name, from their folder: whisper-cli reads its arguments in the
             # Windows code page, a name like 12.wav never needs it (nor makes the line long)
             try:
-                subprocess.run([binary, '-m', model, '-l', lang, '-t', threads, '-np', '-ml', '1', '-sow',
-                                '-osrt', '-ojf'] + timing + [os.path.basename(f) for f in files[n:n + 150]],
-                               cwd=d, check=True, capture_output=True, text=True, encoding='utf-8', errors='replace')
+                whisper_run([binary, '-m', model, '-l', lang, '-t', threads, '-np', '-ml', '1', '-sow',
+                             '-osrt', '-ojf'] + timing, [os.path.basename(f) for f in files[n:n + 150]], d)
             except subprocess.CalledProcessError as e:
                 sys.exit(whisper_failed(binary, e.returncode, e.stderr))
         out = []
