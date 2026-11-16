@@ -658,7 +658,7 @@ else:
     open(fg, 'w', encoding='utf-8').write(
         v + a_ + f'{pairs}concat=n={len(segs)}:v=1:a=1[vc][a];[vc]null{TONEMAP}[v]')
     say(f'rendering the cut ({kept_dur:.0f}s)...')
-    run([FF, '-y', '-i', merged, '-filter_complex_script', fg, '-map', '[v]', '-map', '[a]',
+    run([FF, '-y', '-i', merged, settings.graph_option(FF), fg, '-map', '[v]', '-map', '[a]',
          '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
          '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', CUT])
 say(f'-> {CUT}')

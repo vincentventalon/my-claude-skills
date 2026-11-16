@@ -88,6 +88,25 @@ def has_filter(ff, name):
     return _LIBASS[(ff, name)]
 
 
+_GRAPH = {}
+
+
+def graph_option(ff):
+    """The option that makes this ffmpeg read its filter graph from a file. Up to 8.x it is
+    `-filter_complex_script` (the 6.1 of Ubuntu knows only that one); ffmpeg 9 removed it
+    ("Unrecognized option") for `-/filter_complex`. Ask this ffmpeg instead of reading its
+    version number: one built from git has none. Not found: the old option, its own error follows."""
+    if ff not in _GRAPH:
+        try:
+            r = subprocess.run([ff, '-hide_banner', '-filter_complex_script', os.devnull], stdin=subprocess.DEVNULL,
+                               capture_output=True, text=True, errors='replace', timeout=30)
+            gone = "Unrecognized option 'filter_complex_script'" in (r.stderr or '')
+        except (OSError, subprocess.SubprocessError):
+            gone = False
+        _GRAPH[ff] = '-/filter_complex' if gone else '-filter_complex_script'
+    return _GRAPH[ff]
+
+
 def windows_ffmpegs():
     """Windows: where `winget install Gyan.FFmpeg` puts ffmpeg (its link, then the package itself)."""
     if os.name != 'nt':

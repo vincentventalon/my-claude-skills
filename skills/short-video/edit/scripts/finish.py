@@ -31,6 +31,8 @@ are the paid version.
 """
 import json, math, os, re, shutil, struct, subprocess, sys, zlib
 
+import settings  # beside this file: the option that reads the filter graph depends on the ffmpeg
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 STYLE = os.path.join(SKILL, 'style.json')
@@ -654,7 +656,7 @@ def render(ff, cut, out, L, work, views, st, ass=None, cards=(), audio_filter=No
     g.append(f'[0:a]{audio_filter or "anull"}{trim}[a]')
     fg = os.path.join(work, f'fg-{os.path.basename(out)}.txt')
     open(fg, 'w', encoding='utf-8').write(';\n'.join(g))
-    r = subprocess.run([ff, '-hide_banner', '-y', *inputs, '-filter_complex_script', fg,
+    r = subprocess.run([ff, '-hide_banner', '-y', *inputs, settings.graph_option(ff), fg,
                         '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20',
                         '-profile:v', 'high', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out],
                        cwd=work, capture_output=True, text=True, encoding='utf-8', errors='replace')
