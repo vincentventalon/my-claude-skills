@@ -82,7 +82,8 @@ npx skills add vincentventalon/my-claude-skills -a codex
 
 Puis tu lui parles pareil : « installe la skill vidéo », « monte ma vidéo ». Deux différences,
 à cause de son bac à sable : whisper y tourne sur le processeur (la skill bascule toute seule,
-c'est plus lent), et Remotion ne peut pas s'installer dans le dossier de la skill, alors ffmpeg
+mais la transcription est bien plus lente : si c'est trop long, « prends le modèle small », ou
+ElevenLabs), et Remotion ne peut pas s'installer dans le dossier de la skill, alors ffmpeg
 dessine le titre et le carton de fin. La vidéo sort quand même, sous-titrée.
 
 ### Avec le plugin Claude Code
