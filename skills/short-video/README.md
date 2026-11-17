@@ -79,12 +79,20 @@ courantes) : [le guide de `edit`](edit/README.md).
 
 ## Installer
 
-Le pack s'installe seul ou avec le pack SEO, de trois façons (npx skills, le plugin Claude Code
-`short-video`, à la main) : [le README du dépôt](../../README.md#installer). Dans Codex, c'est la
-ligne `npx skills` avec `-a codex`. Puis, trois étapes jusqu'à
-ta première vidéo montée :
+Le plus simple : ouvre Claude Code dans ton dossier (l'app Claude, onglet Code, ou le terminal)
+et colle cette phrase :
 
-1. **Ouvre Claude Code** dans le dossier de ton projet.
+```text
+Installe le pack short-video de https://github.com/vincentventalon/my-claude-skills dans ce dossier, pour Claude Code
+```
+
+Claude copie les huit skills dans `.claude/skills/` de ton dossier. Comment avoir Claude Code, ce
+que Claude fait avec la phrase, et les autres façons (npx skills, le plugin Claude Code
+`short-video`, à la main ; dans Codex, la ligne `npx skills` avec `-a codex`) :
+[le README du dépôt](../../README.md#installer). Puis, trois étapes jusqu'à ta première vidéo
+montée :
+
+1. **Ouvre une nouvelle session** de Claude Code dans ce dossier, pour qu'il charge les skills.
 2. **`/setup`** (ou « installe la skill vidéo ») : Claude regarde ce qui est installé sur ta
    machine, te fait choisir whisper ou ElevenLabs, pose ta langue, ton dossier de sortie, ta police et ta
    couleur, et

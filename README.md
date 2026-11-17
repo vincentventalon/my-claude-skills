@@ -58,9 +58,47 @@ partagé, mesuré contre jugé, puis l'installation et l'accès Google.
 
 ## Installer
 
-Trois façons, pour un pack ou pour tout. Dans les trois, une skill s'installe sous son nom
-(`edit`, `keywords`…), sans le dossier de catégorie, et tu n'es pas obligé de taper son nom :
-dis à Claude ce que tu veux, il reconnaît la tâche.
+### D'abord, Claude Code
+
+Les skills tournent dans Claude Code, qui demande un abonnement Claude payant (Pro ou plus : le
+plan gratuit n'a pas Claude Code). Deux façons de l'avoir, Mac ou Windows :
+
+- **L'app Claude**, sans terminal : télécharge-la sur [claude.com/download](https://claude.com/download),
+  connecte-toi, passe sur l'onglet **Code**, puis choisis ton dossier (« Open folder… »). Claude Code
+  est dedans, rien d'autre à installer.
+- **Le terminal** : macOS et Linux, `curl -fsSL https://claude.ai/install.sh | bash` ; Windows
+  (PowerShell), `irm https://claude.ai/install.ps1 | iex`. Ouvre un nouveau terminal, va dans ton
+  dossier et tape `claude`.
+
+### En une phrase (le pack vidéo courte)
+
+Dans Claude Code ouvert dans ton dossier, l'app ou le terminal, colle cette phrase :
+
+```text
+Installe le pack short-video de https://github.com/vincentventalon/my-claude-skills dans ce dossier, pour Claude Code
+```
+
+Claude récupère le dépôt, copie les huit skills dans le dossier `.claude/skills/` de ton dossier
+et te dit ce qu'il a fait (il te demande ton accord avant chaque commande, sauf si tu l'as
+désactivé). Ouvre ensuite **une nouvelle session** : les skills sont là sous leur nom, `/setup`,
+`/edit`… Commence par `/setup`. Pour mettre à jour, recolle la même phrase.
+
+Ce que Claude fait avec cette phrase, pour que tu le saches (et pour qu'il le lise) :
+
+1. Il récupère le dépôt dans un dossier temporaire : `git clone --depth 1
+   https://github.com/vincentventalon/my-claude-skills.git`, ou, sans git, l'archive
+   `https://github.com/vincentventalon/my-claude-skills/archive/refs/heads/main.zip` dézippée
+   (le dossier s'appelle alors `my-claude-skills-main`).
+2. Il copie chaque dossier de `skills/short-video/` (le dossier lui-même, pas seulement son
+   contenu) dans `.claude/skills/` du dossier ouvert : `video`, `setup`, `audit`, `outliers`,
+   `script`, `edit`, `clips`, `publish`, chacun avec son `SKILL.md`. Pas dans `~/.claude/skills/`,
+   sauf si tu le demandes.
+3. Il supprime le dossier temporaire et n'installe rien d'autre : ffmpeg, whisper et le reste,
+   c'est `/setup` qui les installe, après t'avoir montré les commandes.
+
+Les autres façons ci-dessous installent aussi le pack SEO, ou les deux. Dans toutes, une skill
+s'installe sous son nom (`edit`, `keywords`…), sans le dossier de catégorie, et tu n'es pas
+obligé de taper son nom : dis à Claude ce que tu veux, il reconnaît la tâche.
 
 ### Avec `npx skills` (Claude Code, Codex, et les autres agents)
 
@@ -102,6 +140,11 @@ Pour le SEO seul, `/plugin install seo@my-claude-skills` ; pour tout,
 Depuis un terminal, les mêmes commandes s'écrivent `claude plugin marketplace add …` et
 `claude plugin install …`. Relance Claude Code après l'installation. Les skills apparaissent sous
 le nom du plugin (`/short-video:edit`).
+
+Ces commandes `/plugin` sont celles de Claude Code **dans le terminal**. Dans l'app Claude (onglet
+Code), prends plutôt la phrase plus haut : d'après la documentation d'Anthropic, l'app n'a pas la
+commande `/plugin` mais son propre gestionnaire de plugins (le bouton **+** à côté de la zone de
+texte), et je n'ai pas encore essayé d'y ajouter ce dépôt.
 
 ### À la main
 
@@ -184,7 +227,9 @@ Free Claude Code skills in two packs: [short video](skills/short-video/README.md
 and publish talking-head videos for TikTok and Instagram Reels, cut a long video into shorts, audit
 your own account) and [SEO](skills/seo/README.md) (technical audit, competitors, keywords,
 internal links, Search Console), one skill per job. Install with
-`npx skills add vincentventalon/my-claude-skills -a claude-code`. `video`, `edit`, `clips`,
+`npx skills add vincentventalon/my-claude-skills -a claude-code`, or paste this sentence into
+Claude Code (the Claude app's Code tab or the terminal), in your folder: `Install the short-video
+pack from https://github.com/vincentventalon/my-claude-skills in this folder, for Claude Code`. `video`, `edit`, `clips`,
 `audit`, `outliers` and `publish` work in English as well as in French (their guides are in
 French); `setup`, `script` and the five SEO skills are written in French.
 
