@@ -92,7 +92,20 @@ Ce que Claude fait avec cette phrase, pour que tu le saches (et pour qu'il le li
 2. Il copie chaque dossier de `skills/short-video/` (le dossier lui-même, pas seulement son
    contenu) dans `.claude/skills/` du dossier ouvert : `video`, `setup`, `audit`, `outliers`,
    `script`, `edit`, `clips`, `publish`, chacun avec son `SKILL.md`. Pas dans `~/.claude/skills/`,
-   sauf si tu le demandes.
+   sauf si tu le demandes. Sur Mac, `cp -R dossier/` (avec la barre finale) copie le contenu en
+   vrac : on nomme les dossiers.
+
+   ```sh
+   # macOS, Linux (<dépôt> = le dossier temporaire)
+   mkdir -p .claude/skills
+   cp -R <dépôt>/skills/short-video/{video,setup,audit,outliers,script,edit,clips,publish} .claude/skills/
+   ```
+
+   ```powershell
+   # Windows (PowerShell)
+   New-Item -ItemType Directory -Force .claude\skills | Out-Null
+   Get-ChildItem <dépôt>\skills\short-video -Directory | Copy-Item -Destination .claude\skills -Recurse -Force
+   ```
 3. Il supprime le dossier temporaire et n'installe rien d'autre : ffmpeg, whisper et le reste,
    c'est `/setup` qui les installe, après t'avoir montré les commandes.
 
