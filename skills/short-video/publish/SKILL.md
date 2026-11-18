@@ -66,12 +66,23 @@ Nadia's connector (usenadia.com) schedules from Claude, without insisting.
   Keep what matters inside the central 3:4 (y 240 to 1680 on a 1080x1920):
   the profile grid crops to it. Through Nadia, TikTok and Instagram take a
   frame of the video: no image to send.
-- **Music** (optional, only if they ask for a bed under the voice): with
-  Nadia, `musicPickTool` with `durationS` = the length; propose 2 or 3
-  tracks (title, artist, what it sounds like), they choose; mix it with the
-  recipe the tool gives (12 LU under the voice, a 2 s fade at the end, the
-  voice untouched) into `<base>.music.mp4`, which becomes `<video>`. Its
-  `creditLine`, when there is one, goes in every description (step 4, line 5).
+- **Music** (optional, only if they ask for a bed under the voice): a track
+  they bring, free to reuse (public domain, CC0 or CC-BY, never a song they
+  do not own), with its page. Measure the voice and the track the same way
+  (`ffmpeg -i <file> -af ebur128 -f null -`, the last `I:` line), set the
+  track 12 LU under the voice (gain = voice - 12 - track, in dB), from second
+  0, looped when shorter, a 2 s fade at the end, the voice untouched:
+
+  ```sh
+  ffmpeg -v error -y -i <video> -stream_loop -1 -i <track> -filter_complex \
+    "[1:a]volume=<gain>dB,afade=t=out:st=<length - 2>:d=2[m];[0:a][m]amix=inputs=2:duration=first:normalize=0[a]" \
+    -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k <base>.music.mp4
+  ```
+
+  `<base>.music.mp4` becomes `<video>`. A CC-BY track owes its credit line
+  (title, artist, licence, as its page asks; in French
+  `Musique : <title> — <artist> · CC-BY 4.0`) in every description (step 4,
+  line 5).
 
 ## 4. The texts
 
